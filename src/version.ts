@@ -5,7 +5,7 @@
    CHANGELOG 에 한 줄씩 남긴다.
    ══════════════════════════════════════════════════════════════════════ */
 
-export const APP_VERSION = '0.07'
+export const APP_VERSION = '0.08'
 
 export const CONTACT = {
   dept: '개인마케팅교육본부 / 영업교육운영파트',
@@ -31,6 +31,10 @@ export const TOTAL_PAGES = 6
 
 /** 수정 이력 (최신이 위) */
 export const CHANGELOG: { version: string; note: string }[] = [
+  {
+    version: '0.08',
+    note: '액션플랜 디자인 재구성 — 원본 표 양식(강점/약점 × Action Plan 3행)을 현대해상 CI(오렌지·네이비)로 재현, 인쇄 글자 3px 확대',
+  },
   {
     version: '0.07',
     note: '인쇄 버튼 멈춤 현상 수정 — 폰트 대기·이미지 캡처에 타임아웃 추가, 10초 이상 걸리면 "닫기" 버튼 노출, 인쇄/이미지 저장 안내 문구 구분',

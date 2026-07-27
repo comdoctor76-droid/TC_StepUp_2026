@@ -1272,96 +1272,74 @@
   margin: 0 0 20px;
   font-size: 26px;
   font-weight: 800;
-  color: var(--hi-navy);
+  color: var(--ink);
   letter-spacing: -0.02em;
-  text-align: center;
-  padding-bottom: 16px;
-  border-bottom: 2px solid var(--hi-orange-line);
+  word-break: keep-all;
 }
-.plan__cams {
+
+/* ── 강점/약점 표 — 원본 표(라벨 열 + Action Plan 열, 3행)를 CSS 그리드로 재현.
+   div 를 grid item 으로 바로 쓰고, 행 하나는 display:contents 로 감싸 두 셀이
+   같은 그리드 행에 나란히 들어가면서 짝수/홀수 배경만 함께 바뀌도록 한다. */
+.plan__forms {
   display: flex;
-  align-items: center;
-  gap: 14px;
-  flex-wrap: wrap;
-  background: var(--hi-orange-soft);
-  border-radius: 10px;
-  padding: 12px 16px;
-  margin-bottom: 22px;
-}
-.plan__cams-label {
-  font-size: 15px;
-  font-weight: 700;
-  color: var(--hi-navy);
-}
-.plan__cams ul {
-  display: flex;
-  gap: 16px;
-  list-style: none;
-  margin: 0;
-  padding: 0;
-  flex-wrap: wrap;
-}
-.plan__cams li {
-  font-size: 15px;
-  color: var(--ink-2);
-}
-.plan__cams li b {
-  color: var(--hi-orange-deep);
-  margin-right: 3px;
-}
-.plan__cams li em {
-  font-style: normal;
-  font-weight: 800;
-  font-size: 17px;
-  color: var(--hi-navy);
-  margin-left: 5px;
-}
-.plan__cams li.is-na em {
-  color: var(--ink-3);
-  font-weight: 600;
-}
-.plan__cams-note {
-  margin-left: auto;
-  font-size: 13.5px;
-  color: var(--ink-3);
-}
-.plan__slots {
-  list-style: none;
-  margin: 0;
-  padding: 0;
+  flex-direction: column;
+  gap: 22px;
   position: relative;
   z-index: 1;
 }
-.plan__slots li {
-  display: flex;
-  gap: 14px;
-  align-items: flex-start;
-  padding: 14px 0;
+.plan__table {
+  display: grid;
+  grid-template-columns: 38% 62%;
+  grid-template-rows: auto repeat(3, minmax(74px, auto));
+  border-radius: 10px;
+  overflow: hidden;
+  border: 1px solid var(--line);
 }
-.plan__slots li + li {
-  border-top: 1px dashed var(--line);
+.plan__row {
+  display: contents;
 }
-.plan__no {
-  flex: 0 0 auto;
-  width: 30px;
-  height: 30px;
-  border-radius: 50%;
-  background: var(--hi-orange);
+.plan__th {
+  padding: 12px 16px;
   color: #fff;
   font-weight: 800;
-  font-size: 16px;
-  display: grid;
-  place-items: center;
+  font-size: 18px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  gap: 4px;
+  /* "강점" 같은 두 글자 단어가 좁은 라벨 열에서 글자 사이로 쪼개지지 않게 */
+  word-break: keep-all;
 }
-.plan__lines {
-  flex: 1 1 auto;
-  display: block;
-  padding-top: 4px;
+.plan__th span {
+  font-weight: 600;
+  font-size: 13px;
+  opacity: 0.92;
 }
-.plan__lines i {
-  display: block;
-  height: 26px;
-  border-bottom: 1px solid var(--hi-orange-line);
+.plan__table--strength .plan__th {
+  background: linear-gradient(100deg, var(--hi-orange) 0%, var(--hi-orange-deep) 100%);
+}
+.plan__table--weak .plan__th {
+  background: linear-gradient(100deg, var(--hi-navy) 0%, #001a3d 100%);
+}
+.plan__td {
+  border-top: 1px solid var(--line);
+}
+.plan__td--label {
+  border-right: 1px solid var(--line);
+}
+.plan__table--strength .plan__td {
+  background: var(--hi-orange-soft);
+}
+.plan__table--strength .plan__td--alt {
+  background: #fffaf2;
+}
+.plan__table--weak .plan__td {
+  background: var(--hi-navy-soft);
+}
+.plan__table--weak .plan__td--alt {
+  background: #f6f9fc;
 }
 .plan__sign {
   margin-top: 26px;
@@ -1376,7 +1354,8 @@
   z-index: 1;
 }
 
-/* 인쇄용 압축 */
+/* 인쇄용 압축 — 표가 페이지 남은 높이를 정확히 채우도록 flex 로 늘린다.
+   글자는 화면판보다 오히려 더 크게 잡는다(인쇄 시안성 우선, v0.06 원칙과 동일). */
 .plan--dense {
   border-radius: 3px;
   box-shadow: none;
@@ -1395,54 +1374,28 @@
 }
 .plan--dense .plan__headline {
   font-size: 21px;
-  margin: 0 0 12px;
-  padding-bottom: 10px;
+  margin: 0 0 10px;
 }
-.plan--dense .plan__cams {
-  padding: 5px 8px;
-  margin-bottom: 10px;
-  gap: 8px;
-  border-radius: 4px;
-}
-.plan--dense .plan__cams-label,
-.plan--dense .plan__cams li {
-  font-size: 13.5px;
-}
-.plan--dense .plan__cams li em {
-  font-size: 15px;
-}
-.plan--dense .plan__cams-note {
-  font-size: 11px;
-}
-.plan--dense .plan__slots {
+.plan--dense .plan__forms {
   flex: 1 1 auto;
-  display: flex;
-  flex-direction: column;
-}
-.plan--dense .plan__slots li {
-  flex: 1 1 0;
-}
-.plan--dense .plan__lines {
-  display: flex;
-  flex-direction: column;
-  justify-content: space-evenly;
-  height: 100%;
-}
-.plan--dense .plan__slots li {
-  padding: 11px 0;
+  min-height: 0;
   gap: 10px;
 }
-.plan--dense .plan__no {
-  width: 26px;
-  height: 26px;
-  font-size: 14px;
+.plan--dense .plan__table {
+  flex: 1 1 0;
+  min-height: 0;
+  grid-template-rows: auto repeat(3, 1fr);
 }
-.plan--dense .plan__lines i {
-  height: 38px;
+.plan--dense .plan__th {
+  padding: 6px 10px;
+  font-size: 15px;
+}
+.plan--dense .plan__th span {
+  font-size: 11px;
 }
 .plan--dense .plan__sign {
-  margin-top: 14px;
-  padding-top: 10px;
+  margin-top: 10px;
+  padding-top: 8px;
   font-size: 14px;
   gap: 26px;
 }
@@ -1454,9 +1407,8 @@
   .plan__headline {
     font-size: 21px;
   }
-  .plan__cams-note {
-    margin-left: 0;
-    width: 100%;
+  .plan__table {
+    grid-template-columns: 32% 68%;
   }
   .plan__sign {
     flex-direction: column;
