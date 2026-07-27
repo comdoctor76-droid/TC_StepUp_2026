@@ -5,7 +5,7 @@ import { LineTrend } from '../components/charts/LineTrend'
 import { ChartCard } from '../components/charts/Frame'
 import { SimpleTable } from '../components/CompareTable'
 import { SERIES } from '../components/charts/palette'
-import { dec2, int } from '../calc/format'
+import { dec1, dec2, int, ymShort } from '../calc/format'
 import type { FullAnalysis } from '../calc'
 
 export function CustomerTab({ A, dense }: { A: FullAnalysis; dense?: boolean }) {
@@ -14,7 +14,7 @@ export function CustomerTab({ A, dense }: { A: FullAnalysis; dense?: boolean }) 
   const name = A.profile.name
 
   const S = dense
-    ? { trio: { w: 224, h: 158 }, wide: { w: 700, h: 168 }, band: { w: 700, h: 176 } }
+    ? { trio: { w: 224, h: 146 }, wide: { w: 700, h: 150 }, band: { w: 700, h: 158 } }
     : { trio: { h: 240 }, wide: { h: 260 }, band: { h: 280 } }
 
   return (
@@ -59,12 +59,13 @@ export function CustomerTab({ A, dense }: { A: FullAnalysis; dense?: boolean }) 
 
       <h2 className="sec">▶ 플래너 최근 유지고객 추이</h2>
       <ChartCard>
+        {/* 원본 chart6(신·구 공통)은 본인 총유지고객만 그린다 (C분석!CU29:CZ29).
+            TC 표준그룹(CU32:CZ32)은 자릿수가 크게 달라 같은 축에 두면 본인 추이가
+            눌리므로, 원본대로 차트에서 빼고 아래 표에만 싣는다. */}
         <LineTrend
           {...S.wide}
           dense={dense}
           data={c.trend}
-          /* 원본 C분석!chart6 은 총유지고객만 그린다.
-             자동차(14~16명)를 같은 축에 두면 스케일이 눌려 추이가 안 보인다. */
           series={[
             { key: '총유지', color: SERIES.self },
             { key: '장기', color: SERIES.tc, dashed: true },
@@ -72,6 +73,31 @@ export function CustomerTab({ A, dense }: { A: FullAnalysis; dense?: boolean }) 
           format={(v) => int(v)}
         />
       </ChartCard>
+
+      {/* C분석!DC31:DG32 — 월별 증감 / 2개월 이동평균 */}
+      <SimpleTable
+        dense={dense}
+        head={['구분', ...c.trend.map((t) => ymShort(t.month))]}
+        rows={[
+          ['총유지고객', ...c.trend.map((t) => int(t.총유지))],
+          [
+            '전월 대비',
+            ...c.trend.map((t) =>
+              t.delta === null ? (
+                '-'
+              ) : t.delta > 0 ? (
+                <span className="pos">▲ {int(t.delta)}명</span>
+              ) : t.delta < 0 ? (
+                <span className="neg">▼ {int(-t.delta)}명</span>
+              ) : (
+                '-'
+              ),
+            ),
+          ],
+          ['2개월 평균', ...c.trend.map((t) => (t.movingAvg === null ? '-' : dec1(t.movingAvg)))],
+          ['TC 표준그룹', ...c.trend.map((t) => int(t.TC표준그룹))],
+        ]}
+      />
 
       <h2 className="sec">▣ 참고 : 소득군별 평균 보유고객 인원 현황</h2>
       <ChartCard>

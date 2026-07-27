@@ -5,6 +5,7 @@ import { uploadParsed } from '../data/upload'
 import { clearCache, sha256 } from '../data/repository'
 import { adminSignIn, adminSignOut, isAdminUser, watchAuth } from '../session'
 import { TC_GROUP } from '../data/schema'
+import { DEFAULT_CAPTION, REPORT_TITLE_SHORT } from '../version'
 
 const DEFAULT_MONTHS = '202601-202606'
 
@@ -87,7 +88,7 @@ function AdminPanel({ user }: { user: User }) {
   const [parsed, setParsed] = useState<ParsedWorkbook | null>(null)
   const [fileName, setFileName] = useState('')
   const [monthSpec, setMonthSpec] = useState(DEFAULT_MONTHS)
-  const [caption, setCaption] = useState('(영업교육운영파트)')
+  const [caption, setCaption] = useState(DEFAULT_CAPTION)
   const [viewerPw, setViewerPw] = useState('')
   const [resume, setResume] = useState(true)
   const [status, setStatus] = useState<string | null>(null)
@@ -202,7 +203,7 @@ function AdminPanel({ user }: { user: User }) {
             }}
           />
           <p>
-            <b>하이플래너 자가진단 레포트 .xlsx</b> 를 여기에 끌어다 놓거나 클릭해서 선택
+            <b>{REPORT_TITLE_SHORT} 원본 .xlsx</b> 를 여기에 끌어다 놓거나 클릭해서 선택
           </p>
           <small>읽는 시트 : input · 소득별Data · Q6 유지고객 · Q7 장기건수</small>
           {fileName && <p className="drop__file">{fileName}</p>}

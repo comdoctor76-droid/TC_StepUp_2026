@@ -61,8 +61,9 @@ export interface MarketAnalysis {
   /** 보험료 구성(일반/자동차/보장성/저축성) — M분석!DH27:DP32 */
   premiumMix: { label: string; 일반: number; 자동차: number; 보장성: number; 저축성: number }[]
 
-  /** chart17~19 — 인보험 보종별 "건수" 구성비 */
-  countShare: { self: Share[]; peer: Share[]; tc: Share[] }
+  /** chart17~19 — 인보험 보종별 "건수" 구성비
+   *  next(차상급)는 레포트!L34/M34 가 참조하므로 함께 계산한다 */
+  countShare: { self: Share[]; peer: Share[]; next: Share[]; tc: Share[] }
 
   /** chart20~22 — 주력상품 "보험료" 구성비 */
   premiumShare: { self: Share[]; peer: Share[]; tc: Share[] }
@@ -93,29 +94,24 @@ export function analyzeMarket(ctx: Ctx, selfName: string): MarketAnalysis {
     autoRate: div(auto, long + auto), // DD
     linkRate: div(link, long), // DE
   })
+  // ⚠️ M분석은 벤치마크에 ROUND 를 쓰지 않는다.
+  //    구버전 워크북은 ROUND(VLOOKUP(...),0) 였으나 신버전에서 ROUND 가 삭제됐다
+  //    (M분석!CX29:CZ29, CX30:CZ30, CX32:CZ32 — 27개 셀).
+  //    C분석·A분석·S분석은 여전히 ROUND 를 쓰므로 resolve.ts 의 공용
+  //    benchBlock() 은 절대 건드리면 안 된다.
   const mix = [
     mixRow(selfName, ctx.f('longCustNet'), ctx.f('autoCustNet'), ctx.f('bothCustNet')),
-    mixRow(
-      '동급',
-      xround(ctx.peer('longCustNet'), 0),
-      xround(ctx.peer('autoCustNet'), 0),
-      xround(ctx.peer('bothCustNet'), 0),
-    ),
+    mixRow('동급', ctx.peer('longCustNet'), ctx.peer('autoCustNet'), ctx.peer('bothCustNet')),
     mixRow(
       '차상급',
-      xround(ctx.next('longCustNet'), 0),
+      ctx.next('longCustNet'),
       // ⚠️ 원본 M분석!CY30 은 인덱스 44(자동차고객수, 이관 포함)를 참조한다.
       //    같은 행의 CX30/CZ30 은 이관제외(54/55)를 쓰므로 원본의 불일치다.
       //    표시값을 원본과 맞추기 위해 그대로 둔다.
-      xround(ctx.next('autoCust'), 0),
-      xround(ctx.next('bothCustNet'), 0),
+      ctx.next('autoCust'),
+      ctx.next('bothCustNet'),
     ),
-    mixRow(
-      'TC 표준그룹',
-      xround(ctx.tc('longCustNet'), 0),
-      xround(ctx.tc('autoCustNet'), 0),
-      xround(ctx.tc('bothCustNet'), 0),
-    ),
+    mixRow('TC 표준그룹', ctx.tc('longCustNet'), ctx.tc('autoCustNet'), ctx.tc('bothCustNet')),
   ]
 
   // ── 보험료 구성 : M분석!DH27:DP32 ──────────────────────────────────
@@ -161,14 +157,17 @@ export function analyzeMarket(ctx: Ctx, selfName: string): MarketAnalysis {
   // ── 주력상품 건수/보험료 구성비 : M분석!DS27:EE32, EG27:ES32 ────────
   const selfCounts = PRODUCTS.map((p) => ({ label: p.label, value: ctx.f(PROD_FIELD[p.key].cnt) }))
   const selfPrems = PRODUCTS.map((p) => ({ label: p.label, value: ctx.f(PROD_FIELD[p.key].prem) }))
+  // 건수는 ROUND 없음 (M분석!DS29:DX29 등에서 삭제됨)
   const benchCounts = (get: (k: BenchFieldKey) => number) =>
-    PRODUCTS.map((p) => ({ label: p.label, value: xround(get(PROD_BENCH[p.key].cnt), 0) }))
+    PRODUCTS.map((p) => ({ label: p.label, value: get(PROD_BENCH[p.key].cnt) }))
+  // 보험료는 ROUND 유지 (M분석!EG29:EL29 는 그대로다)
   const benchPrems = (get: (k: BenchFieldKey) => number) =>
     PRODUCTS.map((p) => ({ label: p.label, value: xround(get(PROD_BENCH[p.key].prem), 0) }))
 
   const countShare = {
     self: toShares(selfCounts),
     peer: toShares(benchCounts(ctx.peer)),
+    next: toShares(benchCounts(ctx.next)),
     tc: toShares(benchCounts(ctx.tc)),
   }
   const premiumShare = {

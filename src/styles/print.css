@@ -105,3 +105,10 @@
     print-color-adjust: exact !important;
   }
 }
+
+/* 액션플랜은 작성란이 페이지 하단까지 차오르도록 늘린다.
+   (.a4-body > * 는 기본이 flex:0 0 auto 라 이 페이지만 예외 처리) */
+.a4-body > .plan--dense {
+  flex: 1 1 auto;
+  min-height: 0;
+}

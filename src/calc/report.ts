@@ -100,10 +100,30 @@ export function buildReport(
   const sSelf6 = s6[0]
   const sTc6 = s6[2]
 
-  const shareRow = (label: string, selfArr: typeof m.premiumShare.self, tcArr: typeof m.premiumShare.tc) => ({
+  const pick = (arr: { label: string; share: number }[], label: string) =>
+    arr.find((x) => x.label === label)?.share ?? 0
+
+  const shareRow = (
+    label: string,
+    selfArr: { label: string; share: number }[],
+    tcArr: { label: string; share: number }[],
+  ) => ({ label, self: pick(selfArr, label), tc: pick(tcArr, label) })
+
+  /* 건수 구성비의 TC 열은 원본이 일관되지 않다.
+       레포트!J34 = M분석!DZ32 (TC)      간편
+       레포트!K34 = M분석!EA32 (TC)      퍼펙트
+       레포트!L34 = M분석!EC30 (차상급)  어린이  ← 머리글은 TC 인데 차상급을 본다
+       레포트!M34 = M분석!EB30 (차상급)  스타    ←
+       레포트!N34 = M분석!ED32 (TC)      운전자
+       레포트!O34 = M분석!EE32 (TC)      실손
+     신버전 워크북에도 그대로 남아 있어, 엑셀과 숫자를 맞추기 위해 원본대로 재현한다. */
+  const countShareRow = (label: string) => ({
     label,
-    self: selfArr.find((x) => x.label === label)?.share ?? 0,
-    tc: tcArr.find((x) => x.label === label)?.share ?? 0,
+    self: pick(m.countShare.self, label),
+    tc:
+      label === '어린이' || label === '스타'
+        ? pick(m.countShare.next, label)
+        : pick(m.countShare.tc, label),
   })
 
   const critSelf = sk.critical[0]
@@ -157,9 +177,7 @@ export function buildReport(
       premiumShare: ['간편', '퍼펙트', '어린이', '스타', '운전자', '실손'].map((l) =>
         shareRow(l, m.premiumShare.self, m.premiumShare.tc),
       ),
-      countShare: ['간편', '퍼펙트', '어린이', '스타', '운전자', '실손'].map((l) =>
-        shareRow(l, m.countShare.self, m.countShare.tc),
-      ),
+      countShare: ['간편', '퍼펙트', '어린이', '스타', '운전자', '실손'].map(countShareRow),
       premium: {
         perCust: P(sSelf6.perCust, sTc6.perCust),
         perCase: P(sSelf6.perCase, sTc6.perCase),

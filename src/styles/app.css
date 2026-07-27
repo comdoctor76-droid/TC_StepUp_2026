@@ -1235,3 +1235,225 @@
   gap: 3mm;
   align-items: start;
 }
+
+/* ══ 액션플랜 ═════════════════════════════════════════════════════════
+   원본 시트는 빈 양식이다. 문구는 그대로 두고 사내 배포물답게 구성만 갖춘다. */
+.plan {
+  position: relative;
+  background: var(--surface);
+  border-radius: 14px;
+  box-shadow: var(--shadow);
+  border-top: 5px solid var(--hi-orange);
+  padding: 30px 32px 26px;
+  overflow: hidden;
+}
+/* 옅은 CI 오렌지 워터마크 */
+.plan::after {
+  content: 'Step-Up';
+  position: absolute;
+  right: -12px;
+  bottom: -26px;
+  font-size: 108px;
+  font-weight: 800;
+  letter-spacing: -0.04em;
+  color: var(--hi-orange);
+  opacity: 0.06;
+  pointer-events: none;
+  line-height: 1;
+}
+.plan__headline {
+  margin: 0 0 20px;
+  font-size: 26px;
+  font-weight: 800;
+  color: var(--hi-navy);
+  letter-spacing: -0.02em;
+  text-align: center;
+  padding-bottom: 16px;
+  border-bottom: 2px solid var(--hi-orange-line);
+}
+.plan__cams {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  flex-wrap: wrap;
+  background: var(--hi-orange-soft);
+  border-radius: 10px;
+  padding: 12px 16px;
+  margin-bottom: 22px;
+}
+.plan__cams-label {
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--hi-navy);
+}
+.plan__cams ul {
+  display: flex;
+  gap: 16px;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  flex-wrap: wrap;
+}
+.plan__cams li {
+  font-size: 15px;
+  color: var(--ink-2);
+}
+.plan__cams li b {
+  color: var(--hi-orange-deep);
+  margin-right: 3px;
+}
+.plan__cams li em {
+  font-style: normal;
+  font-weight: 800;
+  font-size: 17px;
+  color: var(--hi-navy);
+  margin-left: 5px;
+}
+.plan__cams li.is-na em {
+  color: var(--ink-3);
+  font-weight: 600;
+}
+.plan__cams-note {
+  margin-left: auto;
+  font-size: 13.5px;
+  color: var(--ink-3);
+}
+.plan__slots {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  position: relative;
+  z-index: 1;
+}
+.plan__slots li {
+  display: flex;
+  gap: 14px;
+  align-items: flex-start;
+  padding: 14px 0;
+}
+.plan__slots li + li {
+  border-top: 1px dashed var(--line);
+}
+.plan__no {
+  flex: 0 0 auto;
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  background: var(--hi-orange);
+  color: #fff;
+  font-weight: 800;
+  font-size: 16px;
+  display: grid;
+  place-items: center;
+}
+.plan__lines {
+  flex: 1 1 auto;
+  display: block;
+  padding-top: 4px;
+}
+.plan__lines i {
+  display: block;
+  height: 26px;
+  border-bottom: 1px solid var(--hi-orange-line);
+}
+.plan__sign {
+  margin-top: 26px;
+  padding-top: 18px;
+  border-top: 2px solid var(--hi-orange-line);
+  display: flex;
+  justify-content: flex-end;
+  gap: 34px;
+  font-size: 16px;
+  color: var(--ink-2);
+  position: relative;
+  z-index: 1;
+}
+
+/* 인쇄용 압축 */
+.plan--dense {
+  border-radius: 3px;
+  box-shadow: none;
+  border-top-width: 3px;
+  border-left: 1px solid var(--line);
+  border-right: 1px solid var(--line);
+  border-bottom: 1px solid var(--line);
+  padding: 10px 12px 8px;
+  flex: 1 1 auto;
+  display: flex;
+  flex-direction: column;
+}
+.plan--dense::after {
+  font-size: 64px;
+  bottom: -14px;
+}
+.plan--dense .plan__headline {
+  font-size: 18px;
+  margin: 0 0 12px;
+  padding-bottom: 10px;
+}
+.plan--dense .plan__cams {
+  padding: 5px 8px;
+  margin-bottom: 10px;
+  gap: 8px;
+  border-radius: 4px;
+}
+.plan--dense .plan__cams-label,
+.plan--dense .plan__cams li {
+  font-size: 10.5px;
+}
+.plan--dense .plan__cams li em {
+  font-size: 12px;
+}
+.plan--dense .plan__cams-note {
+  font-size: 8px;
+}
+.plan--dense .plan__slots {
+  flex: 1 1 auto;
+  display: flex;
+  flex-direction: column;
+}
+.plan--dense .plan__slots li {
+  flex: 1 1 0;
+}
+.plan--dense .plan__lines {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-evenly;
+  height: 100%;
+}
+.plan--dense .plan__slots li {
+  padding: 11px 0;
+  gap: 10px;
+}
+.plan--dense .plan__no {
+  width: 21px;
+  height: 21px;
+  font-size: 11px;
+}
+.plan--dense .plan__lines i {
+  height: 38px;
+}
+.plan--dense .plan__sign {
+  margin-top: 14px;
+  padding-top: 10px;
+  font-size: 11px;
+  gap: 26px;
+}
+
+@media (max-width: 820px) {
+  .plan {
+    padding: 22px 18px 20px;
+  }
+  .plan__headline {
+    font-size: 21px;
+  }
+  .plan__cams-note {
+    margin-left: 0;
+    width: 100%;
+  }
+  .plan__sign {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 14px;
+  }
+}

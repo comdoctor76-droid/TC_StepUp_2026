@@ -18,7 +18,8 @@ export function LineTrend({
   w,
   h,
 }: ChartSize & {
-  data: (Record<string, number> & { month: number })[]
+  /** month + 계열 값. null 은 그 지점을 건너뛴다 (첫 달 증감 등) */
+  data: (Record<string, number | null> & { month: number })[]
   series: TrendSeries[]
   dense?: boolean
   format?: (v: number) => string

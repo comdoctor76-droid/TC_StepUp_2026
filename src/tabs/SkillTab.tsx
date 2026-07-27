@@ -123,7 +123,7 @@ export function SkillTab({ A, dense }: { A: FullAnalysis; dense?: boolean }) {
 
       <SimpleTable
         dense={dense}
-        caption="암 · 심뇌 상세 (6개월 환산 건수)"
+        caption="암 · 심뇌 상세 (계약수는 6개월 평균)"
         head={['구분', '암 건당', '암 부보율', '암 건수', '심뇌 건당', '심뇌 부보율', '심뇌 건수']}
         rows={s.critical.map((c) => [
           c.label === name ? `${name} (본인)` : c.label,

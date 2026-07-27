@@ -1,11 +1,11 @@
 /* ══════════════════════════════════════════════════════════════════════
-   버전 · 문의처
+   버전 · 문의처 · 문서 제목
 
    수정할 때마다 APP_VERSION 을 0.01 씩 올린다 (1.00 → 1.01 → 1.02 …).
    CHANGELOG 에 한 줄씩 남긴다.
    ══════════════════════════════════════════════════════════════════════ */
 
-export const APP_VERSION = '1.02'
+export const APP_VERSION = '1.03'
 
 export const CONTACT = {
   dept: '개인마케팅교육본부 / 영업교육운영파트',
@@ -15,11 +15,27 @@ export const CONTACT = {
 /** '문의 개인마케팅교육본부 / 영업교육운영파트 이승학 전임강사' */
 export const CONTACT_LINE = `문의 ${CONTACT.dept} ${CONTACT.person}`
 
-/** 'v1.00 · 문의 …' — 푸터 한 줄 */
+/** 'v1.03 · 문의 …' — 푸터 한 줄 */
 export const VERSION_LINE = `v${APP_VERSION} · ${CONTACT_LINE}`
+
+/** 레포트 제목 — 신버전 워크북 레포트!B1 */
+export const REPORT_TITLE = '스텝업 레포트 [ Step - Up Report ]'
+
+/** 짧은 제목 (앱바·탭 등 좁은 자리) */
+export const REPORT_TITLE_SHORT = '스텝업 레포트'
+
+/** 관리자 화면의 캡션 기본값 — 신버전 워크북 레포트!B2 */
+export const DEFAULT_CAPTION = '(영업교육운영파트 / updated by 2026.6.30.)'
+
+/** 인쇄·캡처 페이지 수 (레포트/C/A/M/S/액션플랜) */
+export const TOTAL_PAGES = 6
 
 /** 수정 이력 (최신이 위) */
 export const CHANGELOG: { version: string; note: string }[] = [
+  {
+    version: '1.03',
+    note: '신규 엑셀(스텝업 레포트) 기준으로 재정렬 — 암·심뇌 건수 월평균 표기, M분석 반올림 제거, A분석 소득군 표 정정, 액션플랜 탭 추가',
+  },
   {
     version: '1.02',
     note: '업로드 실패(Transaction too big) 수정 — 배치 대신 문서 단위 쓰기 + 재시도',

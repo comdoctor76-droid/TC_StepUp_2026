@@ -6,17 +6,25 @@ import { CustomerTab } from '../tabs/CustomerTab'
 import { ActionTab } from '../tabs/ActionTab'
 import { MarketTab } from '../tabs/MarketTab'
 import { SkillTab } from '../tabs/SkillTab'
+import { ActionPlanTab } from '../tabs/ActionPlanTab'
 import { captureAllPages, printAll } from '../export/captureAll'
 import { canShareFiles, isMobile, outputFileName, shareOrDownload } from '../export/share'
 import type { FullAnalysis } from '../calc'
-import { APP_VERSION, CONTACT_LINE } from '../version'
+import {
+  APP_VERSION,
+  CONTACT_LINE,
+  REPORT_TITLE,
+  REPORT_TITLE_SHORT,
+  TOTAL_PAGES,
+} from '../version'
 
 const TABS = [
-  { id: 'report', label: '레포트', title: '하이플래너 자가진단 레포트', eyebrow: '' },
+  { id: 'report', label: '레포트', title: REPORT_TITLE, eyebrow: '' },
   { id: 'c', label: 'C분석', title: 'Customer [고객] 분석', eyebrow: '전체' },
   { id: 'a', label: 'A분석', title: 'Action [활동] 분석', eyebrow: '최근 6개월' },
   { id: 'm', label: 'M분석', title: 'Market [시장] 분석', eyebrow: '최근 6개월' },
   { id: 's', label: 'S분석', title: 'Skill [기술] 분석', eyebrow: '최근 6개월' },
+  { id: 'plan', label: '액션플랜', title: '액션플랜', eyebrow: 'Action Plan' },
 ] as const
 
 type TabId = (typeof TABS)[number]['id']
@@ -43,14 +51,14 @@ export function Report({
   const shareable = canShareFiles()
 
   const makeImage = useCallback(async () => {
-    setBusy('0 / 5')
+    setBusy(`0 / ${TOTAL_PAGES}`)
     try {
       const blob = await captureAllPages((d, t) => setBusy(`${d} / ${t}`))
       const fileName = outputFileName(A.profile.name, A.profile.code)
       const result = await shareOrDownload(
         blob,
         fileName,
-        `${A.profile.name} 플래너 자가진단 레포트`,
+        `${A.profile.name} 플래너 ${REPORT_TITLE_SHORT}`,
       )
       setToast(
         result === 'shared'
@@ -114,7 +122,7 @@ export function Report({
             <span className="btn__text">새로고침</span>
           </button>
           <button className="btn btn--primary" onClick={doPrintAll} disabled={!!busy || refreshing}>
-            {busy ? `출력 중 ${busy}` : mobile ? '전체 인쇄 (이미지 저장·공유)' : '전체 인쇄 (A4 5장)'}
+            {busy ? `출력 중 ${busy}` : mobile ? '전체 인쇄 (이미지 저장·공유)' : `전체 인쇄 (A4 ${TOTAL_PAGES}장)`}
           </button>
           {!mobile && (
             <button className="btn" onClick={makeImage} disabled={!!busy || refreshing}>
@@ -151,6 +159,7 @@ export function Report({
           {tab === 'a' && <ActionTab A={A} />}
           {tab === 'm' && <MarketTab A={A} />}
           {tab === 's' && <SkillTab A={A} />}
+          {tab === 'plan' && <ActionPlanTab A={A} />}
         </div>
         <p className="screen__caption">
           {caption} · v{APP_VERSION} · {CONTACT_LINE}
@@ -162,7 +171,7 @@ export function Report({
           <div className="overlay__box">
             <div className="overlay__spin" />
             <p>
-              A4 5장을 이미지로 만드는 중입니다
+              A4 {TOTAL_PAGES}장을 이미지로 만드는 중입니다
               <br />
               <b>{busy}</b>
             </p>

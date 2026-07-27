@@ -63,13 +63,13 @@ export interface SkillAnalysis {
     cancerPerCase: number
     /** 암 부보율 */
     cancerRate: number
-    /** 암 계약수(6개월 환산) */
+    /** 암 계약수 (6개월 평균) */
     cancerCases: number
     /** 심뇌 건당 보험료 */
     heartPerCase: number
     /** 심뇌 부보율 */
     heartRate: number
-    /** 심뇌 계약수(6개월 환산) */
+    /** 심뇌 계약수 (6개월 평균) */
     heartCases: number
   }[]
 
@@ -161,7 +161,11 @@ export function analyzeSkill(ctx: Ctx, selfName: string): SkillAnalysis {
   //   본인   DB24=암주치보험료 DC24=심뇌보험료 DD24=암주치계약수 DE24=심뇌계약수
   //          DF24=전체계약수  DG24=DD/DF     DH24=DE/DF
   //          DI24=DB/DD (암 건당) DJ24=DC/DE (심뇌 건당)
-  //   ※ 계약수는 6개월 "평균"이므로 건수 표시 시 ×6 한다 (레포트!F41 = DD24*6)
+  //
+  //   ※ 계약수는 6개월 "평균"이며 그대로 표시한다.
+  //     구버전 워크북은 레포트!F41 = S분석!DD24*6 으로 6개월 합산을 보여줬으나,
+  //     신버전에서 *6 이 삭제되어 월평균 그대로 표기하도록 바뀌었다.
+  //     (레포트!F41/I41/L41/O41)
   const crit = (
     label: string,
     cancerPrem: number,
@@ -173,10 +177,10 @@ export function analyzeSkill(ctx: Ctx, selfName: string): SkillAnalysis {
     label,
     cancerPerCase: div(cancerPrem, cancerCnt),
     cancerRate: div(cancerCnt, totalCnt),
-    cancerCases: cancerCnt * 6,
+    cancerCases: cancerCnt,
     heartPerCase: div(heartPrem, heartCnt),
     heartRate: div(heartCnt, totalCnt),
-    heartCases: heartCnt * 6,
+    heartCases: heartCnt,
   })
 
   const critical = [

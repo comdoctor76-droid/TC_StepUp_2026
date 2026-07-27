@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { unlockViewer } from '../session'
-import { APP_VERSION, CONTACT_LINE } from '../version'
+import { APP_VERSION, CONTACT_LINE, REPORT_TITLE_SHORT } from '../version'
 
 export function Login({ onUnlocked }: { onUnlocked: () => void }) {
   const [pw, setPw] = useState('')
@@ -26,9 +26,9 @@ export function Login({ onUnlocked }: { onUnlocked: () => void }) {
     <div className="gate">
       <form className="gate__card" onSubmit={submit}>
         <h1 className="gate__title">
-          하이플래너
+          {REPORT_TITLE_SHORT}
           <br />
-          자가진단 레포트
+          [ Step - Up Report ]
         </h1>
         <p className="gate__sub">영업교육운영파트</p>
 

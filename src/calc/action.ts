@@ -4,7 +4,7 @@
                   총고객 / 월별 장기 가입건수 추이
    ══════════════════════════════════════════════════════════════════════ */
 
-import { INCOME_BANDS } from '../data/schema'
+import { ACTION_BANDS } from '../data/schema'
 import { div, xround } from './format'
 import type { Ctx } from './resolve'
 
@@ -153,8 +153,10 @@ export function analyzeAction(ctx: Ctx, selfName: string): ActionAnalysis {
     고객TC: tcCust[i] ?? 0,
   }))
 
-  // ── 소득군별 인당건수 참고표 : A분석!DA45:DC54 ──────────────────────
-  const bandTable = INCOME_BANDS.map((b) => {
+  // ── 소득군별 인당건수 참고표 : A분석!CY45:DC54 ──────────────────────
+  //   ⚠️ A분석의 구간 목록은 C분석(INCOME_BANDS)과 다르다.
+  //      400↑ 이 없고 1,500↑ 이 있다. 재사용하면 한 칸씩 밀린다.
+  const bandTable = ACTION_BANDS.map((b) => {
     const cust = xround(ctx.bench(b.key, 'longCust'), 0) // 소득별Data AU 장기고객수
     const cases = xround(ctx.bench(b.key, 'longCnt'), 0) // 소득별Data AW 장기건수
     return { name: b.short, cust, cases, perCust: div(cases, cust) }

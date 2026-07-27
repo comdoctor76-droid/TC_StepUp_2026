@@ -21,8 +21,20 @@ export interface CustomerAnalysis {
   /** chart3 — 연계고객 (C분석!CO28:CQ32) */
   linkChart: { name: string; value: number }[]
 
-  /** chart6 — 최근 6개월 유지고객 추이 (C분석!CU28:CZ29) */
-  trend: { month: number; 총유지: number; 장기: number; 자동차: number }[]
+  /** chart6 — 최근 6개월 유지고객 추이 (C분석!CU28:CZ32, DC31:DG32)
+   *  신버전에서 TC 표준그룹 추이·월별 증감·2개월 이동평균이 추가됐다 */
+  trend: {
+    month: number
+    총유지: number
+    장기: number
+    자동차: number
+    /** TC 표준그룹 총유지 (C분석!CU32:CZ32) */
+    TC표준그룹: number
+    /** 전월 대비 증감. 첫 달은 null (C분석!DC31:DG31) */
+    delta: number | null
+    /** 2개월 이동평균 (C분석!DC32:DG32). 첫 달은 null */
+    movingAvg: number | null
+  }[]
 
   /** chart4 — 소득군별 평균 보유고객 (C분석!CD53:CI62) */
   bandChart: { name: string; 장기: number; 자동차: number; 총고객: number }[]
@@ -74,11 +86,29 @@ export function analyzeCustomer(ctx: Ctx, selfName: string): CustomerAnalysis {
   //   총유지 = 장기이관제외 + 자동차이관제외 − 자장이관제외 (Q6 유지고객 시트)
   const s = ctx.planner.s
   const months = ctx.months
+  //   TC 표준그룹 추이 — 소득별Data CC~CH (유지고객M-5 … 유지고객M) = 인덱스 79~84
+  const tcRetain = [
+    ctx.tc('retainM5'),
+    ctx.tc('retainM4'),
+    ctx.tc('retainM3'),
+    ctx.tc('retainM2'),
+    ctx.tc('retainM1'),
+    ctx.tc('retainM'),
+  ].map((v) => xround(v, 0))
+
+  const totals = months.map(
+    (_, i) => (s.retainLong[i] ?? 0) + (s.retainAuto[i] ?? 0) - (s.retainBoth[i] ?? 0),
+  )
   const trend = months.map((m, i) => ({
     month: m,
-    총유지: (s.retainLong[i] ?? 0) + (s.retainAuto[i] ?? 0) - (s.retainBoth[i] ?? 0),
+    총유지: totals[i],
     장기: s.retainLong[i] ?? 0,
     자동차: s.retainAuto[i] ?? 0,
+    TC표준그룹: tcRetain[i] ?? 0,
+    // C분석!DC31 = IF(CV29-CU29>0,"▲ "&…,IF(<0,"▼ "&…,"-"))
+    delta: i === 0 ? null : totals[i] - totals[i - 1],
+    // C분석!DC32 = (CU29+CV29)/2
+    movingAvg: i === 0 ? null : (totals[i - 1] + totals[i]) / 2,
   }))
 
   // ── chart4 : C분석!CG53:CI62 — 소득군별 평균 보유고객

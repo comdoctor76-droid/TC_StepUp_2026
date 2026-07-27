@@ -11,7 +11,9 @@ import { CustomerTab } from './tabs/CustomerTab'
 import { ActionTab } from './tabs/ActionTab'
 import { MarketTab } from './tabs/MarketTab'
 import { SkillTab } from './tabs/SkillTab'
+import { ActionPlanTab } from './tabs/ActionPlanTab'
 import type { FullAnalysis } from './calc'
+import { REPORT_TITLE } from './version'
 
 export function PrintRoot({ A, caption }: { A: FullAnalysis; caption?: string }) {
   const months = A.ctx.months
@@ -22,7 +24,7 @@ export function PrintRoot({ A, caption }: { A: FullAnalysis; caption?: string })
   // (body > *:not(#print-root){display:none}) 가 함께 숨겨 버려 5장이 나오지 않는다.
   return createPortal(
     <div id="print-root" aria-hidden="true">
-      <A4Page {...common} id="report" title="하이플래너 자가진단 레포트" page={1}>
+      <A4Page {...common} id="report" title={REPORT_TITLE} page={1}>
         <ReportTab A={A} dense />
       </A4Page>
 
@@ -40,6 +42,10 @@ export function PrintRoot({ A, caption }: { A: FullAnalysis; caption?: string })
 
       <A4Page {...common} id="s" title="Skill [기술] 분석" eyebrow="최근 6개월" page={5}>
         <SkillTab A={A} dense />
+      </A4Page>
+
+      <A4Page {...common} id="plan" title="액션플랜" eyebrow="Action Plan" page={6}>
+        <ActionPlanTab A={A} dense />
       </A4Page>
     </div>,
     document.body,

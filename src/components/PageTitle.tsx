@@ -1,6 +1,6 @@
 import type { Profile } from '../calc/resolve'
 import { hireDate as fmtHire, ym } from '../calc/format'
-import { APP_VERSION, CONTACT_LINE } from '../version'
+import { APP_VERSION, CONTACT_LINE, TOTAL_PAGES } from '../version'
 
 /**
  * 각 탭/페이지 최상단의 오렌지 타이틀 바.
@@ -34,7 +34,7 @@ export function PageTitle({
           <span className="ptitle__ver">v{APP_VERSION}</span>
         </h1>
         {page ? (
-          <span className="ptitle__page">{page} / 5</span>
+          <span className="ptitle__page">{page} / {TOTAL_PAGES}</span>
         ) : (
           <span className="ptitle__contact">{CONTACT_LINE}</span>
         )}

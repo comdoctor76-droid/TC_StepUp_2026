@@ -21,7 +21,9 @@ const TABS = [
   { id: 'a', label: 'A분석' },
   { id: 'm', label: 'M분석' },
   { id: 's', label: 'S분석' },
+  { id: 'plan', label: '액션플랜' },
 ]
+const PAGES = TABS.length
 
 let failures = 0
 const fail = (msg: string) => {
@@ -63,7 +65,7 @@ const browser = await chromium.launch({ executablePath: EXECUTABLE })
   console.log('\n[1] A4 인쇄')
 
   const pageCount = await page.locator('#print-root .a4-page').count()
-  pageCount === 5 ? pass(`A4 페이지 ${pageCount}장`) : fail(`A4 페이지가 ${pageCount}장 (5장이어야 함)`)
+  pageCount === PAGES ? pass(`A4 페이지 ${pageCount}장`) : fail(`A4 페이지가 ${pageCount}장 (${PAGES}장이어야 함)`)
 
   // 각 페이지의 내용 넘침 검사
   // flex 컨테이너는 scrollHeight 로 넘침을 못 잡는다.
@@ -90,7 +92,7 @@ const browser = await chromium.launch({ executablePath: EXECUTABLE })
   // 실제 PDF 페이지 수
   const pdf = await page.pdf({ format: 'A4', printBackground: true, path: `${OUT}/report.pdf` })
   const pdfPages = (await PDFDocument.load(pdf)).getPageCount()
-  pdfPages === 5 ? pass(`PDF ${pdfPages}페이지`) : fail(`PDF 가 ${pdfPages}페이지 (5페이지여야 함)`)
+  pdfPages === PAGES ? pass(`PDF ${pdfPages}페이지`) : fail(`PDF 가 ${pdfPages}페이지 (${PAGES}페이지여야 함)`)
 
   // A4 미리보기 이미지 — #print-root 는 화면 밖(left:-20000px)이라 그대로는
   // 캡처가 안 되므로, 인쇄와 동일한 배치로 잠시 되돌린 뒤 찍는다.
@@ -144,7 +146,7 @@ const browser = await chromium.launch({ executablePath: EXECUTABLE })
   const path = `${OUT}/merged.png`
   await download.saveAs(path)
 
-  const NAME_RE = /^홍길동\(DEMO01\)_\d{8}_\d{4}\.png$/ // 성명(사번)_YYYYMMDD_HHmm.png
+  const NAME_RE = /^홍길동\(DEMO02\)_\d{8}_\d{4}\.png$/ // 성명(사번)_YYYYMMDD_HHmm.png
   appName && NAME_RE.test(appName)
     ? pass(`파일명 ${appName}`)
     : fail(`파일명 형식이 다름: ${appName ?? '(없음)'}`)
@@ -154,9 +156,9 @@ const browser = await chromium.launch({ executablePath: EXECUTABLE })
   const w = png.readUInt32BE(16)
   const h = png.readUInt32BE(20)
   const expW = Math.round(794 * 1.5)
-  const expH = Math.round(1123 * 1.5) * 5 + 10 * 4
+  const expH = Math.round(1123 * 1.5) * PAGES + 10 * (PAGES - 1)
   Math.abs(w - expW) <= 4 ? pass(`이미지 폭 ${w}px`) : fail(`이미지 폭 ${w}px (기대 ${expW}±4)`)
-  Math.abs(h - expH) <= 12 ? pass(`이미지 높이 ${h}px (5장 병합)`) : fail(`이미지 높이 ${h}px (기대 ${expH}±12)`)
+  Math.abs(h - expH) <= 14 ? pass(`이미지 높이 ${h}px (${PAGES}장 병합)`) : fail(`이미지 높이 ${h}px (기대 ${expH}±12)`)
   w * h < 16_777_216
     ? pass(`총 ${(w * h / 1e6).toFixed(1)}M px — iOS 캔버스 한도(16.7M) 이내`)
     : fail(`총 ${(w * h / 1e6).toFixed(1)}M px — iOS 캔버스 한도 초과`)

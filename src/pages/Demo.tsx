@@ -15,7 +15,7 @@ export function Demo() {
   const [err, setErr] = useState<string | null>(null)
 
   useEffect(() => {
-    import('../../tests/fixtures/demo01.json')
+    import('../../tests/fixtures/demo02.json')
       .then((m) => {
         const f = (m.default ?? m) as unknown as {
           code: string
