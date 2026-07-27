@@ -1,0 +1,44 @@
+{
+  "name": "tc-stepup-2026",
+  "version": "1.0.1",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "dev": "vite",
+    "build": "tsc -b --noCheck && vite build",
+    "preview": "vite preview",
+    "import": "tsx scripts/import.ts",
+    "test": "vitest run",
+    "verify": "tsx scripts/verifyRender.ts"
+  },
+  "repository": {
+    "type": "git",
+    "url": "http://local_proxy@127.0.0.1:41729/git/comdoctor76-droid/TC_StepUp_2026"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "private": "true",
+  "type": "module",
+  "dependencies": {
+    "firebase": "^12.16.0",
+    "html-to-image": "^1.11.13",
+    "react": "^19.2.8",
+    "react-dom": "^19.2.8",
+    "recharts": "^3.10.1",
+    "xlsx": "^0.18.5"
+  },
+  "devDependencies": {
+    "@types/node": "^26.1.1",
+    "@types/react": "^19.2.17",
+    "@types/react-dom": "^19.2.3",
+    "@vitejs/plugin-react": "^6.0.4",
+    "firebase-admin": "^14.2.0",
+    "pdf-lib": "^1.17.1",
+    "playwright": "^1.62.0",
+    "tsx": "^4.23.1",
+    "typescript": "^7.0.2",
+    "vite": "^8.1.5",
+    "vitest": "^4.1.10"
+  }
+}

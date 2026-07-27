@@ -1,0 +1,107 @@
+/* ══════════════════════════════════════════════════════════════════════
+   A4 인쇄 / PNG 캡처 레이아웃
+
+   원본 엑셀의 pageSetup 그대로:
+     paperSize=9(A4) · orientation=portrait · fitToPage=1 (시트당 1페이지)
+   → 레포트 / C / A / M / S 순서로 정확히 5장이 나온다.
+
+   #print-root 는 항상 DOM에 마운트되어 있고 화면 밖(left:-20000px)에 놓인다.
+   display:none 으로 숨기면 Recharts가 크기 0으로 렌더돼 캡처가 비므로 금지.
+   ══════════════════════════════════════════════════════════════════════ */
+
+#print-root {
+  position: fixed;
+  left: -20000px;
+  top: 0;
+  z-index: -1;
+  /* 화면에서는 보이지 않지만 레이아웃 크기는 실재해야 한다 */
+}
+
+.a4-page {
+  width: 210mm;
+  height: 297mm;
+  padding: 8mm 9mm 7mm;
+  background: #fff;
+  color: var(--ink);
+  overflow: hidden;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  /* A4 세로 210×297mm @96dpi ≒ 794×1123px, 여백 제외 내부 ≒ 726×1067px */
+  font-size: 10px;
+  line-height: 1.32;
+}
+
+.a4-page + .a4-page {
+  margin-top: 6mm; /* 화면 밖 미리보기에서만 의미 있음 */
+}
+
+.a4-body {
+  flex: 1 1 auto;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 3.2mm;
+}
+
+/* flex 가 자식을 압축하면 표 내용이 잘린다. 절대 줄이지 않는다.
+   (넘치면 verifyRender 가 잡아내도록 두는 편이 안전하다) */
+.a4-body > * {
+  flex: 0 0 auto;
+}
+
+.a4-foot {
+  flex: 0 0 auto;
+  margin-top: 2mm;
+  padding-top: 1.5mm;
+  border-top: 1px solid var(--hi-orange-line);
+  display: flex;
+  justify-content: space-between;
+  font-size: 8.5px;
+  color: var(--ink-3);
+}
+
+@media print {
+  @page {
+    size: A4 portrait;
+    margin: 0;
+  }
+
+  html,
+  body {
+    background: #fff !important;
+    margin: 0;
+    padding: 0;
+  }
+
+  /* 앱 UI 전부 숨기고 인쇄 페이지만 남긴다 */
+  #root {
+    display: none !important;
+  }
+
+  #print-root {
+    position: static !important;
+    left: 0 !important;
+    top: 0 !important;
+    z-index: auto !important;
+    display: block !important;
+  }
+
+  .a4-page {
+    margin: 0 !important;
+    page-break-after: always;
+    break-after: page;
+    box-shadow: none !important;
+  }
+
+  .a4-page:last-child {
+    page-break-after: auto;
+    break-after: auto;
+  }
+
+  /* 배경색·차트 채움이 인쇄에서 빠지지 않도록 */
+  * {
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+  }
+}

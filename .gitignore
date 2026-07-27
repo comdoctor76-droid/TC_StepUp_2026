@@ -1,0 +1,16 @@
+node_modules/
+dist/
+.DS_Store
+*.log
+
+# Firebase 서비스 계정 키 — 절대 커밋 금지
+serviceAccount*.json
+.env
+.env.*
+!.env.example
+
+# 원본 데이터 파일 (개인정보 포함)
+*.xlsx
+*.xls
+!tests/fixtures/*.json
+tmp/
