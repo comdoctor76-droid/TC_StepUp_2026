@@ -14,3 +14,4 @@ serviceAccount*.json
 *.xls
 !tests/fixtures/*.json
 tmp/
+tsconfig.tsbuildinfo

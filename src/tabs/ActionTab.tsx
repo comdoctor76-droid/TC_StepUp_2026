@@ -14,10 +14,10 @@ export function ActionTab({ A, dense }: { A: FullAnalysis; dense?: boolean }) {
 
   const S = dense
     ? {
-        one: { w: 224, h: 128 },
-        small: { w: 134, h: 110 },
-        trio: { w: 224, h: 128 },
-        wide: { w: 700, h: 132 },
+        one: { w: 224, h: 112 },
+        small: { w: 134, h: 88 },
+        trio: { w: 224, h: 134 },
+        wide: { w: 700, h: 108 },
       }
     : { one: { h: 230 }, small: { h: 200 }, trio: { h: 230 }, wide: { h: 260 } }
 

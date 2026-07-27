@@ -5,7 +5,7 @@
    CHANGELOG 에 한 줄씩 남긴다.
    ══════════════════════════════════════════════════════════════════════ */
 
-export const APP_VERSION = '0.05'
+export const APP_VERSION = '0.06'
 
 export const CONTACT = {
   dept: '개인마케팅교육본부 / 영업교육운영파트',
@@ -31,6 +31,10 @@ export const TOTAL_PAGES = 6
 
 /** 수정 이력 (최신이 위) */
 export const CHANGELOG: { version: string; note: string }[] = [
+  {
+    version: '0.06',
+    note: '인쇄·이미지 글자를 전부 3px 키움 (표·차트·머리글·꼬리말) — 차트 높이와 단 너비를 다시 잡아 A4 6장 유지',
+  },
   {
     version: '0.05',
     note: '문의처에서 담당자명 제외, 버전 체계를 0.xx 로 변경',

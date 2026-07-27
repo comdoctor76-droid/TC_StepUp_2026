@@ -351,29 +351,29 @@
   padding: 8px 12px;
 }
 .ptitle--dense .ptitle__h1 {
-  font-size: 22px;
+  font-size: 25px;
 }
 .ptitle--dense .ptitle__eyebrow {
-  font-size: 11px;
+  font-size: 14px;
   padding: 1px 7px;
 }
 .ptitle--dense .ptitle__ver {
-  font-size: 9.5px;
+  font-size: 12.5px;
   padding: 1px 5px;
 }
 .ptitle--dense .ptitle__page {
-  font-size: 11px;
+  font-size: 14px;
 }
 .ptitle--dense .ptitle__sub {
   margin-top: 4px;
-  font-size: 9.5px;
+  font-size: 12.5px;
   gap: 2px 9px;
 }
 .ptitle--dense .ptitle__sub b {
-  font-size: 10.5px;
+  font-size: 13.5px;
 }
 .ptitle--dense .ptitle__contact {
-  font-size: 9px;
+  font-size: 12px;
   margin-left: 0;
 }
 
@@ -403,18 +403,18 @@
 
 .dense .sec {
   margin: 6px 0 3px;
-  font-size: 11.5px;
+  font-size: 14.5px;
   border-left-width: 3px;
   padding-left: 6px;
 }
 .dense .sec-note {
   margin: 0 0 3px;
-  font-size: 8px;
+  font-size: 11px;
 }
 .dense .lede {
   margin: 4px 0 0;
   padding: 4px 7px;
-  font-size: 8.5px;
+  font-size: 11.5px;
   border-radius: 4px;
 }
 
@@ -501,23 +501,23 @@
   border-radius: 4px;
 }
 .summary--dense .tile__label {
-  font-size: 8px;
+  font-size: 11px;
 }
 .summary--dense .tile__value {
-  font-size: 15px;
+  font-size: 18px;
   margin-top: 1px;
 }
 .summary--dense .tile__value i {
-  font-size: 8px;
+  font-size: 11px;
 }
 .summary--dense .summary__scores {
-  font-size: 9px;
+  font-size: 12px;
 }
 .summary--dense .summary__scores li {
   padding: 0;
 }
 .summary--dense .summary__scores--na {
-  font-size: 7.5px;
+  font-size: 10.5px;
 }
 
 /* ── 비교표 (원본 엑셀 가로 배치) ───────────────────────────────── */
@@ -634,41 +634,43 @@
 }
 .cmp--dense .cmp__sec {
   padding: 2px 5px;
-  font-size: 8.5px;
+  font-size: 11.5px;
 }
 .cmp--dense .grp {
   padding: 2.5px 5px 3px;
 }
 .cmp--dense .grp__title {
-  font-size: 8.5px;
+  font-size: 11.5px;
   margin-bottom: 1px;
 }
 .cmp--dense .grp__note {
   margin-left: 4px;
-  font-size: 7px;
+  font-size: 10px;
 }
 .cmp--dense .grp__scroll {
   overflow: visible;
 }
 .cmp--dense .grp__t {
-  font-size: 8.5px;
+  font-size: 11.5px;
 }
 .cmp--dense .grp__t th,
 .cmp--dense .grp__t td {
-  padding: 0.8px 2px;
+  padding: 0.8px 1px;
+  letter-spacing: -0.02em;
+  font-variant-numeric: tabular-nums;
 }
 .cmp--dense .grp__t thead th {
-  font-size: 7.5px;
+  font-size: 10.5px;
 }
 .cmp--dense .grp__who {
-  width: 62px;
-  font-size: 7.5px;
+  width: 66px;
+  font-size: 10.5px;
 }
 .cmp--dense .grp__me td {
-  font-size: 9px;
+  font-size: 12px;
 }
 .cmp--dense .grp__tc td {
-  font-size: 8.5px;
+  font-size: 11.5px;
 }
 
 /* ── 단순표 ───────────────────────────────────────────────────────── */
@@ -727,15 +729,15 @@
   padding: 2.5px 4px;
 }
 .simple-wrap--dense .simple__cap {
-  font-size: 8px;
+  font-size: 11px;
   margin-bottom: 1.5px;
 }
 .simple--dense {
-  font-size: 8.5px;
+  font-size: 11.5px;
 }
 .simple--dense th {
   padding: 1.5px 3px;
-  font-size: 7.5px;
+  font-size: 10.5px;
 }
 .simple--dense td {
   padding: 1.2px 3px;
@@ -768,10 +770,10 @@
 }
 .dense .chart-card__title {
   margin: 0 0 1px;
-  font-size: 8.5px;
+  font-size: 11.5px;
 }
 .dense .chart-card__note {
-  font-size: 7px;
+  font-size: 10px;
 }
 
 .grid {
@@ -836,18 +838,18 @@
   padding: 3px 6px;
   border-left-width: 3px;
   border-radius: 3px;
-  font-size: 9px;
+  font-size: 12px;
 }
 .dense .score-line b {
-  font-size: 10px;
+  font-size: 13px;
   margin-right: 4px;
 }
 .dense .score-line span {
-  font-size: 8px;
+  font-size: 11px;
 }
 .dense .score-line em {
   margin-top: 1px;
-  font-size: 7.5px;
+  font-size: 10.5px;
 }
 
 /* ── 오버레이 / 토스트 / 힌트 ─────────────────────────────────────── */
@@ -1228,11 +1230,13 @@
   grid-template-columns: repeat(6, minmax(0, 1fr));
 }
 
-/* 레포트 A4 — 현황Ⅰ / 현황Ⅱ 2단 배치 (한 장에 담기 위함) */
+/* 레포트 A4 — 현황Ⅰ / 현황Ⅱ 2단 배치 (한 장에 담기 위함)
+   현황Ⅱ 는 6자리 보험료가 6열까지 들어가므로 왼쪽보다 넓게 준다.
+   (균등 분할하면 '134,175' 같은 값들이 서로 붙어 버린다) */
 .rep-cols {
   display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 3mm;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1.2fr);
+  gap: 2.4mm;
   align-items: start;
 }
 
@@ -1387,7 +1391,7 @@
   bottom: -14px;
 }
 .plan--dense .plan__headline {
-  font-size: 18px;
+  font-size: 21px;
   margin: 0 0 12px;
   padding-bottom: 10px;
 }
@@ -1399,13 +1403,13 @@
 }
 .plan--dense .plan__cams-label,
 .plan--dense .plan__cams li {
-  font-size: 10.5px;
+  font-size: 13.5px;
 }
 .plan--dense .plan__cams li em {
-  font-size: 12px;
+  font-size: 15px;
 }
 .plan--dense .plan__cams-note {
-  font-size: 8px;
+  font-size: 11px;
 }
 .plan--dense .plan__slots {
   flex: 1 1 auto;
@@ -1426,9 +1430,9 @@
   gap: 10px;
 }
 .plan--dense .plan__no {
-  width: 21px;
-  height: 21px;
-  font-size: 11px;
+  width: 26px;
+  height: 26px;
+  font-size: 14px;
 }
 .plan--dense .plan__lines i {
   height: 38px;
@@ -1436,7 +1440,7 @@
 .plan--dense .plan__sign {
   margin-top: 14px;
   padding-top: 10px;
-  font-size: 11px;
+  font-size: 14px;
   gap: 26px;
 }
 

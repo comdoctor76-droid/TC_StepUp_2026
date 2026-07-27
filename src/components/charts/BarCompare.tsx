@@ -17,7 +17,48 @@ export interface Series {
   color: string
 }
 
-const FONT = (dense?: boolean) => (dense ? 9 : 13)
+const FONT = (dense?: boolean) => (dense ? 12 : 13)
+
+/**
+ * 누적막대 값 라벨.
+ *
+ * 인쇄용 글자를 키우고 나면 얇은 구간(예: 동급처럼 값이 작은 막대)에서는
+ * 위아래 라벨이 서로 겹쳐 읽을 수 없게 된다. 구간이 글자를 담을 만큼
+ * 두꺼우면 안쪽에 흰 글씨로, 얇으면 막대 오른쪽 바깥에 진한 글씨로 뺀다.
+ * 값을 감추지 않으면서 겹침도 없앤다.
+ */
+function stackLabel(fs: number, format?: (v: number) => string) {
+  return function StackLabel(props: {
+    x?: string | number
+    y?: string | number
+    width?: string | number
+    height?: string | number
+    value?: unknown
+  }) {
+    const x = Number(props.x)
+    const y = Number(props.y)
+    const w = Number(props.width)
+    const h = Number(props.height)
+    if (!Number.isFinite(h) || h < 3) return null
+    const text = format ? format(Number(props.value)) : String(props.value)
+    const inside = h >= fs + 2
+    return (
+      <text
+        x={inside ? x + w / 2 : x + w + 2}
+        y={y + h / 2}
+        textAnchor={inside ? 'middle' : 'start'}
+        dominantBaseline="central"
+        style={{
+          fontSize: inside ? fs : Math.min(fs - 2, 10),
+          fill: inside ? '#fff' : '#333',
+          fontWeight: 700,
+        }}
+      >
+        {text}
+      </text>
+    )
+  }
+}
 
 /**
  * 다계열 막대 — 원본 C분석!chart5, A분석!chart13/14, S분석 등.
@@ -67,12 +108,16 @@ export function BarCompare({
             maxBarSize={dense ? 22 : 46}
           >
             {!stacked && i === series.length - 1 && null}
-            <LabelList
-              dataKey={s.key}
-              position={stacked ? 'center' : 'top'}
-              style={{ fontSize: fs - 1, fill: stacked ? '#fff' : '#333', fontWeight: 600 }}
-              formatter={(v: unknown) => (format ? format(Number(v)) : String(v))}
-            />
+            {stacked ? (
+              <LabelList dataKey={s.key} content={stackLabel(fs, format)} />
+            ) : (
+              <LabelList
+                dataKey={s.key}
+                position="top"
+                style={{ fontSize: fs - 1, fill: '#333', fontWeight: 600 }}
+                formatter={(v: unknown) => (format ? format(Number(v)) : String(v))}
+              />
+            )}
           </Bar>
         ))}
       </BarChart>

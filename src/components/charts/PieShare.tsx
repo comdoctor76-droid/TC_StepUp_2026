@@ -22,7 +22,7 @@ export function PieShare({
   colors?: string[]
   showLegend?: boolean
 }) {
-  const fs = dense ? 8.5 : 12
+  const fs = dense ? 11.5 : 12
   const rows = data.map((d) => ({ name: d.label, value: Math.max(0, d.share) }))
   const total = rows.reduce((a, b) => a + b.value, 0)
 
@@ -43,7 +43,7 @@ export function PieShare({
     )
   }
 
-  const outer = dense ? Math.min((h ?? 110) * 0.36, 44) : 78
+  const outer = dense ? Math.min((h ?? 110) * 0.33, 44) : 78
 
   return (
     <ChartFrame w={w} h={h}>
@@ -53,7 +53,7 @@ export function PieShare({
           dataKey="value"
           nameKey="name"
           cx="50%"
-          cy={showLegend ? '43%' : '50%'}
+          cy={showLegend ? '40%' : '50%'}
           outerRadius={outer}
           isAnimationActive={false}
           stroke="#fff"
@@ -74,7 +74,7 @@ export function PieShare({
         {showLegend && (
           <Legend
             verticalAlign="bottom"
-            height={dense ? 22 : 30}
+            height={dense ? 34 : 30}
             iconSize={dense ? 6 : 10}
             wrapperStyle={{ fontSize: fs, lineHeight: 1.25 }}
             formatter={(value, entry) => {

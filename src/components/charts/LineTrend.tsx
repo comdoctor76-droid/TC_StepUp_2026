@@ -24,7 +24,7 @@ export function LineTrend({
   dense?: boolean
   format?: (v: number) => string
 }) {
-  const fs = dense ? 9 : 13
+  const fs = dense ? 12 : 13
   return (
     <ChartFrame w={w} h={h}>
       <LineChart data={data} margin={{ top: dense ? 12 : 18, right: 10, bottom: 2, left: 0 }}>

@@ -29,7 +29,7 @@ export function RadarCAMS({
     { axis: 'M 시장', me: cams.M, base: 1 },
     { axis: 'S 기술', me: cams.S ?? 0, base: 1 },
   ]
-  const fs = dense ? 9 : 13
+  const fs = dense ? 12 : 13
 
   return (
     <ChartFrame w={w} h={h}>

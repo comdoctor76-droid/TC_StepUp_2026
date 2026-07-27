@@ -14,7 +14,7 @@ export function SkillTab({ A, dense }: { A: FullAnalysis; dense?: boolean }) {
   const name = A.profile.name
 
   const S = dense
-    ? { trio: { w: 224, h: 148 }, prod: { w: 112, h: 128 }, crit: { w: 168, h: 134 } }
+    ? { trio: { w: 224, h: 136 }, prod: { w: 112, h: 118 }, crit: { w: 168, h: 124 } }
     : { trio: { h: 230 }, prod: { h: 190 }, crit: { h: 210 } }
 
   const six = (pick: (r: (typeof s.amount6m)[number]) => number) =>

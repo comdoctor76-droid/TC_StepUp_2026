@@ -28,8 +28,8 @@
   display: flex;
   flex-direction: column;
   /* A4 세로 210×297mm @96dpi ≒ 794×1123px, 여백 제외 내부 ≒ 726×1067px */
-  font-size: 10px;
-  line-height: 1.32;
+  font-size: 13px;
+  line-height: 1.28;
 }
 
 .a4-page + .a4-page {
@@ -41,7 +41,7 @@
   min-height: 0;
   display: flex;
   flex-direction: column;
-  gap: 3.2mm;
+  gap: 2.6mm;
 }
 
 /* flex 가 자식을 압축하면 표 내용이 잘린다. 절대 줄이지 않는다.
@@ -57,7 +57,7 @@
   border-top: 1px solid var(--hi-orange-line);
   display: flex;
   justify-content: space-between;
-  font-size: 8.5px;
+  font-size: 11.5px;
   color: var(--ink-3);
 }
 

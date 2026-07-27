@@ -11,7 +11,7 @@ export function MarketTab({ A, dense }: { A: FullAnalysis; dense?: boolean }) {
   const m = A.market
   const name = A.profile.name
 
-  const S = dense ? { pie: { w: 224, h: 150 }, gen: { w: 224, h: 152 } } : { pie: { h: 250 }, gen: { h: 250 } }
+  const S = dense ? { pie: { w: 224, h: 168 }, gen: { w: 224, h: 168 } } : { pie: { h: 250 }, gen: { h: 250 } }
 
   const lbl = (l: string) => (l === name ? `${name} (본인)` : l)
 
