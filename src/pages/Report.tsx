@@ -1,4 +1,4 @@
-import { useCallback, useMemo, useState } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { PageTitle } from '../components/PageTitle'
 import { PrintRoot } from '../PrintRoot'
 import { ReportTab } from '../tabs/ReportTab'
@@ -43,23 +43,55 @@ export function Report({
 }) {
   const [tab, setTab] = useState<TabId>('report')
   const [busy, setBusy] = useState<string | null>(null)
+  const [busyMode, setBusyMode] = useState<'print' | 'image' | null>(null)
+  const [showDismiss, setShowDismiss] = useState(false)
   const [toast, setToast] = useState<string | null>(null)
   const [refreshing, setRefreshing] = useState(false)
+
+  // 작업 순번. 사용자가 "닫기"로 먼저 빠져나간 뒤 뒤늦게 끝난 이전 작업이
+  // 상태를 되살리지 못하도록 매 시도마다 증가시키고 결과 처리 전에 대조한다.
+  const opIdRef = useRef(0)
+  const isCurrent = (id: number) => opIdRef.current === id
+  const startOp = () => ++opIdRef.current
 
   const active = useMemo(() => TABS.find((t) => t.id === tab)!, [tab])
   const mobile = isMobile()
   const shareable = canShareFiles()
 
+  // busy 상태가 10초 넘게 이어지면 "닫기"를 노출한다 — 어떤 이유로든 멈췄을 때
+  // 새로고침 없이 빠져나갈 수 있게 하는 안전판.
+  useEffect(() => {
+    if (!busy) {
+      setShowDismiss(false)
+      return
+    }
+    const t = setTimeout(() => setShowDismiss(true), 10_000)
+    return () => clearTimeout(t)
+  }, [busy])
+
+  const dismissBusy = useCallback(() => {
+    startOp() // 이후 도착하는 이전 작업의 결과를 무효화
+    setBusy(null)
+    setBusyMode(null)
+    setToast('시간이 오래 걸려 창을 닫았습니다. 다시 시도해 주세요.')
+    setTimeout(() => setToast(null), 5000)
+  }, [])
+
   const makeImage = useCallback(async () => {
+    const id = startOp()
+    setBusyMode('image')
     setBusy(`0 / ${TOTAL_PAGES}`)
     try {
-      const blob = await captureAllPages((d, t) => setBusy(`${d} / ${t}`))
+      const blob = await captureAllPages((d, t) => {
+        if (isCurrent(id)) setBusy(`${d} / ${t}`)
+      })
       const fileName = outputFileName(A.profile.name, A.profile.code)
       const result = await shareOrDownload(
         blob,
         fileName,
         `${A.profile.name} 플래너 ${REPORT_TITLE_SHORT}`,
       )
+      if (!isCurrent(id)) return
       setToast(
         result === 'shared'
           ? '공유했습니다.'
@@ -67,11 +99,16 @@ export function Report({
             ? `이미지를 저장했습니다 — ${fileName}`
             : '공유를 취소했습니다.',
       )
-    } catch (e) {
-      setToast(e instanceof Error ? e.message : '이미지를 만들지 못했습니다.')
-    } finally {
-      setBusy(null)
       setTimeout(() => setToast(null), 5000)
+    } catch (e) {
+      if (!isCurrent(id)) return
+      setToast(e instanceof Error ? e.message : '이미지를 만들지 못했습니다.')
+      setTimeout(() => setToast(null), 5000)
+    } finally {
+      if (isCurrent(id)) {
+        setBusy(null)
+        setBusyMode(null)
+      }
     }
   }, [A])
 
@@ -80,11 +117,28 @@ export function Report({
       await makeImage()
       return
     }
+    const id = startOp()
+    setBusyMode('print')
     setBusy('준비 중')
     try {
-      await printAll()
+      await printAll(() => {
+        // 폰트 대기가 끝나 인쇄창을 여는 시점 — 자체 오버레이를 바로 닫는다.
+        // window.print() 의 결과를 기다리지 않으므로 오버레이가 무한정 떠 있을 수 없다.
+        if (isCurrent(id)) {
+          setBusy(null)
+          setBusyMode(null)
+        }
+      })
+    } catch (e) {
+      if (isCurrent(id)) {
+        setToast(e instanceof Error ? e.message : '인쇄를 시작하지 못했습니다.')
+        setTimeout(() => setToast(null), 5000)
+      }
     } finally {
-      setBusy(null)
+      if (isCurrent(id)) {
+        setBusy(null)
+        setBusyMode(null)
+      }
     }
   }, [mobile, makeImage])
 
@@ -122,7 +176,13 @@ export function Report({
             <span className="btn__text">새로고침</span>
           </button>
           <button className="btn btn--primary" onClick={doPrintAll} disabled={!!busy || refreshing}>
-            {busy ? `출력 중 ${busy}` : mobile ? '전체 인쇄 (이미지 저장·공유)' : `전체 인쇄 (A4 ${TOTAL_PAGES}장)`}
+            {busy
+              ? busyMode === 'print'
+                ? '인쇄 준비 중'
+                : `출력 중 ${busy}`
+              : mobile
+                ? '전체 인쇄 (이미지 저장·공유)'
+                : `전체 인쇄 (A4 ${TOTAL_PAGES}장)`}
           </button>
           {!mobile && (
             <button className="btn" onClick={makeImage} disabled={!!busy || refreshing}>
@@ -170,11 +230,20 @@ export function Report({
         <div className="overlay" role="status" aria-live="polite">
           <div className="overlay__box">
             <div className="overlay__spin" />
-            <p>
-              A4 {TOTAL_PAGES}장을 이미지로 만드는 중입니다
-              <br />
-              <b>{busy}</b>
-            </p>
+            {busyMode === 'print' ? (
+              <p>인쇄 준비 중입니다</p>
+            ) : (
+              <p>
+                A4 {TOTAL_PAGES}장을 이미지로 만드는 중입니다
+                <br />
+                <b>{busy}</b>
+              </p>
+            )}
+            {showDismiss && (
+              <button className="btn overlay__dismiss" onClick={dismissBusy}>
+                닫기
+              </button>
+            )}
           </div>
         </div>
       )}

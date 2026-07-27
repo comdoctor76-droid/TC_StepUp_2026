@@ -883,6 +883,9 @@
   border-radius: 50%;
   animation: spin 0.85s linear infinite;
 }
+.overlay__box .overlay__dismiss {
+  margin-top: 16px;
+}
 .toast {
   position: fixed;
   left: 50%;
