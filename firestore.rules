@@ -1,0 +1,55 @@
+rules_version = '2';
+
+// ══════════════════════════════════════════════════════════════════════
+//  TC StepUp 2026 — 하이플래너 자가진단 레포트
+//
+//  읽기 : 익명 인증을 통과한 세션만. 앱은 공통 비밀번호 검증에 성공한
+//         뒤에만 signInAnonymously() 를 호출한다.
+//         ⚠️ 비밀번호를 아는 사람은 임의의 사번을 조회할 수 있다.
+//            완전 격리가 필요하면 사번별 계정 발급으로 전환해야 한다.
+//
+//  쓰기 : 관리자 UID 만. Firebase 콘솔에서 이메일/비밀번호 계정을 만들고
+//         아래 isAdmin() 의 UID 목록에 넣는다.
+// ══════════════════════════════════════════════════════════════════════
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    function signedIn() {
+      return request.auth != null;
+    }
+
+    function isAdmin() {
+      // TODO: Firebase 콘솔 > Authentication 에서 만든 관리자 계정의 UID 로 교체
+      return signedIn() && request.auth.uid in [
+        'REPLACE_WITH_ADMIN_UID'
+      ];
+    }
+
+    // 플래너 데이터 (해시 샤딩, 256개 문서)
+    match /plannerShards/{shardId} {
+      allow read: if signedIn();
+      allow write: if isAdmin();
+    }
+
+    // 소득구간별 벤치마크 (문서 1개)
+    match /benchmarks/{docId} {
+      allow read: if signedIn();
+      allow write: if isAdmin();
+    }
+
+    // 메타데이터
+    match /meta/{docId} {
+      // auth 문서에는 뷰어 비밀번호 해시가 들어 있다.
+      // 로그인 전에 읽어야 하므로 공개 읽기를 허용한다.
+      // (SHA-256 해시만 저장하며 평문은 어디에도 두지 않는다)
+      allow read: if docId == 'auth' || signedIn();
+      allow write: if isAdmin();
+    }
+
+    // 그 외 전부 차단
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}

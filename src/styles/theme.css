@@ -1,0 +1,113 @@
+/* ── Pretendard (self-host) ─────────────────────────────────────────────
+   CDN 폰트는 html-to-image 캡처 시 CORS로 누락되므로 반드시 same-origin. */
+@font-face {
+  font-family: 'Pretendard';
+  font-weight: 400;
+  font-style: normal;
+  font-display: block;
+  src: url('../assets/fonts/Pretendard-Regular.subset.woff2') format('woff2');
+}
+@font-face {
+  font-family: 'Pretendard';
+  font-weight: 500;
+  font-style: normal;
+  font-display: block;
+  src: url('../assets/fonts/Pretendard-Medium.subset.woff2') format('woff2');
+}
+@font-face {
+  font-family: 'Pretendard';
+  font-weight: 600;
+  font-style: normal;
+  font-display: block;
+  src: url('../assets/fonts/Pretendard-SemiBold.subset.woff2') format('woff2');
+}
+@font-face {
+  font-family: 'Pretendard';
+  font-weight: 700;
+  font-style: normal;
+  font-display: block;
+  src: url('../assets/fonts/Pretendard-Bold.subset.woff2') format('woff2');
+}
+@font-face {
+  font-family: 'Pretendard';
+  font-weight: 800;
+  font-style: normal;
+  font-display: block;
+  src: url('../assets/fonts/Pretendard-ExtraBold.subset.woff2') format('woff2');
+}
+
+:root {
+  /* ── 현대해상 CI 기반 · 오렌지 주조 ── */
+  --hi-orange: #f18d00;
+  --hi-orange-deep: #c97400;
+  --hi-orange-mid: #f7a838;
+  --hi-orange-soft: #fff3e0;
+  --hi-orange-line: #ffd9a0;
+  --hi-navy: #003070;
+  --hi-navy-soft: #eaf0f8;
+
+  /* 데이터 계열 — 5개 탭 전체 고정 */
+  --series-self: #f18d00; /* 본인 */
+  --series-peer: #9aa5b1; /* 동급 */
+  --series-next: #f7c873; /* 차상급 */
+  --series-tc: #003070; /* TC 표준그룹 */
+
+  --ink: #1a1a1a;
+  --ink-2: #4a5560;
+  --ink-3: #78848f;
+  --line: #dfe4ea;
+  --bg: #f4f6f8;
+  --surface: #ffffff;
+
+  --pos: #1b8a4b;
+  --neg: #d93025;
+
+  --radius: 12px;
+  --shadow: 0 1px 3px rgba(0, 0, 0, 0.07), 0 6px 18px rgba(0, 0, 0, 0.05);
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, 'Apple SD Gothic Neo',
+    'Malgun Gothic', system-ui, sans-serif;
+  background: var(--bg);
+  color: var(--ink);
+  font-size: 17px;
+  line-height: 1.5;
+  -webkit-text-size-adjust: 100%;
+  -webkit-font-smoothing: antialiased;
+}
+
+button {
+  font-family: inherit;
+  cursor: pointer;
+}
+
+input {
+  font-family: inherit;
+}
+
+table {
+  border-collapse: collapse;
+}
+
+.num {
+  font-variant-numeric: tabular-nums;
+  font-feature-settings: 'tnum';
+}
+
+.pos {
+  color: var(--pos);
+}
+.neg {
+  color: var(--neg);
+}
