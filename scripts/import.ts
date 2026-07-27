@@ -104,16 +104,25 @@ initializeApp({
 })
 const db = getFirestore()
 
-const CHUNK = 20
+// 샤드는 문서 1건씩 쓴다 (브라우저 업로더와 동일한 방식).
+// 배치로 묶으면 요청이 커져 전송 한계에 걸릴 수 있다 — src/data/upload.ts 주석 참고.
+const CONCURRENCY = 8
+const ids = allShardIds()
+let cursor = 0
 let done = 0
-for (let i = 0; i < allShardIds().length; i += CHUNK) {
-  const slice = allShardIds().slice(i, i + CHUNK)
-  const batch = db.batch()
-  for (const id of slice) batch.set(db.collection('plannerShards').doc(id), shards.get(id)!)
-  await batch.commit()
-  done += slice.length
-  process.stdout.write(`\r  플래너 샤드 ${done}/256`)
-}
+
+await Promise.all(
+  Array.from({ length: CONCURRENCY }, async () => {
+    for (;;) {
+      const i = cursor++
+      if (i >= ids.length) return
+      const id = ids[i]
+      await db.collection('plannerShards').doc(id).set(shards.get(id)!)
+      done++
+      process.stdout.write(`\r  플래너 샤드 ${done}/${ids.length}`)
+    }
+  }),
+)
 console.log()
 
 await db.collection('benchmarks').doc('all').set(parsed.benchmarks)
