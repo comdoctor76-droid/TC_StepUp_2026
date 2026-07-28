@@ -29,6 +29,10 @@ export const DEFAULT_CAPTION = '(영업교육운영파트 / updated by 2026.6.30
 /** 인쇄·캡처 페이지 수 (레포트/C/A/M/S/액션플랜) */
 export const TOTAL_PAGES = 6
 
+/** 인쇄물 매 장 하단 고지 문구 */
+export const DISCLAIMER =
+  '본 자료는 플래너 교육용이므로 임의 고객 교부 및 온라인 게시 목적 등으로 사용할 수 없습니다.'
+
 /** 수정 이력 (최신이 위) */
 export const CHANGELOG: { version: string; note: string }[] = [
   {

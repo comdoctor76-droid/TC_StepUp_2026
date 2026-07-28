@@ -520,50 +520,68 @@
   font-size: 10.5px;
 }
 
-/* ── 비교표 (원본 엑셀 가로 배치) ───────────────────────────────── */
+/* ── 비교표 (원본 엑셀 가로 배치 — 본인·TC 를 같은 행에 좌우 열 그룹으로) ── */
 .cmp {
   display: flex;
   flex-direction: column;
   gap: 10px;
 }
 .cmp__block {
+  display: flex;
+  align-items: stretch;
   background: var(--surface);
   border-radius: 12px;
   box-shadow: var(--shadow);
   overflow: hidden;
 }
+/* 좌측 '구분' 레일 — 같은 구분을 공유하는 항목들 옆에 세로로 걸친다 */
 .cmp__sec {
-  margin: 0;
-  padding: 9px 14px;
+  flex: 0 0 auto;
+  width: 74px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  padding: 8px 6px;
   background: var(--hi-orange);
   color: #fff;
-  font-size: 16px;
+  font-size: 15px;
   font-weight: 800;
   letter-spacing: -0.01em;
+  line-height: 1.25;
+  word-break: keep-all;
 }
 .cmp__groups {
+  flex: 1 1 auto;
+  min-width: 0;
   display: flex;
   flex-direction: column;
 }
 .grp {
-  padding: 10px 14px 12px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 9px 14px;
 }
 .grp + .grp {
   border-top: 1px solid var(--line);
 }
 .grp__title {
-  font-size: 16px;
+  flex: 0 0 128px;
+  font-size: 15px;
   font-weight: 700;
   color: var(--hi-navy);
-  margin-bottom: 5px;
 }
 .grp__note {
-  margin-left: 8px;
-  font-size: 13px;
+  display: block;
+  margin-top: 2px;
+  font-size: 12px;
   font-weight: 500;
   color: var(--ink-3);
 }
 .grp__scroll {
+  flex: 1 1 auto;
+  min-width: 0;
   overflow-x: auto;
 }
 /* 모바일 전용 목록 — 기본은 숨김 */
@@ -573,54 +591,66 @@
   margin: 0;
   padding: 0;
 }
-.grp__t {
+/* ── 좌우 열 그룹 표 (본인 절반 + TC 절반, 같은 행에 값 나란히) ── */
+.grp__t2 {
   width: 100%;
-  font-size: 16px;
+  border-collapse: collapse;
   table-layout: fixed;
 }
-.grp__t th,
-.grp__t td {
-  padding: 5px 6px;
-  text-align: right;
+.grp__t2 th,
+.grp__t2 td {
+  text-align: center;
+  padding: 5px 4px;
+  white-space: nowrap;
 }
-.grp__t thead th {
-  font-size: 14px;
+.grp__gh {
+  font-size: 13px;
+  font-weight: 800;
+  color: #fff;
+}
+.grp__gh--self {
+  background: var(--hi-orange);
+}
+.grp__gh--tc {
+  background: var(--hi-navy);
+  border-left: 2px solid #fff;
+}
+.grp__sub {
+  font-size: 12px;
   font-weight: 600;
   color: var(--ink-3);
   border-bottom: 1px solid var(--line);
-  white-space: nowrap;
 }
-.grp__who {
-  width: 116px;
-  text-align: left !important;
+.grp__sub--self {
+  background: var(--hi-orange-soft);
+}
+.grp__sub--tc {
+  background: var(--hi-navy-soft);
+}
+.grp__sub--first {
+  border-left: 2px solid var(--surface);
+}
+.grp__val {
+  font-size: 16px;
   font-weight: 700;
-  color: var(--ink-2);
-  font-size: 14px;
-  white-space: nowrap;
 }
-.grp__me td {
-  font-size: 18px;
-  font-weight: 800;
+.grp__val--self {
   color: var(--hi-orange-deep);
+  background: rgba(241, 141, 0, 0.05);
 }
-.grp__me .grp__who {
-  color: var(--hi-orange-deep);
-}
-.grp__me td.pos {
+.grp__val--self.pos {
   color: var(--pos);
 }
-.grp__me td.neg {
+.grp__val--self.neg {
   color: var(--neg);
 }
-.grp__tc td {
-  font-size: 16px;
-  font-weight: 600;
+.grp__val--tc {
   color: var(--ink-2);
-  border-top: 1px dashed var(--line);
+  font-weight: 600;
+  background: rgba(0, 48, 112, 0.04);
 }
-.grp__tc .grp__who {
-  color: var(--hi-navy);
-  border-top: 1px dashed var(--line);
+.grp__val--first {
+  border-left: 2px solid var(--surface);
 }
 
 /* 인쇄용 압축 */
@@ -633,44 +663,43 @@
   border: 1px solid var(--hi-orange-line);
 }
 .cmp--dense .cmp__sec {
-  padding: 2px 5px;
-  font-size: 11.5px;
+  width: 46px;
+  padding: 2px 2px;
+  font-size: 9.5px;
+  word-break: keep-all;
 }
 .cmp--dense .grp {
-  padding: 2.5px 5px 3px;
+  padding: 1.5px 5px;
+  gap: 5px;
 }
 .cmp--dense .grp__title {
-  font-size: 11.5px;
-  margin-bottom: 1px;
+  flex: 0 0 76px;
+  font-size: 10px;
 }
 .cmp--dense .grp__note {
-  margin-left: 4px;
-  font-size: 10px;
+  margin-top: 0;
+  font-size: 7.5px;
 }
 .cmp--dense .grp__scroll {
   overflow: visible;
 }
-.cmp--dense .grp__t {
-  font-size: 11.5px;
-}
-.cmp--dense .grp__t th,
-.cmp--dense .grp__t td {
-  padding: 0.8px 1px;
-  letter-spacing: -0.02em;
+.cmp--dense .grp__t2 th,
+.cmp--dense .grp__t2 td {
+  padding: 1px 2px;
+  letter-spacing: -0.03em;
   font-variant-numeric: tabular-nums;
 }
-.cmp--dense .grp__t thead th {
+.cmp--dense .grp__gh {
+  font-size: 9px;
+}
+.cmp--dense .grp__sub {
+  font-size: 8px;
+}
+.cmp--dense .grp__val {
   font-size: 10.5px;
 }
-.cmp--dense .grp__who {
-  width: 66px;
-  font-size: 10.5px;
-}
-.cmp--dense .grp__me td {
-  font-size: 12px;
-}
-.cmp--dense .grp__tc td {
-  font-size: 11.5px;
+.cmp--dense .grp__val--tc {
+  font-size: 10px;
 }
 
 /* ── 단순표 ───────────────────────────────────────────────────────── */
@@ -1040,8 +1069,10 @@
   .summary {
     grid-template-columns: 1fr;
   }
-  .summary__cams {
+  .summary__scores {
+    display: flex;
     justify-content: center;
+    gap: 14px;
   }
   .ptitle__h1 {
     font-size: 26px;
@@ -1196,7 +1227,16 @@
     font-weight: 600;
     color: var(--ink-2);
   }
+  .cmp__block {
+    flex-direction: column;
+  }
+  .cmp__sec {
+    width: auto;
+    padding: 9px 14px;
+  }
   .grp {
+    flex-direction: column;
+    align-items: flex-start;
     padding: 12px 14px 14px;
   }
 
@@ -1239,11 +1279,22 @@
 #print-root .cmp tbody tr {
   display: table-row;
 }
+/* .cmp/.grp 는 모바일 폭에서 캡처하더라도(PNG 저장) 항상 데스크톱의
+   좌우 열 그룹 레이아웃을 강제한다 — 위 모바일 미디어쿼리가 세로 배치로
+   바꿔놓은 것을 되돌린다. */
+#print-root .cmp__block {
+  flex-direction: row !important;
+}
 #print-root .cmp__sec {
   background: var(--hi-orange-soft);
   color: var(--hi-navy);
-  margin: 0;
-  border-radius: 0;
+  width: 46px !important;
+  padding: 2px 2px !important;
+  word-break: keep-all;
+}
+#print-root .grp {
+  flex-direction: row !important;
+  align-items: center !important;
 }
 #print-root .simple {
   display: table;
@@ -1269,16 +1320,6 @@
 }
 #print-root .grid--6 {
   grid-template-columns: repeat(6, minmax(0, 1fr));
-}
-
-/* 레포트 A4 — 현황Ⅰ / 현황Ⅱ 2단 배치 (한 장에 담기 위함)
-   현황Ⅱ 는 6자리 보험료가 6열까지 들어가므로 왼쪽보다 넓게 준다.
-   (균등 분할하면 '134,175' 같은 값들이 서로 붙어 버린다) */
-.rep-cols {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr) minmax(0, 1.2fr);
-  gap: 2.4mm;
-  align-items: start;
 }
 
 /* ══ 액션플랜 ═════════════════════════════════════════════════════════

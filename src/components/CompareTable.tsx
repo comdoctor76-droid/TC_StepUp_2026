@@ -3,12 +3,12 @@ import type { ReactNode } from 'react'
 /* ══════════════════════════════════════════════════════════════════════
    원본 엑셀 비교표 양식 재현.
 
-   원본(레포트!B11:O41)은 한 항목의 하위 구분을 **가로로** 펼친다.
-     [구분] [항목] | 장기 자동차 연계고객 총고객 월신규 | ← 본인
-                  | 장기 자동차 연계고객 총고객 월신규 | ← TC 표준그룹
-   세로로 풀면 행 수가 3배가 되어 A4 한 장에 들어가지 않는다.
+   원본(레포트!B11:O41)은 [구분][항목] 뒤에 본인·TC 를 **같은 행 안에서
+   좌우 열 그룹**으로 나란히 둔다 — 각 열 그룹 아래 하위 지표(장기/자동차/…)가
+   그룹마다 다른 개수로 반복된다. [구분] 은 같은 구분을 공유하는 항목들
+   왼쪽에 세로로 걸치는 레일로 표시한다(Excel 의 셀 병합에 대응).
 
-   데스크톱/인쇄 : 원본과 같은 가로 배치
+   데스크톱/인쇄 : 원본과 같은 좌우 열 그룹 배치
    모바일        : 항목별 카드 (CSS 에서 전환)
    ══════════════════════════════════════════════════════════════════════ */
 
@@ -54,7 +54,7 @@ export function CompareTable({
     <div className={`cmp ${dense ? 'cmp--dense' : ''}`}>
       {blocks.map((b, bi) => (
         <section className="cmp__block" key={bi}>
-          <h3 className="cmp__sec">{b.section}</h3>
+          <div className="cmp__sec">{b.section}</div>
           <div className="cmp__groups">
             {b.groups.map((g, gi) => (
               <div className="grp" key={gi}>
@@ -62,7 +62,8 @@ export function CompareTable({
                   {g.title}
                   {g.note && <span className="grp__note">{g.note}</span>}
                 </div>
-                {/* 모바일 — 항목별 목록 (좁은 화면에서 표는 뭉개진다) */}
+
+                {/* 모바일 — 항목별 목록 (좁은 화면에서 좌우 열 그룹 표는 뭉개진다) */}
                 <ul className="grp__m">
                   <li className="grp__m-head">
                     <span />
@@ -78,33 +79,49 @@ export function CompareTable({
                   ))}
                 </ul>
 
+                {/* 데스크톱/인쇄 — 원본처럼 본인·TC 가 같은 행에 좌우 열 그룹으로 */}
                 <div className="grp__scroll">
-                  <table className="grp__t">
+                  <table className="grp__t2">
                     <thead>
                       <tr>
-                        <th className="grp__who" />
+                        <th colSpan={g.cells.length} className="grp__gh grp__gh--self">
+                          {selfLabel}
+                        </th>
+                        <th colSpan={g.cells.length} className="grp__gh grp__gh--tc">
+                          {tcLabel}
+                        </th>
+                      </tr>
+                      <tr>
                         {g.cells.map((c, i) => (
-                          <th key={i}>{c.label}</th>
+                          <th key={`s${i}`} className="grp__sub grp__sub--self">
+                            {c.label}
+                          </th>
+                        ))}
+                        {g.cells.map((c, i) => (
+                          <th
+                            key={`t${i}`}
+                            className={`grp__sub grp__sub--tc ${i === 0 ? 'grp__sub--first' : ''}`}
+                          >
+                            {c.label}
+                          </th>
                         ))}
                       </tr>
                     </thead>
                     <tbody>
-                      <tr className="grp__me">
-                        <th className="grp__who">{selfLabel}</th>
+                      <tr>
                         {g.cells.map((c, i) => (
                           <td
-                            key={i}
-                            className={`num ${c.sign ? (c.sign > 0 ? 'pos' : 'neg') : ''}`}
-                            data-k={c.label}
+                            key={`s${i}`}
+                            className={`num grp__val grp__val--self ${c.sign ? (c.sign > 0 ? 'pos' : 'neg') : ''}`}
                           >
                             {c.self}
                           </td>
                         ))}
-                      </tr>
-                      <tr className="grp__tc">
-                        <th className="grp__who">{tcLabel}</th>
                         {g.cells.map((c, i) => (
-                          <td key={i} className="num" data-k={c.label}>
+                          <td
+                            key={`t${i}`}
+                            className={`num grp__val grp__val--tc ${i === 0 ? 'grp__val--first' : ''}`}
+                          >
                             {c.tc}
                           </td>
                         ))}

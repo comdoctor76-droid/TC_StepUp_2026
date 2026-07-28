@@ -14,7 +14,7 @@ export function CustomerTab({ A, dense }: { A: FullAnalysis; dense?: boolean }) 
   const name = A.profile.name
 
   const S = dense
-    ? { trio: { w: 224, h: 124 }, wide: { w: 700, h: 132 }, band: { w: 700, h: 138 } }
+    ? { trio: { w: 224, h: 118 }, wide: { w: 700, h: 126 }, band: { w: 700, h: 132 } }
     : { trio: { h: 240 }, wide: { h: 260 }, band: { h: 280 } }
 
   return (

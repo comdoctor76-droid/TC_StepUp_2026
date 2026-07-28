@@ -1,7 +1,6 @@
-/* 레포트 — 요약 (원본 레포트 시트, 차트 없음 + CAMS 레이더) */
+/* 레포트 — 요약 (원본 레포트 시트, 차트 없음) */
 
 import { CompareTable, type Group } from '../components/CompareTable'
-import { RadarCAMS } from '../components/charts/RadarCAMS'
 import { dec1, dec2, int, pct, won } from '../calc/format'
 import type { FullAnalysis } from '../calc'
 
@@ -159,42 +158,33 @@ export function ReportTab({ A, dense }: { A: FullAnalysis; dense?: boolean }) {
           <Tile label="월 신규고객" value={dec2(o.customers.monthlyNew.self)} unit="명" />
           <Tile label="고객당 건수" value={dec2(o.casesPerCustomer.self)} unit="건" />
         </div>
-        <div className="summary__cams">
-          <RadarCAMS cams={cams} dense={dense} w={dense ? 190 : undefined} h={dense ? 150 : 210} />
-          <ul className="summary__scores">
-            <li>
-              <b>C</b> {dec2(cams.C)}
-            </li>
-            <li>
-              <b>A</b> {dec2(cams.A)}
-            </li>
-            <li>
-              <b>M</b> {dec2(cams.M)}
-            </li>
-            <li className="summary__scores--na">
-              <b>S</b> 산식 미확정
-            </li>
-          </ul>
-        </div>
+        <ul className="summary__scores">
+          <li>
+            <b>C</b> {dec2(cams.C)}
+          </li>
+          <li>
+            <b>A</b> {dec2(cams.A)}
+          </li>
+          <li>
+            <b>M</b> {dec2(cams.M)}
+          </li>
+          <li className="summary__scores--na">
+            <b>S</b> 산식 미확정
+          </li>
+        </ul>
       </section>
 
       {pctText && <p className="lede">{pctText}</p>}
 
-      {/* 인쇄(A4)에서는 두 단으로 나눠 한 장에 담는다 */}
-      <div className={dense ? 'rep-cols' : undefined}>
-        <div>
-          <h2 className="sec">■ 현황Ⅰ (전체)</h2>
-          <p className="sec-note">※ TC 표준그룹 : 육성소득(500 ~ 700) 그룹 · 단위: 건, 명, 원</p>
-          <CompareTable groups={groupsI} selfLabel={`${p.name} 플래너`} dense={dense} />
-        </div>
-        <div>
-          <h2 className="sec">■ 현황Ⅱ (6개월)</h2>
-          <p className="sec-note">
-            ※ 6개월 산출기준 : 최근 6개월 합산 평균 ({A.ctx.months[0]} ~ {A.ctx.months[5]})
-          </p>
-          <CompareTable groups={groupsII} selfLabel={`${p.name} 플래너`} dense={dense} />
-        </div>
-      </div>
+      <h2 className="sec">■ 현황Ⅰ (전체)</h2>
+      <p className="sec-note">※ TC 표준그룹 : 육성소득(500 ~ 700) 그룹 · 단위: 건, 명, 원</p>
+      <CompareTable groups={groupsI} selfLabel={`${p.name} 플래너`} dense={dense} />
+
+      <h2 className="sec">■ 현황Ⅱ (6개월)</h2>
+      <p className="sec-note">
+        ※ 6개월 산출기준 : 최근 6개월 합산 평균 ({A.ctx.months[0]} ~ {A.ctx.months[5]})
+      </p>
+      <CompareTable groups={groupsII} selfLabel={`${p.name} 플래너`} dense={dense} />
     </>
   )
 }

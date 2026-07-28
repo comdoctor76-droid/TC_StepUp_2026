@@ -55,10 +55,24 @@
   margin-top: 2mm;
   padding-top: 1.5mm;
   border-top: 1px solid var(--hi-orange-line);
-  display: flex;
-  justify-content: space-between;
   font-size: 11.5px;
   color: var(--ink-3);
+}
+.a4-foot__meta {
+  display: flex;
+  justify-content: space-between;
+}
+/* 원본과 동일한 검은 배너 — 세로로는 최대한 얇게(다른 페이지 여유를 깎으므로) */
+.a4-foot__notice {
+  margin-top: 1mm;
+  padding: 1mm 2mm;
+  background: #000;
+  color: #fff;
+  font-size: 11.5px;
+  font-weight: 700;
+  text-align: center;
+  letter-spacing: -0.02em;
+  word-break: keep-all;
 }
 
 @media print {
