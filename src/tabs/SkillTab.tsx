@@ -53,18 +53,6 @@ export function SkillTab({
         ※ 그래프는 {scope} 기준 · TC 표준그룹 : 육성소득(500 ~ 700) 그룹
       </p>
 
-      <div className="grid grid--3">
-        <ChartCard title={`인당 금액 (${scope})`}>
-          <BarTriple {...S.trio} dense={dense} data={six((r) => r.perCust)} format={manwon} />
-        </ChartCard>
-        <ChartCard title={`건당 금액 (${scope})`}>
-          <BarTriple {...S.trio} dense={dense} data={six((r) => r.perCase)} format={manwon} />
-        </ChartCard>
-        <ChartCard title={`최고 금액 (${scope})`}>
-          <BarTriple {...S.trio} dense={dense} data={six((r) => r.max)} format={manwon} />
-        </ChartCard>
-      </div>
-
       <SimpleTable
         dense={dense}
         caption="전체 기간 기준"
@@ -79,6 +67,18 @@ export function SkillTab({
           won(r.max),
         ])}
       />
+
+      <div className="grid grid--3">
+        <ChartCard title={`인당 금액 (${scope})`}>
+          <BarTriple {...S.trio} dense={dense} data={six((r) => r.perCust)} format={manwon} />
+        </ChartCard>
+        <ChartCard title={`건당 금액 (${scope})`}>
+          <BarTriple {...S.trio} dense={dense} data={six((r) => r.perCase)} format={manwon} />
+        </ChartCard>
+        <ChartCard title={`최고 금액 (${scope})`}>
+          <BarTriple {...S.trio} dense={dense} data={six((r) => r.max)} format={manwon} />
+        </ChartCard>
+      </div>
 
       <h2 className="sec">▶ 주력상품별 평균 신계약 보험료 현황</h2>
       <div className="grid grid--6">
@@ -161,13 +161,6 @@ export function SkillTab({
         ])}
       />
 
-      <p className="score-line score-line--na">
-        <b>S 점수</b> 산식 미확정
-        <em>
-          원본 워크북의 참조가 유실되어(개요!BU25 = S분석!#REF!) 복원할 수 없습니다. 산식을 주시면
-          반영합니다.
-        </em>
-      </p>
     </>
   )
 }

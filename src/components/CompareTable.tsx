@@ -52,6 +52,11 @@ export function CompareTable({
 
   return (
     <div className={`cmp ${dense ? 'cmp--dense' : ''}`}>
+      {/* 그룹마다 반복하던 "본인/TC" 색상 밴드를 표 전체 상단에 한 번만 그린다 */}
+      <div className="cmp__ghead">
+        <span className="cmp__ghead--self">{selfLabel}</span>
+        <span className="cmp__ghead--tc">{tcLabel}</span>
+      </div>
       {blocks.map((b, bi) => (
         <section className="cmp__block" key={bi}>
           <div className="cmp__sec">{b.section}</div>
@@ -85,14 +90,6 @@ export function CompareTable({
                       값 글자를 한 단계 줄여 숫자끼리 붙지 않게 한다 */}
                   <table className="grp__t2" data-cols={g.cells.length}>
                     <thead>
-                      <tr>
-                        <th colSpan={g.cells.length} className="grp__gh grp__gh--self">
-                          {selfLabel}
-                        </th>
-                        <th colSpan={g.cells.length} className="grp__gh grp__gh--tc">
-                          {tcLabel}
-                        </th>
-                      </tr>
                       <tr>
                         {g.cells.map((c, i) => (
                           <th key={`s${i}`} className="grp__sub grp__sub--self">
@@ -146,16 +143,19 @@ export function SimpleTable({
   rows,
   dense,
   caption,
+  wrap,
 }: {
   head: ReactNode[]
   rows: ReactNode[][]
   dense?: boolean
   caption?: ReactNode
+  /** 좁은 박스에 억지로 맞춰야 할 때 — 줄바꿈 허용 + 글자 한 단계 축소 (화면 모드 전용, 인쇄는 이미 줄바꿈) */
+  wrap?: boolean
 }) {
   return (
     <div className={`simple-wrap ${dense ? 'simple-wrap--dense' : ''}`}>
       {caption && <div className="simple__cap">{caption}</div>}
-      <table className={`simple ${dense ? 'simple--dense' : ''}`}>
+      <table className={`simple ${dense ? 'simple--dense' : ''} ${wrap ? 'simple--wrap' : ''}`}>
         <thead>
           <tr>
             {head.map((h, i) => (

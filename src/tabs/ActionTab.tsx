@@ -191,17 +191,6 @@ export function ActionTab({
         ]}
       />
 
-      <p className="score-line">
-        <b>A 점수</b> {dec2(a.score)} <span>/ 2.00</span>
-        <em>
-          일반 {a.scoreParts.general > 0 ? '+' : ''}
-          {a.scoreParts.general} · 자동차 {a.scoreParts.auto > 0 ? '+' : ''}
-          {a.scoreParts.auto} · 보장성 {a.scoreParts.protect > 0 ? '+' : ''}
-          {a.scoreParts.protect} · 유지건수 {a.scoreParts.longCnt > 0 ? '+' : ''}
-          {a.scoreParts.longCnt} · 신규고객 {a.scoreParts.newCust > 0 ? '+' : ''}
-          {a.scoreParts.newCust}
-        </em>
-      </p>
     </>
   )
 }

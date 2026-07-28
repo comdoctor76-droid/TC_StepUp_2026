@@ -517,6 +517,37 @@
   flex-direction: column;
   gap: 10px;
 }
+/* 예전엔 그룹(항목)마다 이 밴드를 반복해서 그렸다 — 표 전체에 딱 한 번만 그린다 */
+.cmp__ghead {
+  display: flex;
+  border-radius: 8px;
+  overflow: hidden;
+  font-weight: 800;
+  color: #fff;
+}
+.cmp__ghead--self,
+.cmp__ghead--tc {
+  flex: 1 1 50%;
+  text-align: center;
+  padding: 8px 6px;
+  font-size: 14px;
+}
+.cmp__ghead--self {
+  background: var(--hi-orange);
+}
+.cmp__ghead--tc {
+  background: var(--hi-navy);
+  border-left: 2px solid #fff;
+}
+.cmp--dense .cmp__ghead {
+  border-radius: 3px;
+  margin-bottom: 2px;
+}
+.cmp--dense .cmp__ghead--self,
+.cmp--dense .cmp__ghead--tc {
+  padding: 2px 4px;
+  font-size: 13px;
+}
 .cmp__block {
   display: flex;
   align-items: stretch;
@@ -552,7 +583,7 @@
   display: flex;
   align-items: center;
   gap: 12px;
-  padding: 9px 14px;
+  padding: 10px 14px;
 }
 .grp + .grp {
   border-top: 1px solid var(--line);
@@ -595,20 +626,8 @@
   padding: 5px 4px;
   white-space: nowrap;
 }
-.grp__gh {
-  font-size: 13px;
-  font-weight: 800;
-  color: #fff;
-}
-.grp__gh--self {
-  background: var(--hi-orange);
-}
-.grp__gh--tc {
-  background: var(--hi-navy);
-  border-left: 2px solid #fff;
-}
 .grp__sub {
-  font-size: 12px;
+  font-size: 13px;
   font-weight: 600;
   color: var(--ink-3);
   border-bottom: 1px solid var(--line);
@@ -623,7 +642,7 @@
   border-left: 2px solid var(--surface);
 }
 .grp__val {
-  font-size: 16px;
+  font-size: 17px;
   font-weight: 700;
 }
 .grp__val--self {
@@ -661,9 +680,9 @@
   word-break: keep-all;
 }
 .cmp--dense .grp {
-  padding: 0 3px;
+  padding: 1px 3px;
   gap: 4px;
-  line-height: 1.15;
+  line-height: 1.2;
 }
 .cmp--dense .grp__title {
   flex: 0 0 84px;
@@ -682,39 +701,29 @@
   letter-spacing: -0.03em;
   font-variant-numeric: tabular-nums;
 }
-.cmp--dense .grp__gh {
-  font-size: 12px;
-}
 .cmp--dense .grp__sub {
-  font-size: 11px;
+  font-size: 12px;
 }
 .cmp--dense .grp__val {
-  font-size: 13.5px;
+  font-size: 14.5px;
 }
 .cmp--dense .grp__val--tc {
-  font-size: 13px;
-}
-/* 열이 많은 그룹(6자리 금액 6열 등)은 값 글자를 한 단계 낮춰
-   숫자끼리 붙지 않게 한다. 그래도 이전(10.5px)보다는 크다. */
-.cmp--dense .grp__t2[data-cols='6'] .grp__val {
-  font-size: 12px;
-}
-.cmp--dense .grp__t2[data-cols='6'] .grp__val--tc {
-  font-size: 11.5px;
-}
-.cmp--dense .grp__t2[data-cols='6'] .grp__sub {
-  font-size: 10px;
+  font-size: 14px;
 }
 /* 열이 많을수록 한 칸 폭이 좁아진다 — 6자리 보험료가 6열까지 들어가는 그룹은
-   값 글자를 한 단계 줄여야 숫자끼리 붙지 않는다 (세로가 아니라 가로 제약) */
+   값 글자를 한 단계 줄여야 숫자끼리 붙지 않는다 (세로가 아니라 가로 제약).
+   그룹당 헤더 밴드가 하나 줄어든 만큼(cmp__ghead 로 통합) 이전보다 한 단계씩 키웠다. */
 .cmp--dense .grp__t2[data-cols='5'] .grp__val {
-  font-size: 12.5px;
+  font-size: 13.5px;
 }
 .cmp--dense .grp__t2[data-cols='6'] .grp__val {
-  font-size: 11.5px;
+  font-size: 12.5px;
+}
+.cmp--dense .grp__t2[data-cols='6'] .grp__val--tc {
+  font-size: 12px;
 }
 .cmp--dense .grp__t2[data-cols='6'] .grp__sub {
-  font-size: 10px;
+  font-size: 11px;
 }
 
 /* ── 단순표 ───────────────────────────────────────────────────────── */
@@ -760,6 +769,39 @@
 .simple tbody tr:first-child td {
   background: rgba(241, 141, 0, 0.07);
   color: var(--hi-orange-deep);
+}
+
+/* 좁은 박스(예: M분석 grid--3 세 번째 칸)에서 가로로 넘치는 표 — 줄바꿈 허용 + 글자 축소.
+   word-break 는 기본값(normal) 그대로 둔다 — keep-all 을 주면 "5세대"처럼 공백 없는
+   한글 헤더가 끊을 자리가 없어 오히려 줄바꿈이 안 되고 넘친다. */
+/* #print-root .simple{white-space:normal} 만으로는 부족했다 — table-layout 이
+   auto 라 6개 열(구분+1~5세대)이 박스보다 넓게 그대로 밀고 나가 마지막 열이
+   페이지 밖으로 잘렸다. 화면·인쇄 모두 폭을 박스에 고정하고 줄바꿈으로 맞춘다. */
+.simple--wrap {
+  table-layout: fixed;
+}
+.simple--wrap th,
+.simple--wrap td {
+  white-space: normal;
+  overflow-wrap: anywhere;
+}
+.simple--wrap:not(.simple--dense) {
+  font-size: 13.5px;
+}
+.simple--wrap:not(.simple--dense) th {
+  font-size: 12.5px;
+  padding: 6px 5px;
+}
+.simple--wrap:not(.simple--dense) td {
+  padding: 5px 5px;
+}
+.simple--wrap.simple--dense th {
+  font-size: 10.5px;
+  padding: 1px 2px;
+}
+.simple--wrap.simple--dense td {
+  font-size: 11px;
+  padding: 1px 2px;
 }
 
 .simple-wrap--dense {
@@ -846,54 +888,6 @@
 .dense .grid {
   gap: 3px;
   margin: 3px 0;
-}
-
-/* ── 점수 라인 ────────────────────────────────────────────────────── */
-.score-line {
-  margin: 16px 0 0;
-  padding: 12px 16px;
-  background: var(--hi-navy-soft);
-  border-left: 5px solid var(--hi-navy);
-  border-radius: 8px;
-  font-size: 17px;
-}
-.score-line b {
-  color: var(--hi-navy);
-  margin-right: 8px;
-  font-size: 19px;
-}
-.score-line span {
-  color: var(--ink-3);
-  font-size: 15px;
-}
-.score-line em {
-  display: block;
-  margin-top: 4px;
-  font-style: normal;
-  font-size: 14px;
-  color: var(--ink-2);
-}
-.score-line--na {
-  background: #f6f7f8;
-  border-left-color: var(--ink-3);
-}
-.dense .score-line {
-  margin: 3px 0 0;
-  padding: 3px 6px;
-  border-left-width: 3px;
-  border-radius: 3px;
-  font-size: 15px;
-}
-.dense .score-line b {
-  font-size: 16px;
-  margin-right: 4px;
-}
-.dense .score-line span {
-  font-size: 14px;
-}
-.dense .score-line em {
-  margin-top: 1px;
-  font-size: 13.5px;
 }
 
 /* ── 오버레이 / 토스트 / 힌트 ─────────────────────────────────────── */

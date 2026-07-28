@@ -5,7 +5,7 @@ import { ChartCard } from '../components/charts/Frame'
 import { SimpleTable } from '../components/CompareTable'
 import { GEN_COLORS } from '../components/charts/palette'
 import { PeriodNote, type Period } from '../components/PeriodPicker'
-import { dec1, dec2, int, pct } from '../calc/format'
+import { dec1, int, pct } from '../calc/format'
 import type { FullAnalysis } from '../calc'
 
 export function MarketTab({
@@ -32,6 +32,19 @@ export function MarketTab({
           바꿀 수 있는 것이 없어 조회기간 선택을 두지 않았습니다.
         </PeriodNote>
       )}
+
+      <h2 className="sec">▶ 보장성 보험의 주요 상품별 보험료 구성비율</h2>
+      <div className="grid grid--3">
+        <ChartCard title={`본인 (${name})`}>
+          <PieShare {...S.pie} dense={dense} data={m.premiumShare.self} leaderLines />
+        </ChartCard>
+        <ChartCard title={`동급 (${A.ctx.levelLabel})`}>
+          <PieShare {...S.pie} dense={dense} data={m.premiumShare.peer} leaderLines />
+        </ChartCard>
+        <ChartCard title="TC 표준그룹">
+          <PieShare {...S.pie} dense={dense} data={m.premiumShare.tc} leaderLines />
+        </ChartCard>
+      </div>
 
       <h2 className="sec">▶ 장기 / 자동차 고객 및 연계고객 분포</h2>
       <p className="sec-note">※ TC 표준그룹 : 육성소득(500 ~ 700) 그룹</p>
@@ -63,19 +76,6 @@ export function MarketTab({
         </ChartCard>
       </div>
 
-      <h2 className="sec">▶ 보장성 보험의 주요 상품별 보험료 구성비율</h2>
-      <div className="grid grid--3">
-        <ChartCard title={`본인 (${name})`}>
-          <PieShare {...S.pie} dense={dense} data={m.premiumShare.self} />
-        </ChartCard>
-        <ChartCard title={`동급 (${A.ctx.levelLabel})`}>
-          <PieShare {...S.pie} dense={dense} data={m.premiumShare.peer} />
-        </ChartCard>
-        <ChartCard title="TC 표준그룹">
-          <PieShare {...S.pie} dense={dense} data={m.premiumShare.tc} />
-        </ChartCard>
-      </div>
-
       <h2 className="sec">▶ 플래너 · TC그룹 보유실손 비중 현황 (전체 기간)</h2>
       <div className="grid grid--3">
         <ChartCard title={`본인 · 총 ${int(m.silson.selfTotal)}건`}>
@@ -86,6 +86,7 @@ export function MarketTab({
         </ChartCard>
         <SimpleTable
           dense={dense}
+          wrap
           caption="실손 세대별 비중 (5세대 포함)"
           head={['구분', '1세대', '2세대', '3세대', '4세대', '5세대']}
           rows={[
@@ -94,15 +95,6 @@ export function MarketTab({
           ]}
         />
       </div>
-
-      <p className="score-line">
-        <b>M 점수</b> {dec2(m.score)} <span>/ 2.00</span>
-        <em>
-          자동차비중 {dec2(m.scoreParts.autoRate)} · 일반보험료 {dec2(m.scoreParts.generalPrem)} ·
-          퍼펙트 {dec2(m.scoreParts.perfect)} · 스타 {dec2(m.scoreParts.star)} · 어린이{' '}
-          {dec2(m.scoreParts.kid)}
-        </em>
-      </p>
     </>
   )
 }
