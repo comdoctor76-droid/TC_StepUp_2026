@@ -164,6 +164,151 @@
   font-style: normal;
 }
 
+/* 사번 입력 / 명단에서 선택 토글 */
+.gate__mode {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 20px;
+  background: var(--bg);
+  padding: 4px;
+  border-radius: 10px;
+}
+.gate__mode-btn {
+  flex: 1 1 0;
+  border: 0;
+  background: none;
+  padding: 9px 8px;
+  border-radius: 8px;
+  font-size: 14.5px;
+  font-weight: 700;
+  color: var(--ink-3);
+}
+.gate__mode-btn.is-on {
+  background: var(--surface);
+  color: var(--hi-orange-deep);
+  box-shadow: var(--shadow);
+}
+
+/* ── 명단 조회 (지역단 → 비전센터 → 지점) ────────────────────────── */
+.gate--wide {
+  align-items: flex-start;
+  padding-top: 40px;
+}
+.gate--wide .roster {
+  max-width: 620px;
+}
+.roster__back {
+  border: 0;
+  background: none;
+  padding: 0;
+  margin-bottom: 14px;
+  font-size: 14px;
+  color: var(--ink-3);
+}
+.roster__drill {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 10px;
+}
+.roster__drill select {
+  width: 100%;
+  padding: 11px 10px;
+  font-size: 15px;
+  border: 1.5px solid var(--line);
+  border-radius: 10px;
+  background: #fff;
+}
+.roster__sum {
+  margin: 18px 0 8px;
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--hi-navy);
+}
+.roster__list {
+  list-style: none;
+  margin: 0 0 20px;
+  padding: 0;
+  max-height: 320px;
+  overflow-y: auto;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+}
+.roster__list li {
+  display: grid;
+  grid-template-columns: 24px 1fr auto;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 12px;
+  border-top: 1px solid var(--line);
+  font-size: 15px;
+}
+.roster__list li:first-child {
+  border-top: 0;
+}
+.roster__list-head {
+  position: sticky;
+  top: 0;
+  background: var(--hi-orange-soft);
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--ink-2);
+  z-index: 1;
+}
+.roster__list input[type='checkbox'] {
+  width: 17px;
+  height: 17px;
+}
+.roster__picked {
+  border-top: 1px solid var(--line);
+  padding-top: 16px;
+}
+.roster__picked-title {
+  margin: 0 0 8px;
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--ink-2);
+}
+.roster__picked-list {
+  list-style: none;
+  margin: 0 0 14px;
+  padding: 0;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  max-height: 140px;
+  overflow-y: auto;
+}
+.roster__picked-list li {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 5px 6px 5px 10px;
+  background: var(--hi-orange-soft);
+  border-radius: 999px;
+  font-size: 13.5px;
+  color: var(--hi-orange-deep);
+}
+.roster__picked-list button {
+  border: 0;
+  background: none;
+  color: inherit;
+  font-size: 13px;
+  line-height: 1;
+  padding: 2px;
+}
+.choice-overlay__note {
+  margin: -4px 0 4px;
+  font-size: 13px;
+  color: var(--ink-3);
+  text-align: center;
+}
+
+@media (max-width: 820px) {
+  .roster__drill {
+    grid-template-columns: 1fr;
+  }
+}
+
 /* ── 앱바 ─────────────────────────────────────────────────────────── */
 .app {
   min-height: 100dvh;

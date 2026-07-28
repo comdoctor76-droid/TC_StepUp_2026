@@ -4,6 +4,7 @@ import { analyze, type FullAnalysis } from '../calc'
 import { normalizeCode } from '../data/shard'
 import { ym } from '../calc/format'
 import { lockViewer } from '../session'
+import { Roster } from './Roster'
 
 const LAST_KEY = 'tc-stepup:lastCode'
 
@@ -12,6 +13,7 @@ export function Search({
 }: {
   onFound: (a: FullAnalysis, caption: string) => void
 }) {
+  const [mode, setMode] = useState<'code' | 'roster'>('code')
   const [code, setCode] = useState(() => localStorage.getItem(LAST_KEY) ?? '')
   const [err, setErr] = useState<string | null>(null)
   const [busy, setBusy] = useState(false)
@@ -50,6 +52,10 @@ export function Search({
     }
   }
 
+  if (mode === 'roster') {
+    return <Roster onBack={() => setMode('code')} />
+  }
+
   return (
     <div className="gate">
       <form className="gate__card" onSubmit={submit}>
@@ -59,6 +65,15 @@ export function Search({
             ? `기준 ${ym(meta.months[0])} ~ ${ym(meta.months[meta.months.length - 1])} · 플래너 ${meta.rowCount.toLocaleString('ko-KR')}명`
             : '기준 데이터를 불러오는 중…'}
         </p>
+
+        <div className="gate__mode" role="group" aria-label="조회 방식">
+          <button type="button" className="gate__mode-btn is-on">
+            사번으로 조회
+          </button>
+          <button type="button" className="gate__mode-btn" onClick={() => setMode('roster')}>
+            명단에서 선택
+          </button>
+        </div>
 
         <label className="field">
           <span>사번</span>
