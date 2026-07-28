@@ -56,7 +56,10 @@ function PageHead({ title, sub, tag }: { title: React.ReactNode; sub: React.Reac
         <div className="rp-title">{title}</div>
         <div className="rp-sub num">{sub}</div>
       </div>
-      <span className="rp-tag">{tag}</span>
+      <div className="rp-right">
+        <span className="rp-tag">{tag}</span>
+        <span className="rp-credit">성장코칭 제작 : 이경석 전임강사</span>
+      </div>
     </div>
   )
 }

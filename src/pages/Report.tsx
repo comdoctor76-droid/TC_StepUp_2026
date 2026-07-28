@@ -240,9 +240,11 @@ export function Report({
         <button className="appbar__back" onClick={onBack} aria-label="사번 다시 조회">
           ←
         </button>
-        <div className="appbar__who">
-          <b>{A.profile.name}</b>
-          <span>{A.profile.code}</span>
+        <div className="appbar__brand">
+          <b className="appbar__brand-title">현대해상 26년 3분기 TC Step-Up On-line</b>
+          <span className="appbar__brand-meta">
+            v{APP_VERSION} · {CONTACT_LINE}
+          </span>
         </div>
         <div className="appbar__actions">
           <button
@@ -306,6 +308,7 @@ export function Report({
           eyebrow={active.eyebrow || undefined}
           profile={A.profile}
           months={A.ctx.months}
+          credit={tab !== 'coach'}
         />
         {/* 기간 선택 — 그 탭에서 실제로 값을 바꾸는 컨트롤만 띄운다 (PERIOD_CAPS) */}
         <PeriodPicker
