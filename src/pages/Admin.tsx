@@ -3,7 +3,15 @@ import type { User } from 'firebase/auth'
 import { parseWorkbook, type ParsedWorkbook } from '../data/parseWorkbook'
 import { uploadParsed } from '../data/upload'
 import { clearCache, sha256 } from '../data/repository'
-import { adminSignIn, adminSignOut, isAdminUser, watchAuth } from '../session'
+import {
+  adminSignIn,
+  adminSignOut,
+  createAdminAccount,
+  isAdminUser,
+  loadAdminProfile,
+  watchAuth,
+  type AdminProfile,
+} from '../session'
 import { TC_GROUP } from '../data/schema'
 import { DEFAULT_CAPTION, REPORT_TITLE_SHORT } from '../version'
 
@@ -42,7 +50,7 @@ export function Admin() {
 }
 
 function AdminLogin() {
-  const [email, setEmail] = useState('')
+  const [code, setCode] = useState('')
   const [pw, setPw] = useState('')
   const [err, setErr] = useState<string | null>(null)
   const [busy, setBusy] = useState(false)
@@ -52,9 +60,9 @@ function AdminLogin() {
     setBusy(true)
     setErr(null)
     try {
-      await adminSignIn(email, pw)
+      await adminSignIn(code, pw)
     } catch {
-      setErr('이메일 또는 비밀번호가 올바르지 않습니다.')
+      setErr('사번 또는 비밀번호가 올바르지 않습니다.')
     } finally {
       setBusy(false)
     }
@@ -64,10 +72,17 @@ function AdminLogin() {
     <div className="gate">
       <form className="gate__card" onSubmit={submit}>
         <h1 className="gate__title">관리자 로그인</h1>
-        <p className="gate__sub">Firebase Auth 이메일 계정</p>
+        <p className="gate__sub">사번으로 로그인하는 관리자 계정</p>
         <label className="field">
-          <span>이메일</span>
-          <input type="email" value={email} onChange={(e) => setEmail(e.target.value)} required autoFocus />
+          <span>사번</span>
+          <input
+            value={code}
+            onChange={(e) => setCode(e.target.value)}
+            required
+            autoFocus
+            spellCheck={false}
+            autoCapitalize="characters"
+          />
         </label>
         <label className="field">
           <span>비밀번호</span>
@@ -94,6 +109,36 @@ function AdminPanel({ user }: { user: User }) {
   const [status, setStatus] = useState<string | null>(null)
   const [err, setErr] = useState<string | null>(null)
   const [busy, setBusy] = useState(false)
+
+  const [profile, setProfile] = useState<AdminProfile | null>(null)
+  useEffect(() => {
+    loadAdminProfile(user.uid).then(setProfile).catch(() => setProfile(null))
+  }, [user.uid])
+
+  const [showAddAdmin, setShowAddAdmin] = useState(false)
+  const [addCode, setAddCode] = useState('')
+  const [addPw, setAddPw] = useState('')
+  const [addName, setAddName] = useState('')
+  const [addBusy, setAddBusy] = useState(false)
+  const [addErr, setAddErr] = useState<string | null>(null)
+
+  async function submitAddAdmin(e: React.FormEvent) {
+    e.preventDefault()
+    setAddBusy(true)
+    setAddErr(null)
+    try {
+      await createAdminAccount(addCode, addPw, addName)
+      setStatus(`✅ 관리자 계정을 추가했습니다 — ${addName} (${addCode})`)
+      setShowAddAdmin(false)
+      setAddCode('')
+      setAddPw('')
+      setAddName('')
+    } catch (e) {
+      setAddErr(e instanceof Error ? e.message : '관리자 계정을 만들지 못했습니다.')
+    } finally {
+      setAddBusy(false)
+    }
+  }
 
   const months = useMemo(() => {
     try {
@@ -171,14 +216,73 @@ function AdminPanel({ user }: { user: User }) {
     <div className="admin">
       <header className="appbar">
         <div className="appbar__who">
-          <b>관리자</b>
-          <span>{user.email}</span>
+          <b>{profile?.name ?? '관리자'}</b>
+          <span>{profile?.code ?? ''}</span>
         </div>
         <div className="appbar__actions">
+          <button className="btn" onClick={() => setShowAddAdmin(true)}>
+            관리자 추가하기
+          </button>
           <a className="btn" href="#/">조회 화면</a>
           <button className="btn" onClick={() => void adminSignOut()}>로그아웃</button>
         </div>
       </header>
+
+      {showAddAdmin && (
+        <div
+          className="choice-overlay"
+          role="dialog"
+          aria-modal="true"
+          onClick={() => !addBusy && setShowAddAdmin(false)}
+        >
+          <form
+            className="choice-overlay__box admin__add-form"
+            onClick={(e) => e.stopPropagation()}
+            onSubmit={submitAddAdmin}
+          >
+            <p className="choice-overlay__title">관리자 추가하기</p>
+            <label className="field">
+              <span>사번</span>
+              <input
+                value={addCode}
+                onChange={(e) => setAddCode(e.target.value)}
+                required
+                autoFocus
+                spellCheck={false}
+                autoCapitalize="characters"
+              />
+            </label>
+            <label className="field">
+              <span>비밀번호</span>
+              <input
+                type="password"
+                value={addPw}
+                onChange={(e) => setAddPw(e.target.value)}
+                required
+                autoComplete="new-password"
+              />
+            </label>
+            <label className="field">
+              <span>성명</span>
+              <input value={addName} onChange={(e) => setAddName(e.target.value)} required />
+            </label>
+            {addErr && <p className="field__err">{addErr}</p>}
+            <div className="choice-overlay__actions">
+              <button className="btn btn--primary" disabled={addBusy}>
+                {addBusy ? '추가하는 중…' : '추가'}
+              </button>
+            </div>
+            <button
+              type="button"
+              className="btn choice-overlay__cancel"
+              disabled={addBusy}
+              onClick={() => setShowAddAdmin(false)}
+            >
+              취소
+            </button>
+          </form>
+        </div>
+      )}
 
       <main className="admin__body">
         <h2 className="sec">1. 원본 엑셀 업로드</h2>
