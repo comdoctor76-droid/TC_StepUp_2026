@@ -1346,6 +1346,14 @@
   width: 100%;
   justify-content: center;
 }
+.admin__add-form {
+  text-align: left;
+  max-width: 360px;
+  width: 100%;
+}
+.admin__add-form .choice-overlay__title {
+  text-align: center;
+}
 
 .toast {
   position: fixed;
