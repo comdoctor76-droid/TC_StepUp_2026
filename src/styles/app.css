@@ -140,6 +140,22 @@
   border-color: var(--hi-orange);
   box-shadow: 0 0 0 3px rgba(241, 141, 0, 0.16);
 }
+.field textarea {
+  width: 100%;
+  padding: 12px 14px;
+  font-size: 15px;
+  font-family: inherit;
+  line-height: 1.6;
+  border: 1.5px solid var(--line);
+  border-radius: 10px;
+  background: #fff;
+  resize: vertical;
+}
+.field textarea:focus {
+  outline: none;
+  border-color: var(--hi-orange);
+  box-shadow: 0 0 0 3px rgba(241, 141, 0, 0.16);
+}
 .field--check {
   display: flex;
   align-items: center;
@@ -203,6 +219,17 @@
   padding: 0;
   margin-bottom: 14px;
   font-size: 14px;
+  color: var(--ink-3);
+}
+.roster__pickmode {
+  margin: 4px 0 18px;
+}
+.roster__paste {
+  margin-bottom: 18px;
+}
+.roster__paste-status {
+  margin: -8px 0 12px;
+  font-size: 13.5px;
   color: var(--ink-3);
 }
 .roster__drill {
