@@ -27,8 +27,9 @@ import {
   type HqGroup,
   type OrgTree,
 } from '../data/roster'
-import { runBulkExport, type BulkMode, type BulkProgress } from '../export/bulk'
+import { runBulkExport, type BulkMode, type BulkProgress, type BulkTarget } from '../export/bulk'
 import { PrintRoot } from '../PrintRoot'
+import { CoachPrintRootForPerson } from '../tabs/coach/CoachPrintRootForPerson'
 import { analyze, type FullAnalysis } from '../calc'
 
 export type PickMode = 'tree' | 'paste'
@@ -57,6 +58,7 @@ export function Roster({
 
   const [showChoice, setShowChoice] = useState(false)
   const [showConfirmPrint, setShowConfirmPrint] = useState(false)
+  const [bulkTarget, setBulkTarget] = useState<BulkTarget>('report')
   const [current, setCurrent] = useState<{ A: FullAnalysis; caption: string } | null>(null)
   const [bulkBusy, setBulkBusy] = useState<string | null>(null)
   // ref 로 둔다 — 실행 중인 루프가 setState 클로저 caveat 없이 매 반복마다 최신 값을 읽는다
@@ -197,6 +199,7 @@ export function Roster({
     const result = await runBulkExport(
       codes,
       mode,
+      bulkTarget,
       setCurrent,
       (p: BulkProgress) => {
         const who = p.name ?? p.code
@@ -395,9 +398,23 @@ export function Roster({
                 type="button"
                 className="btn btn--primary btn--block"
                 disabled={selected.length === 0 || busy}
-                onClick={() => setShowChoice(true)}
+                onClick={() => {
+                  setBulkTarget('report')
+                  setShowChoice(true)
+                }}
               >
                 선택한 {selected.length}명 일괄 인쇄
+              </button>
+              <button
+                type="button"
+                className="btn btn--block roster__coach-print"
+                disabled={selected.length === 0 || busy}
+                onClick={() => {
+                  setBulkTarget('coach')
+                  setShowChoice(true)
+                }}
+              >
+                성장코칭 인쇄하기
               </button>
             </div>
           </>
@@ -412,7 +429,10 @@ export function Roster({
           onClick={() => setShowChoice(false)}
         >
           <div className="choice-overlay__box" onClick={(e) => e.stopPropagation()}>
-            <p className="choice-overlay__title">선택한 {selected.length}명을 어떻게 출력할까요?</p>
+            <p className="choice-overlay__title">
+              선택한 {selected.length}명{bulkTarget === 'coach' ? '의 성장코칭 리포트를' : ''} 어떻게
+              출력할까요?
+            </p>
             <div className="choice-overlay__actions">
               <button className="btn btn--primary" onClick={() => setShowConfirmPrint(true)}>
                 인쇄
@@ -436,7 +456,10 @@ export function Roster({
           onClick={() => setShowConfirmPrint(false)}
         >
           <div className="choice-overlay__box" onClick={(e) => e.stopPropagation()}>
-            <p className="choice-overlay__title">{selected.length}명을 한 번에 인쇄 하겠습니다.</p>
+            <p className="choice-overlay__title">
+              {selected.length}명{bulkTarget === 'coach' ? '의 성장코칭 리포트를' : ''} 한 번에 인쇄
+              하겠습니다.
+            </p>
             <p className="choice-overlay__note">
               사람마다 인쇄창이 뜹니다 — 창을 닫아야 다음 사람으로 넘어갑니다.
             </p>
@@ -542,7 +565,12 @@ export function Roster({
       {toast && <div className="toast">{toast}</div>}
 
       {/* 일괄 처리 중 캡처/인쇄 대상 — 한 번에 한 명만 마운트한다 */}
-      {current && <PrintRoot A={current.A} caption={current.caption} />}
+      {current &&
+        (bulkTarget === 'coach' ? (
+          <CoachPrintRootForPerson A={current.A} caption={current.caption} />
+        ) : (
+          <PrintRoot A={current.A} caption={current.caption} />
+        ))}
     </div>
   )
 }

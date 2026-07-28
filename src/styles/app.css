@@ -313,6 +313,9 @@
   border-top: 1px solid var(--line);
   padding-top: 16px;
 }
+.roster__coach-print {
+  margin-top: 8px;
+}
 .roster__picked-title {
   margin: 0 0 8px;
   font-size: 15px;
