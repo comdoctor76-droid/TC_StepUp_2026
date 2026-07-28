@@ -72,14 +72,22 @@ export function App() {
 
   if (!unlocked) return <Login onUnlocked={() => setUnlocked(true)} />
 
-  if (!view) return <Search onFound={(A, caption) => setView({ A, caption })} />
-
+  // Search(및 그 안의 명단/TC스텝업 조회 상태)를 계속 마운트해 둔다 — 레포트를
+  // 보고 "뒤로"를 누르면 처음 화면이 아니라 방금까지 보던 화면(드릴다운·붙여넣기·
+  // 선택 상태 그대로)으로 돌아가야 하기 때문. 조회 방식과 무관하게 항상 동작한다.
   return (
-    <Report
-      A={view.A}
-      caption={view.caption}
-      onBack={() => setView(null)}
-      onRefresh={refresh}
-    />
+    <>
+      <div style={{ display: view ? 'none' : undefined }}>
+        <Search onFound={(A, caption) => setView({ A, caption })} />
+      </div>
+      {view && (
+        <Report
+          A={view.A}
+          caption={view.caption}
+          onBack={() => setView(null)}
+          onRefresh={refresh}
+        />
+      )}
+    </>
   )
 }

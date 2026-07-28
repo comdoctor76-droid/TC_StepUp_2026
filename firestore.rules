@@ -47,6 +47,14 @@ service cloud.firestore {
       allow write: if isAdmin();
     }
 
+    // "명단에서 선택" 화면에서 지역단별로 저장해 두는 TC스텝업 대상자 목록
+    // (문서 1개당 사번 배열 하나뿐 — 실제 조직 데이터는 아니다).
+    // 뷰어 비밀번호를 아는 사람은 이미 모든 사번을 조회할 수 있으므로(위 주석 참고),
+    // 같은 신뢰 범위 안에서 읽기/쓰기 모두 signedIn() 으로 둔다.
+    match /stepupTargets/{hqId} {
+      allow read, write: if signedIn();
+    }
+
     // 그 외 전부 차단
     match /{document=**} {
       allow read, write: if false;

@@ -8,6 +8,7 @@
 import { describe, expect, it } from 'vitest'
 import {
   buildCodeIndex,
+  groupByHq,
   groupByOrg,
   matchPastedCodes,
   parsePastedCodes,
@@ -75,5 +76,25 @@ describe('matchPastedCodes — 명단과 대조', () => {
     const { matched, missing } = matchPastedCodes(idx, ['1B4503', 'ZZZZZZ'])
     expect(matched.map((p) => p.code)).toEqual(['1B4503'])
     expect(missing).toEqual(['ZZZZZZ'])
+  })
+})
+
+describe('groupByHq — TC스텝업 저장 프롬프트용 지역단별 묶기', () => {
+  it('같은 지역단 인원은 하나의 그룹으로 묶인다', () => {
+    const groups = groupByHq([
+      entry({ code: 'A001', hq: '호남' }),
+      entry({ code: 'A002', hq: '호남' }),
+    ])
+    expect(groups).toHaveLength(1)
+    expect(groups[0].hq).toBe('호남')
+    expect(groups[0].entries.map((p) => p.code)).toEqual(['A001', 'A002'])
+  })
+
+  it('여러 지역단에 걸쳐 있으면 그룹이 여러 개로 나뉘고 이름순 정렬된다', () => {
+    const groups = groupByHq([
+      entry({ code: 'A001', hq: '호남' }),
+      entry({ code: 'B001', hq: '서울' }),
+    ])
+    expect(groups.map((g) => g.hq)).toEqual(['서울', '호남'])
   })
 })

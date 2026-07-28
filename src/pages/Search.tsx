@@ -5,6 +5,7 @@ import { normalizeCode } from '../data/shard'
 import { ym } from '../calc/format'
 import { lockViewer } from '../session'
 import { Roster } from './Roster'
+import { APP_VERSION, CONTACT_LINE } from '../version'
 
 const LAST_KEY = 'tc-stepup:lastCode'
 
@@ -13,7 +14,7 @@ export function Search({
 }: {
   onFound: (a: FullAnalysis, caption: string) => void
 }) {
-  const [mode, setMode] = useState<'code' | 'roster'>('code')
+  const [mode, setMode] = useState<'code' | 'paste' | 'roster'>('code')
   const [code, setCode] = useState(() => localStorage.getItem(LAST_KEY) ?? '')
   const [err, setErr] = useState<string | null>(null)
   const [busy, setBusy] = useState(false)
@@ -52,14 +53,20 @@ export function Search({
     }
   }
 
-  if (mode === 'roster') {
-    return <Roster onBack={() => setMode('code')} />
+  if (mode !== 'code') {
+    return (
+      <Roster
+        pickMode={mode === 'paste' ? 'paste' : 'tree'}
+        onBack={() => setMode('code')}
+        onView={onFound}
+      />
+    )
   }
 
   return (
     <div className="gate">
       <form className="gate__card" onSubmit={submit}>
-        <h1 className="gate__title">자가진단 레포트 조회</h1>
+        <h1 className="gate__title">현대해상 TC Step-Up On-line(26년 3분기)</h1>
         <p className="gate__sub">
           {meta
             ? `기준 ${ym(meta.months[0])} ~ ${ym(meta.months[meta.months.length - 1])} · 플래너 ${meta.rowCount.toLocaleString('ko-KR')}명`
@@ -69,6 +76,9 @@ export function Search({
         <div className="gate__mode" role="group" aria-label="조회 방식">
           <button type="button" className="gate__mode-btn is-on">
             사번으로 조회
+          </button>
+          <button type="button" className="gate__mode-btn" onClick={() => setMode('paste')}>
+            사번 붙여넣기
           </button>
           <button type="button" className="gate__mode-btn" onClick={() => setMode('roster')}>
             명단에서 선택
@@ -104,6 +114,12 @@ export function Search({
         >
           로그아웃
         </button>
+
+        <p className="gate__foot">
+          v{APP_VERSION}
+          <br />
+          {CONTACT_LINE}
+        </p>
       </form>
     </div>
   )
