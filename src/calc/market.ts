@@ -71,7 +71,15 @@ export interface MarketAnalysis {
   /** chart23~24 — 실손 세대별 비중 (원본은 1~4세대만 그린다) */
   silson: { self: Share[]; tc: Share[]; selfTotal: number; tcTotal: number }
   /** 5세대 포함 전체 비중 (레포트 D18:O18 용) */
-  silsonAll: { self: Share[]; tc: Share[]; selfTotal: number; tcTotal: number }
+  silsonAll: {
+    self: Share[]
+    tc: Share[]
+    selfTotal: number
+    tcTotal: number
+    /** 동급 — 성장코칭 탭용. 원본 M분석 파이차트엔 없어 벤치마크에서 새로 뽑는다 */
+    peer: Share[]
+    peerTotal: number
+  }
 
   /** M 점수 — M분석!EF31 */
   score: number
@@ -191,10 +199,19 @@ export function analyzeMarket(ctx: Ctx, selfName: string): MarketAnalysis {
     { label: '4세대', value: ctx.tc('silson4') },
     { label: '5세대', value: ctx.tc('silson5') },
   ]
+  const peerGen = [
+    { label: '1세대', value: ctx.peer('silson1') },
+    { label: '2세대', value: ctx.peer('silson2') },
+    { label: '3세대', value: ctx.peer('silson3') },
+    { label: '4세대', value: ctx.peer('silson4') },
+    { label: '5세대', value: ctx.peer('silson5') },
+  ]
   const silsonAllSelf = toShares(selfGen)
   const silsonAllTc = toShares(tcGen)
+  const silsonAllPeer = toShares(peerGen)
   const selfTotal = selfGen.reduce((a, b) => a + b.value, 0)
   const tcTotal = tcGen.reduce((a, b) => a + b.value, 0)
+  const peerTotal = peerGen.reduce((a, b) => a + b.value, 0)
 
   // ── M 점수 : M분석!DD31:EF31 ───────────────────────────────────────
   //   본인 − 동급 의 차이를 5개 항목에 대해 더한다.
@@ -221,7 +238,14 @@ export function analyzeMarket(ctx: Ctx, selfName: string): MarketAnalysis {
       selfTotal,
       tcTotal,
     },
-    silsonAll: { self: silsonAllSelf, tc: silsonAllTc, selfTotal, tcTotal },
+    silsonAll: {
+      self: silsonAllSelf,
+      tc: silsonAllTc,
+      selfTotal,
+      tcTotal,
+      peer: silsonAllPeer,
+      peerTotal,
+    },
     score,
     scoreParts: { autoRate, generalPrem, perfect, star, kid },
   }

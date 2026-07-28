@@ -9,7 +9,8 @@
    display:none 으로 숨기면 Recharts가 크기 0으로 렌더돼 캡처가 비므로 금지.
    ══════════════════════════════════════════════════════════════════════ */
 
-#print-root {
+#print-root,
+#coach-print-root {
   position: fixed;
   left: -20000px;
   top: 0;
@@ -93,12 +94,28 @@
     display: none !important;
   }
 
-  #print-root {
+  /* 성장코칭 탭의 별도 인쇄(#coach-print-root)가 아닐 때만 기존 6페이지를 보인다 —
+     둘 다 항상 마운트돼 있어(#print-root, #coach-print-root) 인쇄 시작 직전에 붙이는
+     body.printing-coach 로 어느 쪽을 보일지 가른다. */
+  body:not(.printing-coach) #print-root {
     position: static !important;
     left: 0 !important;
     top: 0 !important;
     z-index: auto !important;
     display: block !important;
+  }
+  body.printing-coach #print-root {
+    display: none !important;
+  }
+  body.printing-coach #coach-print-root {
+    position: static !important;
+    left: 0 !important;
+    top: 0 !important;
+    z-index: auto !important;
+    display: block !important;
+  }
+  body:not(.printing-coach) #coach-print-root {
+    display: none !important;
   }
 
   .a4-page {
