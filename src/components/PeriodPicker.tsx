@@ -1,6 +1,8 @@
 /* ══════════════════════════════════════════════════════════════════════
    조회기간 선택 — 화면 전용 (인쇄물에는 나오지 않는다)
 
+   팝업 없이 조회기간 줄 안에 컨트롤을 나란히 두고, 고르는 즉시 반영한다.
+
    ⚠ 탭마다 "실제로 바뀌는 것"이 다르므로, 그 탭에서 의미 있는 컨트롤만 띄운다.
    아무것도 바꾸지 못하는 버튼은 두지 않는다.
 
@@ -14,7 +16,6 @@
    근거가 되는 데이터 성격은 src/calc/period.ts 주석 참조.
    ══════════════════════════════════════════════════════════════════════ */
 
-import { useEffect, useRef, useState } from 'react'
 import { ym } from '../calc/format'
 
 export type PeriodMode = 'recent6' | 'all' | 'custom'
@@ -56,6 +57,8 @@ export function periodLabel(period: Period, months: number[]): string {
   return `${ym(picked[0])} ~ ${ym(picked[picked.length - 1])}`
 }
 
+const DUR_CHIPS = [1, 3, 6] as const
+
 export function PeriodPicker({
   value,
   months,
@@ -68,108 +71,56 @@ export function PeriodPicker({
   caps: PeriodCaps
   onChange: (p: Period) => void
 }) {
-  const [open, setOpen] = useState(false)
-  const wrapRef = useRef<HTMLDivElement>(null)
+  if (!caps.scope && !caps.range) return null
 
   const first = months[0]
   const last = months[months.length - 1]
-  const [to, setTo] = useState(value.to ?? last)
-  const [from, setFrom] = useState(value.from ?? first)
-  const [clamped, setClamped] = useState(false)
-
-  // 열 때마다 현재 선택으로 되돌린다 (닫고 다시 열면 이전 편집이 남지 않게)
-  useEffect(() => {
-    if (!open) return
-    setFrom(value.from ?? first)
-    setTo(value.to ?? last)
-    setClamped(false)
-  }, [open, value.from, value.to, first, last])
-
-  useEffect(() => {
-    if (!open) return
-    const onDown = (e: MouseEvent) => {
-      if (!wrapRef.current?.contains(e.target as Node)) setOpen(false)
-    }
-    const onKey = (e: KeyboardEvent) => e.key === 'Escape' && setOpen(false)
-    document.addEventListener('mousedown', onDown)
-    document.addEventListener('keydown', onKey)
-    return () => {
-      document.removeEventListener('mousedown', onDown)
-      document.removeEventListener('keydown', onKey)
-    }
-  }, [open])
-
-  if (!caps.scope && !caps.range) return null
-
   const idx = (m: number) => months.indexOf(m)
 
-  /** 종료월에서 n개월을 거슬러 올라간다. 데이터 시작보다 앞서면 잘라낸다. */
-  const applyDur = (n: number) => {
-    const want = idx(to) - (n - 1)
-    setFrom(months[Math.max(0, want)])
-    setClamped(want < 0)
-  }
-  const pickTo = (m: number) => {
-    setTo(m)
-    if (idx(m) < idx(from)) setFrom(m)
-    setClamped(false)
-  }
-
-  const applyCustom = () => {
-    setOpen(false)
-    onChange({ mode: 'custom', from, to })
-  }
-
+  // custom 이 아니면 화면상 종료월/시작월은 저장된 전체 구간으로 보여준다
+  const to = value.mode === 'custom' ? (value.to ?? last) : last
+  const from = value.mode === 'custom' ? (value.from ?? first) : first
   const durOf = idx(to) - idx(from) + 1
 
+  /** 종료월에서 n개월을 거슬러 올라간다. 데이터 시작보다 앞서면 잘라낸다. */
+  const pickDur = (n: number) => {
+    const want = idx(to) - (n - 1)
+    onChange({ mode: 'custom', from: months[Math.max(0, want)], to })
+  }
+  const pickTo = (m: number) => {
+    onChange({ mode: 'custom', from: idx(m) < idx(from) ? m : from, to: m })
+  }
+  const pickFrom = (m: number) => {
+    onChange({ mode: 'custom', from: m, to: idx(m) > idx(to) ? m : to })
+  }
+  const pickAll = () => onChange({ mode: 'custom', from: first, to: last })
+
   return (
-    <div className="period" ref={wrapRef}>
+    <div className="period">
       <span className="period__label">조회기간</span>
-      <div className="period__seg" role="group" aria-label="조회기간 선택">
-        {caps.scope && (
-          <>
-            <button
-              type="button"
-              className={`period__btn ${value.mode === 'recent6' ? 'is-on' : ''}`}
-              onClick={() => {
-                setOpen(false)
-                onChange(DEFAULT_PERIOD)
-              }}
-            >
-              최근 6개월
-            </button>
-            <button
-              type="button"
-              className={`period__btn ${value.mode === 'all' ? 'is-on' : ''}`}
-              onClick={() => {
-                setOpen(false)
-                onChange(ALL_PERIOD)
-              }}
-            >
-              전체기간
-            </button>
-          </>
-        )}
-        {caps.range && (
+
+      {caps.scope && (
+        <div className="period__seg" role="group" aria-label="집계 기준">
           <button
             type="button"
-            className={`period__btn ${value.mode === 'custom' ? 'is-on' : ''}`}
-            aria-expanded={open}
-            aria-haspopup="dialog"
-            onClick={() => setOpen((v) => !v)}
+            className={`period__btn ${value.mode === 'recent6' ? 'is-on' : ''}`}
+            onClick={() => onChange(DEFAULT_PERIOD)}
           >
-            {value.mode === 'custom' ? periodLabel(value, months) : '월 구간 선택'} ▾
+            최근 6개월
           </button>
-        )}
-      </div>
+          <button
+            type="button"
+            className={`period__btn ${value.mode === 'all' ? 'is-on' : ''}`}
+            onClick={() => onChange(ALL_PERIOD)}
+          >
+            전체기간
+          </button>
+        </div>
+      )}
 
-      {open && (
-        <div className="period__pop" role="dialog" aria-label="월 구간 선택">
-          <p className="period__pop-note">
-            저장된 월별 데이터는 {ym(first)} ~ {ym(last)} ({months.length}개월) 입니다.
-          </p>
-
-          <div className="period__field">
+      {caps.range && (
+        <div className="period__inline">
+          <label className="period__mini">
             <span>종료월</span>
             <select value={to} onChange={(e) => pickTo(Number(e.target.value))}>
               {months.map((m) => (
@@ -178,61 +129,48 @@ export function PeriodPicker({
                 </option>
               ))}
             </select>
+          </label>
+
+          <div className="period__chips">
+            {DUR_CHIPS.filter((n) => n <= months.length).map((n) => (
+              <button
+                key={n}
+                type="button"
+                className={`period__chip ${durOf === n ? 'is-on' : ''}`}
+                onClick={() => pickDur(n)}
+              >
+                {n}개월
+              </button>
+            ))}
+            {/* 오늘처럼 저장 기간이 짧으면 '6개월' 칩과 '전체'가 같은 값이 된다 —
+                이미 칩으로 커버되면 중복 버튼을 띄우지 않는다 */}
+            {!DUR_CHIPS.includes(months.length as (typeof DUR_CHIPS)[number]) && (
+              <button
+                type="button"
+                className={`period__chip ${durOf === months.length ? 'is-on' : ''}`}
+                onClick={pickAll}
+              >
+                전체
+              </button>
+            )}
           </div>
 
-          <div className="period__field">
-            <span>기간</span>
-            <div className="period__chips">
-              {[1, 3, 6].map((n) => (
-                <button
-                  key={n}
-                  type="button"
-                  className={`period__chip ${durOf === n ? 'is-on' : ''}`}
-                  onClick={() => applyDur(n)}
-                >
-                  {n}개월
-                </button>
-              ))}
-            </div>
-          </div>
-
-          <div className="period__field">
+          <label className="period__mini">
             <span>시작월</span>
-            <select
-              value={from}
-              onChange={(e) => {
-                const m = Number(e.target.value)
-                setFrom(m)
-                if (idx(m) > idx(to)) setTo(m)
-                setClamped(false)
-              }}
-            >
+            <select value={from} onChange={(e) => pickFrom(Number(e.target.value))}>
               {months.map((m) => (
                 <option key={m} value={m}>
                   {ym(m)}
                 </option>
               ))}
             </select>
-          </div>
+          </label>
 
-          <p className="period__echo">
-            선택 구간 {ym(from)} ~ {ym(to)} ({durOf}개월)
-          </p>
-          {clamped && (
-            <p className="period__warn">데이터 시작({ym(first)})까지만 적용됩니다.</p>
-          )}
-
-          <div className="period__pop-actions">
-            <button type="button" className="btn" onClick={() => setOpen(false)}>
-              취소
-            </button>
-            <button type="button" className="btn btn--primary" onClick={applyCustom}>
-              적용
-            </button>
-          </div>
+          <span className="period__echo">
+            {ym(to)} ~ {ym(from)} ({durOf}개월)
+          </span>
         </div>
       )}
-
     </div>
   )
 }

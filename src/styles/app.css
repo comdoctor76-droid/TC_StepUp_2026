@@ -975,59 +975,42 @@
   background: var(--hi-orange);
   color: #fff;
 }
-.period__pop {
-  position: absolute;
-  top: calc(100% + 6px);
-  right: 14px;
-  z-index: 40;
-  background: var(--surface);
-  border: 1px solid var(--line);
-  border-radius: 12px;
-  box-shadow: var(--shadow);
-  padding: 16px;
-  min-width: 300px;
-}
-.period__pop-note {
-  margin: 0 0 12px;
-  font-size: 13.5px;
-  color: var(--ink-3);
-}
-.period__field {
+.period__inline {
   display: flex;
   align-items: center;
   gap: 10px;
-  margin-bottom: 10px;
+  flex-wrap: wrap;
 }
-.period__field > span {
-  flex: 0 0 56px;
+.period__mini {
+  display: flex;
+  align-items: center;
+  gap: 6px;
   font-size: 14px;
   font-weight: 600;
   color: var(--ink-2);
 }
-.period__field select {
-  flex: 1 1 0;
-  padding: 9px 10px;
-  font-size: 16px;
+.period__mini select {
+  padding: 7px 8px;
+  font-size: 15px;
   font-family: inherit;
   border: 1.5px solid var(--line);
   border-radius: 8px;
   background: #fff;
 }
 .period__chips {
-  flex: 1 1 0;
   display: flex;
   gap: 6px;
 }
 .period__chip {
-  flex: 1 1 0;
-  padding: 9px 4px;
-  font-size: 15px;
+  padding: 7px 12px;
+  font-size: 14.5px;
   font-weight: 700;
   font-family: inherit;
   color: var(--ink-2);
   background: #fff;
   border: 1.5px solid var(--line);
   border-radius: 8px;
+  white-space: nowrap;
 }
 .period__chip.is-on {
   background: var(--hi-orange);
@@ -1035,21 +1018,10 @@
   color: #fff;
 }
 .period__echo {
-  margin: 12px 0 0;
   font-size: 14.5px;
   font-weight: 700;
   color: var(--hi-navy);
-}
-.period__warn {
-  margin: 5px 0 0;
-  font-size: 13.5px;
-  color: var(--hi-orange-deep);
-}
-.period__pop-actions {
-  display: flex;
-  gap: 8px;
-  justify-content: flex-end;
-  margin-top: 14px;
+  white-space: nowrap;
 }
 .range-summary {
   margin: 8px 0 0;
@@ -1093,10 +1065,24 @@
     padding: 10px 6px;
     font-size: 14px;
   }
-  .period__pop {
-    left: 14px;
-    right: 14px;
-    min-width: 0;
+  .period__inline {
+    width: 100%;
+  }
+  .period__mini {
+    flex: 1 1 auto;
+  }
+  .period__mini select {
+    width: 100%;
+  }
+  .period__chips {
+    width: 100%;
+  }
+  .period__chip {
+    flex: 1 1 0;
+  }
+  .period__echo {
+    width: 100%;
+    text-align: center;
   }
 }
 

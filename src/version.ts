@@ -5,7 +5,7 @@
    CHANGELOG 에 한 줄씩 남긴다.
    ══════════════════════════════════════════════════════════════════════ */
 
-export const APP_VERSION = '0.11'
+export const APP_VERSION = '0.12'
 
 export const CONTACT = {
   dept: '개인마케팅교육본부 / 영업교육운영파트',
@@ -35,6 +35,10 @@ export const DISCLAIMER =
 
 /** 수정 이력 (최신이 위) */
 export const CHANGELOG: { version: string; note: string }[] = [
+  {
+    version: '0.12',
+    note: '조회기간 컨트롤을 팝업 대신 조회기간 줄 안에 한 줄로 배치 — 종료월·기간칩·시작월을 고르면 즉시 반영, 6개월 데이터에서 중복되는 전체 버튼은 숨김',
+  },
   {
     version: '0.11',
     note: '인쇄 본문 3px 확대·제목바 문의 제거, 조회기간이 실제로 수치를 바꾸도록 수정(유지고객=종료월 시점, 건수=구간 합계), 레포트 탭에도 기간선택 추가, M분석은 바뀔 값이 없어 피커 제거',
