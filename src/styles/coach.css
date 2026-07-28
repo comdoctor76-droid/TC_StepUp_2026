@@ -1,0 +1,1657 @@
+/* ══════════════════════════════════════════════════════════════════════
+   성장코칭 탭 — 원본 "TC스텝업 하이플래너 성장 코칭" 독립 HTML 도구의 CSS를
+   그대로 이식(카드 디자인 자체가 이 도구의 완성도라 새로 만들지 않았다).
+
+   전부 `.coach-report` 아래로 스코프한다 — `.sec`처럼 이 앱의 다른 탭이
+   이미 쓰는 클래스명과 겹치는 게 있어(레포트/C/A/M/S 탭의 섹션 제목도 `.sec`)
+   전역 오염을 막기 위함이다. 색상 변수도 `.coach-report`에 로컬로 다시
+   선언해 전역 :root 변수(app.css)와 별개로 움직인다.
+   ══════════════════════════════════════════════════════════════════════ */
+
+.coach-report {
+  /* iOS 시스템 팔레트(원본) + 현대해상 오렌지 — 전역 --hi-orange 와 같은 계열 */
+  --cr-bg: #f2f2f7;
+  --cr-surface: #ffffff;
+  --cr-surface2: #f2f2f7;
+  --cr-surface3: #e5e5ea;
+  --cr-border: rgba(60, 60, 67, 0.12);
+  --cr-border2: rgba(60, 60, 67, 0.2);
+  --cr-text: #1c1c1e;
+  --cr-text2: #636366;
+  --cr-text3: #aeaeb2;
+  --cr-hi: var(--hi-orange, #f26d21);
+  --cr-hi-dk: var(--hi-orange-deep, #d95410);
+  --cr-hi-lt: rgba(242, 109, 33, 0.11);
+  --cr-hi-lt2: rgba(242, 109, 33, 0.06);
+  --cr-blue: #007aff;
+  --cr-blue-lt: rgba(0, 122, 255, 0.1);
+  --cr-green: #34c759;
+  --cr-green-dk: #1a7f36;
+  --cr-green-lt: rgba(52, 199, 89, 0.11);
+  --cr-red: #ff3b30;
+  --cr-red-lt: rgba(255, 59, 48, 0.1);
+  --cr-radius: 18px;
+  --cr-radius-md: 14px;
+  --cr-radius-sm: 10px;
+  --cr-shadow: 0 2px 12px rgba(0, 0, 0, 0.07), 0 1px 4px rgba(0, 0, 0, 0.04);
+  --cr-shadow-md: 0 8px 28px rgba(0, 0, 0, 0.1), 0 2px 8px rgba(0, 0, 0, 0.05);
+
+  font-size: 16.5px;
+  line-height: 1.8;
+  color: var(--cr-text);
+  letter-spacing: -0.012em;
+}
+.coach-report .num {
+  font-variant-numeric: tabular-nums;
+  letter-spacing: -0.02em;
+}
+
+/* ── 툴바 (강사용 토글 · 인쇄) ── */
+.coach-toolbar {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  margin: 0 0 16px;
+  flex-wrap: wrap;
+}
+.coach-toolbar .toggle {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13.5px;
+  color: var(--cr-text2);
+  cursor: pointer;
+  user-select: none;
+}
+.coach-toolbar .toggle input {
+  accent-color: var(--cr-hi);
+  width: 16px;
+  height: 16px;
+  cursor: pointer;
+}
+.coach-toolbar .grow {
+  flex: 1;
+}
+.edit-hint {
+  max-width: 210mm;
+  margin: 0 auto 16px;
+  text-align: center;
+  font-size: 13px;
+  color: var(--cr-text2);
+}
+.edit-hint b {
+  color: var(--cr-hi-dk);
+}
+
+/* ── 리포트 캔버스 ── */
+.coach-report .sheets {
+  padding: 4px 0 30px;
+}
+.coach-report .sheet {
+  background: var(--cr-surface);
+  width: 210mm;
+  max-width: 100%;
+  min-height: 297mm;
+  margin: 0 auto 28px;
+  border-radius: var(--cr-radius);
+  box-shadow: var(--cr-shadow-md);
+  border: 0.5px solid var(--cr-border);
+  padding: 14mm 14mm 13mm;
+  position: relative;
+  overflow: hidden;
+}
+
+.coach-report .rp-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+  padding-bottom: 15px;
+  border-bottom: 0.5px solid var(--cr-border2);
+  margin-bottom: 20px;
+}
+.coach-report .rp-title {
+  font-size: 24px;
+  font-weight: 800;
+  letter-spacing: -0.035em;
+  line-height: 1.3;
+}
+.coach-report .rp-title .accent {
+  color: var(--cr-hi);
+}
+.coach-report .rp-sub {
+  font-size: 13px;
+  color: var(--cr-text2);
+  margin-top: 6px;
+  line-height: 1.6;
+}
+.coach-report .rp-tag {
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--cr-hi-dk);
+  background: var(--cr-hi-lt);
+  border-radius: 20px;
+  padding: 6px 14px;
+  white-space: nowrap;
+  margin-top: 4px;
+}
+
+.coach-report .person {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 9px;
+  margin-bottom: 22px;
+}
+.coach-report .pchip {
+  display: flex;
+  align-items: baseline;
+  gap: 7px;
+  background: var(--cr-surface2);
+  border-radius: 12px;
+  padding: 9px 15px;
+  font-size: 13.5px;
+}
+.coach-report .pchip b {
+  font-size: 12px;
+  color: var(--cr-text2);
+  font-weight: 600;
+}
+.coach-report .pchip span {
+  font-weight: 700;
+  font-size: 14.5px;
+}
+
+.coach-report .sec {
+  margin-bottom: 24px;
+}
+.coach-report .sec-h {
+  display: flex;
+  align-items: baseline;
+  gap: 11px;
+  margin-bottom: 13px;
+}
+.coach-report .sec-n {
+  width: 27px;
+  height: 27px;
+  border-radius: 9px;
+  background: var(--cr-hi-lt);
+  color: var(--cr-hi-dk);
+  font-size: 13px;
+  font-weight: 800;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex: none;
+  align-self: center;
+}
+.coach-report .sec-t {
+  font-size: 19px;
+  font-weight: 800;
+  letter-spacing: -0.025em;
+}
+.coach-report .sec-note {
+  font-size: 12.5px;
+  color: var(--cr-text2);
+  margin-left: auto;
+}
+
+.coach-report .oneliner {
+  background: linear-gradient(125deg, var(--cr-hi) 0%, var(--cr-hi-dk) 100%);
+  border-radius: var(--cr-radius);
+  padding: 28px 32px;
+  color: #fff;
+  position: relative;
+  overflow: hidden;
+  box-shadow: 0 10px 30px rgba(242, 109, 33, 0.28);
+}
+.coach-report .oneliner::before {
+  content: '\201C';
+  position: absolute;
+  top: -34px;
+  right: 18px;
+  font-size: 160px;
+  font-weight: 800;
+  opacity: 0.13;
+  font-family: Georgia, serif;
+}
+.coach-report .ol-k {
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  opacity: 0.85;
+  margin-bottom: 10px;
+}
+.coach-report .ol-t {
+  font-size: 20.5px;
+  font-weight: 800;
+  line-height: 1.72;
+  letter-spacing: -0.02em;
+  word-break: keep-all;
+}
+.coach-report .ol-t u {
+  text-decoration: none;
+  border-bottom: 3px solid rgba(255, 255, 255, 0.55);
+  padding-bottom: 1px;
+}
+
+.coach-report .type-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 14px;
+}
+.coach-report .type-card {
+  border: 0.5px solid var(--cr-border);
+  border-radius: var(--cr-radius-md);
+  padding: 20px 22px;
+  background: var(--cr-surface);
+  box-shadow: var(--cr-shadow);
+}
+.coach-report .type-card.main {
+  background: var(--cr-hi-lt2);
+  border-color: rgba(242, 109, 33, 0.3);
+}
+.coach-report .type-badge {
+  display: inline-block;
+  font-size: 12px;
+  font-weight: 800;
+  border-radius: 20px;
+  padding: 4px 13px;
+  margin-bottom: 10px;
+}
+.coach-report .type-card.main .type-badge {
+  background: var(--cr-hi);
+  color: #fff;
+}
+.coach-report .type-card.sub .type-badge {
+  background: var(--cr-surface3);
+  color: var(--cr-text2);
+}
+.coach-report .type-name {
+  font-size: 19px;
+  font-weight: 800;
+  letter-spacing: -0.025em;
+  margin-bottom: 8px;
+}
+.coach-report .type-desc {
+  font-size: 14.5px;
+  color: var(--cr-text2);
+  line-height: 1.8;
+  word-break: keep-all;
+}
+
+/* ── KPI 그리드 ── */
+.coach-report .kpi-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 13px;
+}
+.coach-report .kpi {
+  background: var(--cr-surface);
+  border-radius: var(--cr-radius-md);
+  padding: 15px 18px 14px;
+  box-shadow: var(--cr-shadow);
+  border: 0.5px solid var(--cr-border);
+}
+.coach-report .kpi-top {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  margin-bottom: 5px;
+}
+.coach-report .kpi-ico {
+  width: 32px;
+  height: 32px;
+  border-radius: 9px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 16px;
+  background: var(--cr-hi-lt);
+  flex: none;
+}
+.coach-report .kpi-label {
+  font-size: 14.5px;
+  font-weight: 800;
+  color: var(--cr-text);
+}
+.coach-report .kpi-sub {
+  font-size: 11.5px;
+  color: var(--cr-text3);
+  font-weight: 600;
+  margin-left: 5px;
+}
+.coach-report .kpi-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+.coach-report .kpi-chips {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+  align-items: center;
+}
+.coach-report .kpi-val {
+  font-size: 31px;
+  font-weight: 800;
+  letter-spacing: -0.04em;
+  line-height: 1.1;
+}
+.coach-report .kpi-val small {
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--cr-text2);
+  margin-left: 2px;
+}
+.coach-report .chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  border-radius: 20px;
+  padding: 4px 12px;
+  font-size: 12.5px;
+  font-weight: 700;
+  white-space: nowrap;
+}
+.coach-report .chip.good {
+  background: var(--cr-green-lt);
+  color: var(--cr-green-dk);
+}
+.coach-report .chip.gap {
+  background: var(--cr-blue-lt);
+  color: var(--cr-blue);
+}
+.coach-report .chip.warn {
+  background: var(--cr-red-lt);
+  color: #c0261c;
+}
+.coach-report .chip.neutral {
+  background: var(--cr-surface2);
+  color: var(--cr-text2);
+}
+
+/* ── 비교 바 인포그래픽 ── */
+.coach-report .vs-card {
+  background: var(--cr-surface);
+  border: 0.5px solid var(--cr-border);
+  border-radius: var(--cr-radius-md);
+  box-shadow: var(--cr-shadow);
+  padding: 20px 22px;
+  margin-bottom: 14px;
+}
+.coach-report .vs-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 10px;
+  margin-bottom: 14px;
+}
+.coach-report .vs-name {
+  font-size: 16.5px;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+}
+.coach-report .vs-sub {
+  font-size: 12px;
+  color: var(--cr-text3);
+  font-weight: 600;
+  margin-left: 8px;
+}
+.coach-report .vs-rows {
+  display: flex;
+  flex-direction: column;
+  gap: 9px;
+}
+.coach-report .vs-row {
+  display: grid;
+  grid-template-columns: 58px 1fr 92px;
+  align-items: center;
+  gap: 12px;
+}
+.coach-report .vs-who {
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--cr-text2);
+}
+.coach-report .vs-row.me .vs-who {
+  color: var(--cr-hi-dk);
+}
+.coach-report .vs-track {
+  height: 18px;
+  background: var(--cr-surface2);
+  border-radius: 9px;
+  overflow: hidden;
+}
+.coach-report .vs-row.me .vs-track {
+  height: 24px;
+  border-radius: 12px;
+}
+.coach-report .vs-fill {
+  height: 100%;
+  border-radius: inherit;
+  min-width: 5px;
+}
+.coach-report .vs-row.me .vs-fill {
+  background: linear-gradient(90deg, var(--cr-hi), var(--cr-hi-dk));
+}
+.coach-report .vs-row.dg .vs-fill {
+  background: #c7ccd4;
+}
+.coach-report .vs-row.tc .vs-fill {
+  background: var(--cr-blue);
+  opacity: 0.82;
+}
+.coach-report .vs-val {
+  font-size: 16px;
+  font-weight: 800;
+  text-align: right;
+}
+.coach-report .vs-row.me .vs-val {
+  font-size: 18px;
+  color: var(--cr-hi-dk);
+}
+.coach-report .vs-row.dg .vs-val,
+.coach-report .vs-row.tc .vs-val {
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--cr-text2);
+}
+.coach-report .vs-msg {
+  margin-top: 12px;
+  font-size: 13.5px;
+  color: var(--cr-text2);
+  background: var(--cr-surface2);
+  border-radius: var(--cr-radius-sm);
+  padding: 10px 15px;
+  line-height: 1.7;
+  word-break: keep-all;
+}
+.coach-report .vs-msg b {
+  color: var(--cr-text);
+}
+.coach-report .vs-co {
+  margin-left: 8px;
+}
+
+/* ── 링 게이지 ── */
+.coach-report .ring-duo {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 14px;
+}
+.coach-report .ring-card {
+  background: var(--cr-surface);
+  border: 0.5px solid var(--cr-border);
+  border-radius: var(--cr-radius-md);
+  box-shadow: var(--cr-shadow);
+  padding: 20px;
+  display: flex;
+  align-items: center;
+  gap: 20px;
+}
+.coach-report .ring {
+  width: 118px;
+  height: 118px;
+  border-radius: 50%;
+  flex: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+}
+.coach-report .ring-in {
+  width: 82px;
+  height: 82px;
+  border-radius: 50%;
+  background: var(--cr-surface);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  box-shadow: inset 0 0 0 0.5px var(--cr-border);
+}
+.coach-report .ring-in b {
+  font-size: 22px;
+  font-weight: 800;
+  letter-spacing: -0.03em;
+  line-height: 1;
+}
+.coach-report .ring-in span {
+  font-size: 10.5px;
+  color: var(--cr-text3);
+  font-weight: 700;
+  margin-top: 3px;
+}
+.coach-report .ring-txt {
+  flex: 1;
+  min-width: 0;
+}
+.coach-report .ring-name {
+  font-size: 15.5px;
+  font-weight: 800;
+  margin-bottom: 6px;
+  letter-spacing: -0.02em;
+}
+.coach-report .ring-desc {
+  font-size: 12.5px;
+  color: var(--cr-text2);
+  line-height: 1.65;
+  word-break: keep-all;
+}
+.coach-report .ring-chips {
+  display: flex;
+  gap: 6px;
+  margin-top: 9px;
+  flex-wrap: wrap;
+}
+
+/* ── 월별 추이 ── */
+.coach-report .trend-card {
+  background: var(--cr-surface);
+  border: 0.5px solid var(--cr-border);
+  border-radius: var(--cr-radius-md);
+  box-shadow: var(--cr-shadow);
+  padding: 20px 22px;
+}
+.coach-report .trend-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  margin-bottom: 6px;
+}
+.coach-report .trend-name {
+  font-size: 16.5px;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+}
+.coach-report .trend-legend {
+  display: flex;
+  gap: 14px;
+  font-size: 12px;
+  color: var(--cr-text2);
+}
+.coach-report .trend-legend i {
+  display: inline-block;
+  width: 10px;
+  height: 10px;
+  border-radius: 3px;
+  margin-right: 5px;
+  vertical-align: -1px;
+}
+.coach-report .tl-me i {
+  background: var(--cr-hi);
+}
+.coach-report .tl-tc i {
+  background: var(--cr-blue);
+  opacity: 0.8;
+}
+.coach-report .trend-plot {
+  display: grid;
+  grid-template-columns: repeat(6, 1fr);
+  gap: 10px;
+  align-items: end;
+  height: 150px;
+  padding-top: 24px;
+}
+.coach-report .tcol {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  height: 100%;
+}
+.coach-report .tcol .bars2 {
+  flex: 1;
+  display: flex;
+  align-items: flex-end;
+  gap: 5px;
+  width: 100%;
+  justify-content: center;
+}
+.coach-report .tbar {
+  width: 22px;
+  border-radius: 7px 7px 3px 3px;
+  position: relative;
+}
+.coach-report .tbar.me {
+  background: linear-gradient(180deg, var(--cr-hi), var(--cr-hi-dk));
+}
+.coach-report .tbar.tc {
+  background: var(--cr-blue);
+  opacity: 0.75;
+}
+.coach-report .tbar .tv {
+  position: absolute;
+  top: -22px;
+  left: 50%;
+  transform: translateX(-50%);
+  font-size: 12.5px;
+  font-weight: 800;
+  color: var(--cr-text);
+}
+.coach-report .tbar.tc .tv {
+  color: var(--cr-blue);
+  font-weight: 700;
+  font-size: 11.5px;
+}
+.coach-report .tmon {
+  font-size: 12px;
+  color: var(--cr-text2);
+  font-weight: 600;
+  margin-top: 8px;
+}
+.coach-report .trend-msg {
+  margin-top: 14px;
+  font-size: 13.5px;
+  color: var(--cr-text2);
+  background: var(--cr-surface2);
+  border-radius: var(--cr-radius-sm);
+  padding: 10px 15px;
+  line-height: 1.7;
+  word-break: keep-all;
+}
+.coach-report .trend-msg b {
+  color: var(--cr-text);
+}
+
+/* ── 강점/성장포인트 카드 ── */
+.coach-report .sb-card {
+  border-radius: var(--cr-radius-md);
+  padding: 21px 24px;
+  border: 0.5px solid var(--cr-border);
+  box-shadow: var(--cr-shadow);
+  background: var(--cr-surface);
+  margin-bottom: 14px;
+}
+.coach-report .sb-card.strength {
+  background: linear-gradient(180deg, var(--cr-green-lt), var(--cr-surface) 130%);
+  border-color: rgba(52, 199, 89, 0.3);
+}
+.coach-report .sb-card.bottleneck {
+  background: linear-gradient(180deg, var(--cr-blue-lt), var(--cr-surface) 130%);
+  border-color: rgba(0, 122, 255, 0.25);
+}
+.coach-report .sb-k {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 9px;
+}
+.coach-report .sb-ico {
+  width: 30px;
+  height: 30px;
+  border-radius: 9px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 15px;
+  font-weight: 800;
+  flex: none;
+  color: #fff;
+}
+.coach-report .strength .sb-ico {
+  background: var(--cr-green);
+}
+.coach-report .bottleneck .sb-ico {
+  background: var(--cr-blue);
+}
+.coach-report .sb-t {
+  font-weight: 800;
+  font-size: 17.5px;
+  letter-spacing: -0.02em;
+}
+.coach-report .sb-num {
+  display: inline-block;
+  font-size: 13.5px;
+  font-weight: 800;
+  margin-bottom: 9px;
+  border-radius: 8px;
+  padding: 4px 11px;
+}
+.coach-report .strength .sb-num {
+  background: rgba(52, 199, 89, 0.15);
+  color: var(--cr-green-dk);
+}
+.coach-report .bottleneck .sb-num {
+  background: rgba(0, 122, 255, 0.12);
+  color: var(--cr-blue);
+}
+.coach-report .sb-d {
+  font-size: 14.5px;
+  color: #3f434b;
+  line-height: 1.85;
+  word-break: keep-all;
+}
+.coach-report .sb-q {
+  margin-top: 11px;
+  font-size: 13.5px;
+  background: var(--cr-surface);
+  border: 1px dashed rgba(0, 122, 255, 0.4);
+  border-radius: var(--cr-radius-sm);
+  padding: 11px 15px;
+  color: var(--cr-text2);
+  line-height: 1.7;
+  word-break: keep-all;
+}
+.coach-report .sb-q b {
+  color: var(--cr-blue);
+}
+
+/* ── 90일 목표 카드 ── */
+.coach-report .goal {
+  border: 0.5px solid var(--cr-border);
+  border-radius: var(--cr-radius);
+  overflow: hidden;
+  margin-bottom: 18px;
+  box-shadow: var(--cr-shadow);
+}
+.coach-report .goal.g1 {
+  border: 1.5px solid var(--cr-hi);
+}
+.coach-report .goal-head {
+  display: flex;
+  align-items: center;
+  gap: 13px;
+  padding: 17px 24px;
+}
+.coach-report .goal.g1 .goal-head {
+  background: linear-gradient(125deg, var(--cr-hi), var(--cr-hi-dk));
+  color: #fff;
+}
+.coach-report .goal.g2 .goal-head {
+  background: var(--cr-surface2);
+  color: var(--cr-text);
+}
+.coach-report .goal-rank {
+  font-size: 12px;
+  font-weight: 800;
+  border-radius: 20px;
+  padding: 5px 13px;
+  flex: none;
+  white-space: nowrap;
+}
+.coach-report .goal.g1 .goal-rank {
+  background: rgba(255, 255, 255, 0.22);
+}
+.coach-report .goal.g2 .goal-rank {
+  background: var(--cr-surface);
+  border: 0.5px solid var(--cr-border2);
+  color: var(--cr-text2);
+}
+.coach-report .goal-title {
+  font-size: 18.5px;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  line-height: 1.4;
+}
+.coach-report .goal-body {
+  padding: 19px 24px 21px;
+  background: var(--cr-surface);
+}
+.coach-report .g-row {
+  display: grid;
+  grid-template-columns: 96px 1fr;
+  gap: 16px;
+  align-items: start;
+  padding: 11px 0;
+  border-top: 0.5px solid var(--cr-border);
+}
+.coach-report .g-row:first-child {
+  border-top: none;
+  padding-top: 2px;
+}
+.coach-report .g-k {
+  display: inline-flex;
+  justify-content: center;
+  font-size: 12px;
+  font-weight: 800;
+  color: var(--cr-hi-dk);
+  background: var(--cr-hi-lt);
+  border-radius: 8px;
+  padding: 5px 0;
+  letter-spacing: 0.02em;
+}
+.coach-report .goal.g2 .g-k {
+  color: var(--cr-blue);
+  background: var(--cr-blue-lt);
+}
+.coach-report .g-v {
+  font-size: 15px;
+  color: #3f434b;
+  line-height: 1.75;
+  word-break: keep-all;
+}
+.coach-report .g-v b {
+  color: var(--cr-text);
+  font-weight: 800;
+}
+.coach-report .goal-why {
+  margin-top: 15px;
+  background: var(--cr-hi-lt2);
+  border-left: 3px solid var(--cr-hi);
+  border-radius: 0 var(--cr-radius-sm) var(--cr-radius-sm) 0;
+  padding: 14px 18px;
+  display: flex;
+  gap: 13px;
+  align-items: flex-start;
+}
+.coach-report .goal.g2 .goal-why {
+  background: var(--cr-blue-lt);
+  border-left-color: var(--cr-blue);
+}
+.coach-report .why-pill {
+  flex: none;
+  font-size: 11.5px;
+  font-weight: 800;
+  color: #fff;
+  background: var(--cr-hi);
+  border-radius: 8px;
+  padding: 4px 10px;
+  margin-top: 3px;
+}
+.coach-report .goal.g2 .why-pill {
+  background: var(--cr-blue);
+}
+.coach-report .why-t {
+  font-size: 14.5px;
+  color: #3f434b;
+  line-height: 1.85;
+  word-break: keep-all;
+}
+.coach-report .why-t b {
+  color: var(--cr-text);
+}
+
+/* ── 작성 예시 + 필기 공간 ── */
+.coach-report .ex-card {
+  background: var(--cr-surface2);
+  border: 1.5px dashed var(--cr-border2);
+  border-radius: var(--cr-radius-md);
+  padding: 15px 19px;
+  margin-bottom: 18px;
+}
+.coach-report .ex-tag {
+  display: inline-flex;
+  font-size: 11.5px;
+  font-weight: 800;
+  color: var(--cr-hi-dk);
+  background: var(--cr-hi-lt);
+  border-radius: 20px;
+  padding: 4px 12px;
+  margin-bottom: 9px;
+}
+.coach-report .ex-row {
+  font-size: 13.5px;
+  color: var(--cr-text2);
+  line-height: 1.9;
+  word-break: keep-all;
+}
+.coach-report .ex-row b {
+  color: var(--cr-text);
+  font-weight: 800;
+  margin-right: 6px;
+}
+.coach-report .ex-note {
+  margin-top: 8px;
+  font-size: 12px;
+  color: var(--cr-text3);
+}
+.coach-report .write {
+  border-bottom: 2px solid var(--cr-surface3);
+  min-height: 68px;
+  background: repeating-linear-gradient(to bottom, transparent 0 32px, var(--cr-surface3) 32px 33px);
+  padding: 4px 2px;
+  font-size: 15.5px;
+  line-height: 33px;
+  border-radius: 0;
+}
+.coach-report .write:focus {
+  outline: none;
+  border-bottom-color: var(--cr-hi);
+  box-shadow: none;
+}
+
+/* ── 멘토 사례 ── */
+.coach-report .hero-card {
+  border: 0.5px solid rgba(242, 109, 33, 0.3);
+  background: var(--cr-hi-lt2);
+  border-radius: var(--cr-radius-md);
+  padding: 19px 22px;
+  margin-bottom: 13px;
+  box-shadow: var(--cr-shadow);
+}
+.coach-report .hero-name {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-weight: 800;
+  font-size: 15.5px;
+  color: var(--cr-hi-dk);
+  margin-bottom: 7px;
+}
+.coach-report .hero-name::before {
+  content: '\2605';
+  font-size: 13px;
+}
+.coach-report .hero-body {
+  font-size: 14.5px;
+  color: #3f434b;
+  line-height: 1.85;
+  word-break: keep-all;
+}
+.coach-report .hero-apply {
+  margin-top: 9px;
+  font-size: 14.5px;
+  line-height: 1.8;
+  word-break: keep-all;
+  background: var(--cr-surface);
+  border-radius: var(--cr-radius-sm);
+  padding: 11px 15px;
+}
+.coach-report .hero-apply b {
+  color: var(--cr-hi-dk);
+}
+
+/* ── 이번 주 HOW TO ── */
+.coach-report .howto {
+  display: flex;
+  flex-direction: column;
+  gap: 9px;
+}
+.coach-report .chk {
+  display: flex;
+  gap: 13px;
+  align-items: flex-start;
+  border: 0.5px solid var(--cr-border);
+  background: var(--cr-surface);
+  border-radius: var(--cr-radius-sm);
+  padding: 14px 17px;
+  font-size: 15px;
+  box-shadow: var(--cr-shadow);
+  line-height: 1.7;
+}
+.coach-report .chk .box {
+  width: 21px;
+  height: 21px;
+  border: 2px solid var(--cr-border2);
+  border-radius: 7px;
+  flex: none;
+  margin-top: 3px;
+}
+.coach-report .chk b {
+  font-weight: 800;
+  color: var(--cr-hi-dk);
+}
+
+/* ── 나의 선택 폼 ── */
+.coach-report .choice {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 14px 20px;
+  font-size: 15px;
+}
+.coach-report .choice .full {
+  grid-column: 1 / -1;
+}
+.coach-report .fld {
+  display: flex;
+  align-items: baseline;
+  gap: 11px;
+}
+.coach-report .fld label {
+  font-size: 13px;
+  font-weight: 800;
+  color: var(--cr-text2);
+  white-space: nowrap;
+}
+.coach-report .fld input {
+  flex: 1;
+  border: none;
+  border-bottom: 2px solid var(--cr-surface3);
+  background: transparent;
+  font-family: inherit;
+  font-size: 15.5px;
+  padding: 9px 2px;
+  color: var(--cr-text);
+  min-width: 40px;
+}
+.coach-report .fld input:focus {
+  outline: none;
+  border-bottom-color: var(--cr-hi);
+}
+.coach-report .declare {
+  margin-top: 16px;
+  background: var(--cr-text);
+  color: #fff;
+  border-radius: var(--cr-radius-md);
+  padding: 21px 25px;
+  font-size: 16px;
+  line-height: 2.3;
+  word-break: keep-all;
+}
+.coach-report .declare .dk {
+  font-size: 12px;
+  font-weight: 800;
+  letter-spacing: 0.1em;
+  color: #fbb07c;
+  display: block;
+  margin-bottom: 6px;
+  line-height: 1.4;
+}
+.coach-report .declare input {
+  background: transparent;
+  border: none;
+  border-bottom: 2px solid rgba(255, 255, 255, 0.45);
+  color: #fff;
+  font-family: inherit;
+  font-size: 16px;
+  width: 76px;
+  text-align: center;
+  padding: 0 2px;
+}
+.coach-report .declare input.w {
+  width: 170px;
+}
+.coach-report .declare input:focus {
+  outline: none;
+  border-bottom-color: var(--cr-hi);
+}
+
+/* ── 강사용 페이지 ── */
+.coach-report .coach-band {
+  background: var(--cr-text);
+  color: #fff;
+  border-radius: var(--cr-radius-md);
+  padding: 16px 24px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 20px;
+}
+.coach-report .coach-band .cb-t {
+  font-weight: 800;
+  font-size: 17px;
+}
+.coach-report .coach-band .cb-s {
+  font-size: 12.5px;
+  opacity: 0.7;
+}
+.coach-report .plain {
+  font-size: 14.5px;
+  color: #3f434b;
+  line-height: 1.85;
+  word-break: keep-all;
+}
+.coach-report .plain b {
+  color: var(--cr-text);
+}
+.coach-report ul.tight {
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 9px;
+  margin: 0;
+  padding: 0;
+}
+.coach-report ul.tight li {
+  position: relative;
+  padding-left: 17px;
+  font-size: 14.5px;
+  color: #3f434b;
+  line-height: 1.8;
+  word-break: keep-all;
+}
+.coach-report ul.tight li::before {
+  content: '';
+  position: absolute;
+  left: 2px;
+  top: 12px;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--cr-hi);
+}
+.coach-report ul.tight li b {
+  color: var(--cr-text);
+}
+.coach-report .hypo {
+  border: 0.5px solid var(--cr-border);
+  background: var(--cr-surface);
+  border-radius: var(--cr-radius-sm);
+  padding: 13px 17px;
+  margin-bottom: 10px;
+  font-size: 14.5px;
+  color: #3f434b;
+  line-height: 1.75;
+  word-break: keep-all;
+  box-shadow: var(--cr-shadow);
+}
+.coach-report .hypo b {
+  color: var(--cr-text);
+}
+.coach-report .hypo .ev {
+  display: block;
+  font-size: 12.5px;
+  color: var(--cr-text3);
+  margin-top: 4px;
+}
+.coach-report ol.qs {
+  padding-left: 22px;
+  display: flex;
+  flex-direction: column;
+  gap: 9px;
+  font-size: 14.5px;
+  color: #3f434b;
+  line-height: 1.75;
+  margin: 0;
+}
+.coach-report ol.qs li::marker {
+  font-weight: 800;
+  color: var(--cr-hi-dk);
+}
+.coach-report .note-card {
+  background: #fff9ee;
+  border: 0.5px solid rgba(255, 149, 0, 0.35);
+  border-radius: var(--cr-radius-sm);
+  padding: 12px 16px;
+  margin-bottom: 9px;
+  font-size: 13.5px;
+  color: #7a5a15;
+  line-height: 1.7;
+  word-break: keep-all;
+}
+.coach-report .note-card b {
+  color: #5c420c;
+}
+
+.coach-report .sheet-foot {
+  position: absolute;
+  left: 14mm;
+  right: 14mm;
+  bottom: 8mm;
+  display: flex;
+  justify-content: space-between;
+  font-size: 11px;
+  color: var(--cr-text3);
+  border-top: 0.5px solid var(--cr-border);
+  padding-top: 7px;
+}
+
+.coach-report [contenteditable='true'] {
+  border-radius: 5px;
+  transition: box-shadow 0.15s;
+  cursor: text;
+}
+.coach-report [contenteditable='true']:hover {
+  box-shadow: 0 0 0 2px rgba(242, 109, 33, 0.25);
+}
+.coach-report [contenteditable='true']:focus {
+  outline: none;
+  box-shadow: 0 0 0 2px var(--cr-hi);
+}
+
+/* ── 인사이트 헤드라인 ── */
+.coach-report .insight {
+  background: var(--cr-hi-lt2);
+  border: 0.5px solid rgba(242, 109, 33, 0.18);
+  border-radius: var(--cr-radius);
+  padding: 20px 24px;
+  margin-bottom: 18px;
+}
+.coach-report .insight-h {
+  font-size: 19.5px;
+  font-weight: 800;
+  color: var(--cr-hi-dk);
+  line-height: 1.55;
+  letter-spacing: -0.02em;
+  word-break: keep-all;
+}
+.coach-report .insight-p {
+  margin-top: 7px;
+  font-size: 14px;
+  color: var(--cr-text2);
+  line-height: 1.8;
+  word-break: keep-all;
+}
+
+.coach-report .basecap {
+  margin-top: 9px;
+  font-size: 11.5px;
+  color: var(--cr-text3);
+  letter-spacing: -0.01em;
+}
+
+/* ── CAMS 신호등 ── */
+.coach-report .cams {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 13px;
+}
+.coach-report .cams-col {
+  background: var(--cr-surface);
+  border: 0.5px solid var(--cr-border);
+  border-radius: var(--cr-radius-md);
+  box-shadow: var(--cr-shadow);
+  padding: 16px 20px 10px;
+}
+.coach-report .cams-k {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 8px;
+}
+.coach-report .cams-badge {
+  width: 27px;
+  height: 27px;
+  border-radius: 8px;
+  background: var(--cr-text);
+  color: #fff;
+  font-weight: 800;
+  font-size: 13px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex: none;
+}
+.coach-report .cams-name {
+  font-weight: 800;
+  font-size: 14px;
+}
+.coach-report .citem {
+  display: flex;
+  align-items: center;
+  gap: 11px;
+  padding: 11px 2px;
+  border-top: 0.5px solid var(--cr-border);
+  font-size: 14.5px;
+}
+.coach-report .cdot {
+  width: 17px;
+  height: 17px;
+  border-radius: 50%;
+  flex: none;
+  box-shadow: inset 0 -2px 3px rgba(0, 0, 0, 0.12), 0 0 0 3px rgba(0, 0, 0, 0.03);
+}
+.coach-report .cdot.good {
+  background: var(--cr-green);
+}
+.coach-report .cdot.mid {
+  background: var(--cr-hi);
+}
+.coach-report .cdot.low {
+  background: var(--cr-blue);
+}
+.coach-report .cdot.na {
+  background: var(--cr-surface3);
+}
+.coach-report .citem .lab {
+  flex: 1;
+  color: var(--cr-text);
+  font-weight: 700;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.coach-report .citem .st {
+  font-size: 13px;
+  font-weight: 800;
+  white-space: nowrap;
+}
+.coach-report .st.good {
+  color: var(--cr-green-dk);
+}
+.coach-report .st.mid {
+  color: var(--cr-hi-dk);
+}
+.coach-report .st.low {
+  color: var(--cr-blue);
+}
+.coach-report .st.na {
+  color: var(--cr-text3);
+}
+.coach-report .cams-legend {
+  display: flex;
+  gap: 16px;
+  font-size: 12px;
+  color: var(--cr-text2);
+  margin-top: 11px;
+  justify-content: flex-end;
+  align-items: center;
+}
+.coach-report .cams-legend i {
+  display: inline-block;
+  width: 13px;
+  height: 13px;
+  border-radius: 50%;
+  margin-right: 6px;
+  vertical-align: -2px;
+  box-shadow: inset 0 -2px 3px rgba(0, 0, 0, 0.12);
+}
+
+/* ── 신호등 칩 매트릭스 ── */
+.coach-report .cams2 {
+  background: var(--cr-surface);
+  border: 0.5px solid var(--cr-border);
+  border-radius: var(--cr-radius-md);
+  box-shadow: var(--cr-shadow);
+  padding: 6px 22px;
+}
+.coach-report .cg {
+  display: grid;
+  grid-template-columns: 104px 1fr;
+  align-items: center;
+  gap: 16px;
+  padding: 14px 0;
+  border-top: 0.5px solid var(--cr-border);
+}
+.coach-report .cg:first-child {
+  border-top: none;
+}
+.coach-report .cg-h {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+}
+.coach-report .cg-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 9px;
+}
+.coach-report .mchip {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  border-radius: 999px;
+  padding: 8px 15px;
+  font-size: 14px;
+  font-weight: 700;
+  line-height: 1;
+}
+.coach-report .mchip i {
+  width: 11px;
+  height: 11px;
+  border-radius: 50%;
+  flex: none;
+  box-shadow: inset 0 -1.5px 2px rgba(0, 0, 0, 0.14);
+}
+.coach-report .mchip b {
+  font-size: 11.5px;
+  font-weight: 800;
+  opacity: 0.75;
+  margin-left: 1px;
+}
+.coach-report .mchip.good {
+  background: var(--cr-green-lt);
+  color: var(--cr-green-dk);
+}
+.coach-report .mchip.good i {
+  background: var(--cr-green);
+}
+.coach-report .mchip.mid {
+  background: var(--cr-hi-lt);
+  color: var(--cr-hi-dk);
+}
+.coach-report .mchip.mid i {
+  background: var(--cr-hi);
+}
+.coach-report .mchip.low {
+  background: var(--cr-blue-lt);
+  color: var(--cr-blue);
+}
+.coach-report .mchip.low i {
+  background: var(--cr-blue);
+}
+.coach-report .mchip.na {
+  background: var(--cr-surface2);
+  color: var(--cr-text3);
+}
+.coach-report .mchip.na i {
+  background: var(--cr-surface3);
+}
+
+/* ── 나비형 비교 차트 ── */
+.coach-report .bfly {
+  background: var(--cr-surface);
+  border: 0.5px solid var(--cr-border);
+  border-radius: var(--cr-radius-md);
+  box-shadow: var(--cr-shadow);
+  padding: 20px 22px;
+}
+.coach-report .bfly-top {
+  display: grid;
+  grid-template-columns: 1fr 170px 1fr;
+  align-items: center;
+  margin-bottom: 10px;
+}
+.coach-report .bfly-side {
+  font-size: 13px;
+  font-weight: 800;
+}
+.coach-report .bfly-side.l {
+  text-align: right;
+  color: var(--cr-hi-dk);
+}
+.coach-report .bfly-side.r {
+  text-align: left;
+  color: var(--cr-blue);
+}
+.coach-report .bfly-mid {
+  text-align: center;
+  font-size: 11.5px;
+  color: var(--cr-text3);
+  font-weight: 700;
+}
+.coach-report .bf-row {
+  display: grid;
+  grid-template-columns: 1fr 170px 1fr;
+  align-items: center;
+  margin: 9px 0;
+}
+.coach-report .bf-l {
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  gap: 9px;
+}
+.coach-report .bf-r {
+  display: flex;
+  justify-content: flex-start;
+  align-items: center;
+  gap: 9px;
+}
+.coach-report .bf-bar {
+  height: 23px;
+}
+.coach-report .bf-l .bf-bar {
+  background: linear-gradient(270deg, var(--cr-hi), var(--cr-hi-dk));
+  border-radius: 8px 3px 3px 8px;
+}
+.coach-report .bf-r .bf-bar {
+  background: var(--cr-blue);
+  opacity: 0.82;
+  border-radius: 3px 8px 8px 3px;
+}
+.coach-report .bf-val {
+  font-weight: 800;
+  font-size: 15.5px;
+  white-space: nowrap;
+}
+.coach-report .bf-l .bf-val {
+  color: var(--cr-hi-dk);
+}
+.coach-report .bf-r .bf-val {
+  color: var(--cr-blue);
+}
+.coach-report .bf-c {
+  text-align: center;
+  padding: 2px 8px;
+  border-left: 1px solid var(--cr-border2);
+  border-right: 1px solid var(--cr-border2);
+}
+.coach-report .bf-lab {
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--cr-text);
+  line-height: 1.4;
+  word-break: keep-all;
+}
+.coach-report .co {
+  display: inline-flex;
+  border-radius: 20px;
+  padding: 2.5px 10px;
+  font-size: 10.5px;
+  font-weight: 800;
+  color: #fff;
+  margin-top: 4px;
+}
+.coach-report .co.orange {
+  background: var(--cr-hi);
+}
+.coach-report .co.blue {
+  background: var(--cr-blue);
+}
+.coach-report .co.green {
+  background: var(--cr-green);
+}
+
+/* ── KPI 증감 캡슐 ── */
+.coach-report .kpi-cap {
+  margin-top: 10px;
+  background: var(--cr-surface2);
+  border-radius: 10px;
+  padding: 9px 13px;
+  font-size: 13px;
+  color: var(--cr-text2);
+  line-height: 1.6;
+}
+.coach-report .kpi-cap b {
+  font-weight: 800;
+  color: var(--cr-text);
+  font-size: 13.5px;
+}
+.coach-report .delta {
+  font-weight: 800;
+  font-size: 13px;
+}
+.coach-report .delta.up {
+  color: var(--cr-green-dk);
+}
+.coach-report .delta.down {
+  color: #c0261c;
+}
+
+@media (max-width: 760px) {
+  .coach-report .sheet {
+    padding: 24px 18px;
+    min-height: auto;
+  }
+  .coach-report .type-row,
+  .coach-report .choice,
+  .coach-report .kpi-grid,
+  .coach-report .ring-duo {
+    grid-template-columns: 1fr;
+  }
+  .coach-report .cams {
+    grid-template-columns: 1fr;
+  }
+  .coach-report .cg {
+    grid-template-columns: 1fr;
+    gap: 8px;
+  }
+  .coach-report .bf-row,
+  .coach-report .bfly-top {
+    grid-template-columns: 1fr 120px 1fr;
+  }
+  .coach-report .vs-row {
+    grid-template-columns: 48px 1fr 76px;
+  }
+}
+
+/* ── 인쇄 ── */
+@media print {
+  body.printing-coach .coach-report {
+    background: #fff;
+    font-size: 13.5px;
+  }
+  body.printing-coach .coach-toolbar,
+  body.printing-coach .edit-hint {
+    display: none !important;
+  }
+  body.printing-coach .coach-report .sheet {
+    box-shadow: none;
+    border: none;
+    border-radius: 0;
+    margin: 0;
+    width: auto;
+    max-width: none;
+    min-height: auto;
+    padding: 10mm 13mm 12mm;
+    page-break-after: always;
+    overflow: visible;
+  }
+  body.printing-coach .coach-report .sheet:last-of-type {
+    page-break-after: auto;
+  }
+  body:not(.show-coach-guide) .coach-report .sheet.coach {
+    display: none;
+  }
+  body.printing-coach .coach-report .sheet-foot {
+    position: static;
+    margin-top: 14px;
+  }
+  body.printing-coach [contenteditable]:hover,
+  body.printing-coach [contenteditable]:focus {
+    box-shadow: none;
+  }
+  body.printing-coach .kpi,
+  body.printing-coach .vs-card,
+  body.printing-coach .ring-card,
+  body.printing-coach .trend-card,
+  body.printing-coach .sb-card,
+  body.printing-coach .goal,
+  body.printing-coach .hero-card,
+  body.printing-coach .chk,
+  body.printing-coach .hypo,
+  body.printing-coach .note-card,
+  body.printing-coach .type-card,
+  body.printing-coach .bfly,
+  body.printing-coach .cams,
+  body.printing-coach .cams-col,
+  body.printing-coach .cams2,
+  body.printing-coach .insight,
+  body.printing-coach .ex-card {
+    box-shadow: none;
+    break-inside: avoid;
+  }
+  body.printing-coach .insight {
+    padding: 14px 19px;
+    margin-bottom: 13px;
+  }
+  body.printing-coach .insight-h {
+    font-size: 16.5px;
+  }
+  body.printing-coach .insight-p {
+    font-size: 12.5px;
+  }
+  body.printing-coach .sec .sec-h {
+    break-after: avoid;
+  }
+  body.printing-coach .rp-head {
+    margin-bottom: 14px;
+  }
+  body.printing-coach .sec {
+    margin-bottom: 17px;
+  }
+  body.printing-coach .oneliner {
+    box-shadow: none;
+  }
+  body.printing-coach .ol-t {
+    font-size: 18px;
+  }
+  body.printing-coach .kpi-val {
+    font-size: 26px;
+  }
+  body.printing-coach .trend-plot {
+    height: 130px;
+  }
+}

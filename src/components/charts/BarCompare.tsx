@@ -5,6 +5,7 @@ import {
   Cell,
   LabelList,
   Legend,
+  Rectangle,
   Tooltip,
   XAxis,
   YAxis,
@@ -126,6 +127,22 @@ export function BarCompare({
 }
 
 /**
+ * 첫 막대(본인)만 나머지보다 넓게 그려 부각시킨다. 폭을 늘린 만큼 중심이
+ * 그대로이도록 x 를 같이 보정한다 — maxBarSize 로 이미 막대 사이 여백이
+ * 넉넉해서 옆 막대와 겹치지 않는다.
+ */
+function selfWideBar(dense?: boolean) {
+  const factor = dense ? 1.3 : 1.45
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  return function SelfWideBar(props: any) {
+    if (props.index !== 0) return <Rectangle {...props} />
+    const width = Number(props.width) * factor
+    const x = Number(props.x) - (width - Number(props.width)) / 2
+    return <Rectangle {...props} x={x} width={width} />
+  }
+}
+
+/**
  * 단일 지표를 본인/동급/TC 3막대로 비교 — 원본 A분석 chart7~12,
  * S분석 chart25~37 의 소형 다중 차트 형태.
  */
@@ -156,7 +173,13 @@ export function BarTriple({
         />
         <YAxis hide />
         {!dense && <Tooltip formatter={(v) => (format ? format(Number(v)) : v)} />}
-        <Bar dataKey="value" isAnimationActive={false} radius={[3, 3, 0, 0]} maxBarSize={dense ? 26 : 54}>
+        <Bar
+          dataKey="value"
+          isAnimationActive={false}
+          radius={[3, 3, 0, 0]}
+          maxBarSize={dense ? 26 : 54}
+          shape={selfWideBar(dense)}
+        >
           {data.map((_, i) => (
             <Cell key={i} fill={colors[i % colors.length]} />
           ))}

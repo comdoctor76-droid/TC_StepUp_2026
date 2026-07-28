@@ -51,6 +51,9 @@ export interface CustomerAnalysis {
     transferLongCust: number
     transferLongCnt: number
     transferAutoCust: number
+    /** 장기이관고객 — TC 표준그룹 (성장코칭 탭용, 벤치마크 테이블엔 이관 항목이 하나뿐이라
+     *  자기 쪽 transferLongCnt(BF)에 대응하는 열을 그대로 쓴다) */
+    transferLongTc: number
   }
 
   /** C 점수 — C분석!CS50 (0~2) */
@@ -131,6 +134,7 @@ export function analyzeCustomer(ctx: Ctx, selfName: string): CustomerAnalysis {
     transferLongCust: ctx.f('transferLongCust'), // input BG
     transferLongCnt: ctx.f('transferLongCnt'), // input BF
     transferAutoCust: ctx.f('transferAutoCust'), // input BI
+    transferLongTc: ctx.tc('transferLongCust'),
   }
 
   // ── C 점수 : C분석!CG50:CS50 ────────────────────────────────────────

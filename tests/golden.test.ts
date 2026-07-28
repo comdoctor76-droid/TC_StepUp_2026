@@ -445,3 +445,32 @@ describe('조회기간 — 재고/흐름', () => {
     expect(flowSum(s.cntLong, w)).toBe(s.cntLong[0] + s.cntLong[1] + s.cntLong[2])
   })
 })
+
+/* ══════════════════════════════════════════════════════════════════════
+   성장코칭 탭용 신규 필드 — 원본 워크북엔 대응 셀이 없어(동급 비교가 원래
+   없던 자리) 골든 셀 대조는 불가능하다. ctx.peer()/ctx.tc() 호출 자체는
+   위 골든 테스트로 이미 검증된 헬퍼이므로, 여기서는 값의 타당성만 확인한다.
+   ══════════════════════════════════════════════════════════════════════ */
+describe('성장코칭 — 신규 필드 타당성', () => {
+  it('장기이관 TC그룹 값이 음수가 아니다', () => {
+    expect(A.customer.composition.transferLongTc).toBeGreaterThanOrEqual(0)
+  })
+
+  it('실손 세대별 비중 동급 배열이 self/tc와 같은 모양이고 합이 1에 가깝다', () => {
+    const { self, peer, tc } = A.market.silsonAll
+    expect(peer).toHaveLength(self.length)
+    expect(peer).toHaveLength(tc.length)
+    expect(peer.map((x) => x.label)).toEqual(self.map((x) => x.label))
+    const sum = peer.reduce((a, b) => a + b.share, 0)
+    expect(sum).toBeGreaterThan(0.99)
+    expect(sum).toBeLessThan(1.01)
+  })
+
+  it('월별 추이 동급 시리즈가 6개월 전부 채워지고 음수가 아니다', () => {
+    expect(A.action.trend).toHaveLength(6)
+    for (const t of A.action.trend) {
+      expect(t.건수동급).toBeGreaterThanOrEqual(0)
+      expect(t.고객동급).toBeGreaterThanOrEqual(0)
+    }
+  })
+})

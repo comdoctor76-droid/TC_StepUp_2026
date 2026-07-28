@@ -5,11 +5,11 @@
    동적 import 로 불러온다 (Admin/Demo 와 같은 코드 분할 관례).
    ══════════════════════════════════════════════════════════════════════ */
 
-import { capturePageCanvases, type CaptureProgress } from './captureAll'
+import { capturePageCanvases, type CaptureOptions, type CaptureProgress } from './captureAll'
 
-/** #print-root 안의 .a4-page 들을 A4 페이지 각각으로 담은 PDF Blob 을 만든다 */
-export async function exportPdf(onProgress?: CaptureProgress): Promise<Blob> {
-  const canvases = await capturePageCanvases(onProgress)
+/** rootId 안의 pageSelector 들을 A4 페이지 각각으로 담은 PDF Blob 을 만든다 */
+export async function exportPdf(onProgress?: CaptureProgress, opts: CaptureOptions = {}): Promise<Blob> {
+  const canvases = await capturePageCanvases(onProgress, opts)
 
   const { PDFDocument, PageSizes } = await import('pdf-lib')
   const doc = await PDFDocument.create()

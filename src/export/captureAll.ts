@@ -21,6 +21,14 @@ export interface CaptureProgress {
   (done: number, total: number): void
 }
 
+/** 캡처/인쇄 대상을 바꾸고 싶을 때만 넘긴다 — 기본값은 기존 6페이지 흐름과 동일하다. */
+export interface CaptureOptions {
+  /** 페이지들을 담은 컨테이너의 id. 기본 'print-root' */
+  rootId?: string
+  /** 컨테이너 안에서 페이지 하나하나를 고르는 선택자. 기본 '.a4-page' */
+  pageSelector?: string
+}
+
 /** p 가 ms 안에 끝나지 않으면 onTimeout() 이 만든 에러로 대신 거부한다 (p 자체를 취소하진 않는다). */
 function withTimeout<T>(p: Promise<T>, ms: number, onTimeout: () => Error): Promise<T> {
   return new Promise((resolve, reject) => {
@@ -54,12 +62,16 @@ async function waitForFonts(timeoutMs = FONT_WAIT_TIMEOUT_MS) {
   await Promise.race([ready, new Promise((r) => setTimeout(r, timeoutMs))])
 }
 
-/** #print-root 안의 .a4-page 들을 순서대로 캡처해 캔버스 배열로 반환 (스티칭 없음) */
-export async function capturePageCanvases(onProgress?: CaptureProgress): Promise<HTMLCanvasElement[]> {
-  const root = document.getElementById('print-root')
+/** rootId 안의 pageSelector 들을 순서대로 캡처해 캔버스 배열로 반환 (스티칭 없음) */
+export async function capturePageCanvases(
+  onProgress?: CaptureProgress,
+  opts: CaptureOptions = {},
+): Promise<HTMLCanvasElement[]> {
+  const { rootId = 'print-root', pageSelector = '.a4-page' } = opts
+  const root = document.getElementById(rootId)
   if (!root) throw new Error('인쇄 영역을 찾을 수 없습니다.')
 
-  const pages = Array.from(root.querySelectorAll<HTMLElement>('.a4-page'))
+  const pages = Array.from(root.querySelectorAll<HTMLElement>(pageSelector))
   if (pages.length === 0) throw new Error('출력할 페이지가 없습니다.')
 
   await waitForFonts()
@@ -86,9 +98,9 @@ export async function capturePageCanvases(onProgress?: CaptureProgress): Promise
   return canvases
 }
 
-/** #print-root 안의 .a4-page 들을 순서대로 캡처해 하나의 PNG blob 으로 */
-export async function captureAllPages(onProgress?: CaptureProgress): Promise<Blob> {
-  const canvases = await capturePageCanvases(onProgress)
+/** rootId 안의 pageSelector 들을 순서대로 캡처해 하나의 PNG blob 으로 */
+export async function captureAllPages(onProgress?: CaptureProgress, opts: CaptureOptions = {}): Promise<Blob> {
+  const canvases = await capturePageCanvases(onProgress, opts)
 
   const width = Math.max(...canvases.map((c) => c.width))
   const height =
@@ -131,12 +143,18 @@ export async function captureAllPages(onProgress?: CaptureProgress): Promise<Blo
  * document.title 을 그대로 쓰기 때문에 필요하다 — 인쇄 직전에만 잠깐 바꿨다가 복원한다.
  * window.print() 가 대화상자가 떠 있는 동안 JS 를 멈추므로, 복원 코드는 항상 대화상자가
  * 닫힌 뒤에만 실행된다.
+ *
+ * bodyClass 를 주면(예: 'printing-coach') 인쇄 직전에 <body> 에 붙였다가 끝나면 뗀다 —
+ * #print-root 가 아닌 다른 인쇄 대상(#coach-print-root 등)으로 print.css 가 분기하게
+ * 하는 스위치. 기본(6페이지 리포트) 흐름은 아무 클래스도 필요 없다.
  */
-export async function printAll(fileStem: string, onReady?: () => void) {
+export async function printAll(fileStem: string, onReady?: () => void, bodyClass?: string) {
   await waitForFonts()
   const originalTitle = document.title
   document.title = fileStem
+  if (bodyClass) document.body.classList.add(bodyClass)
   onReady?.()
   window.print()
   document.title = originalTitle
+  if (bodyClass) document.body.classList.remove(bodyClass)
 }

@@ -31,7 +31,16 @@ export interface ActionAnalysis {
   newOldCases: { label: string; 신규: number; 기존: number; 합계: number }[]
 
   /** 월별 장기 가입건수·고객수 추이 — A분석!DL30:DZ32 · chart16 */
-  trend: { month: number; 건수본인: number; 건수TC: number; 고객본인: number; 고객TC: number }[]
+  trend: {
+    month: number
+    건수본인: number
+    건수TC: number
+    고객본인: number
+    고객TC: number
+    /** 동급 — 원본 차트엔 없어 성장코칭 탭용으로 새로 뽑는다 */
+    건수동급: number
+    고객동급: number
+  }[]
 
   /** 소득군별 인당건수 참고표 — A분석!CY45:DC56 */
   bandTable: { name: string; cust: number; cases: number; perCust: number }[]
@@ -145,12 +154,30 @@ export function analyzeAction(ctx: Ctx, selfName: string): ActionAnalysis {
     ctx.tc('custLongM1'),
     ctx.tc('custLongM'),
   ]
+  const peerCnt = [
+    ctx.peer('cntLongM5'),
+    ctx.peer('cntLongM4'),
+    ctx.peer('cntLongM3'),
+    ctx.peer('cntLongM2'),
+    ctx.peer('cntLongM1'),
+    ctx.peer('cntLongM'),
+  ]
+  const peerCust = [
+    ctx.peer('custLongM5'),
+    ctx.peer('custLongM4'),
+    ctx.peer('custLongM3'),
+    ctx.peer('custLongM2'),
+    ctx.peer('custLongM1'),
+    ctx.peer('custLongM'),
+  ]
   const trend = ctx.months.map((m, i) => ({
     month: m,
     건수본인: s.cntLong[i] ?? 0,
     건수TC: tcCnt[i] ?? 0,
     고객본인: s.custLong[i] ?? 0,
     고객TC: tcCust[i] ?? 0,
+    건수동급: peerCnt[i] ?? 0,
+    고객동급: peerCust[i] ?? 0,
   }))
 
   // ── 소득군별 인당건수 참고표 : A분석!CY45:DC54 ──────────────────────

@@ -111,7 +111,7 @@ export function CustomerTab({
         </ChartCard>
       </div>
 
-      <h2 className="sec">▶ 플래너 최근 유지고객 추이</h2>
+      <h2 className="sec">▶ 플래너 최근 유지고객 추이 (최근 {trend.length}개월)</h2>
       <ChartCard>
         {/* 원본 chart6(신·구 공통)은 본인 총유지고객만 그린다 (C분석!CU29:CZ29).
             TC 표준그룹(CU32:CZ32)은 자릿수가 크게 달라 같은 축에 두면 본인 추이가
@@ -125,6 +125,7 @@ export function CustomerTab({
             { key: '장기', color: SERIES.tc, dashed: true },
           ]}
           format={(v) => int(v)}
+          deltaKey="delta"
         />
       </ChartCard>
 
@@ -188,13 +189,6 @@ export function CustomerTab({
         />
       </div>
 
-      <p className="score-line">
-        <b>C 점수</b> {dec2(c.score)} <span>/ 2.00</span>
-        <em>
-          보유량 지수 {dec2(c.scoreParts.volumeIndex)} · 신규고객 격차{' '}
-          {dec2(c.scoreParts.newCustGap)}
-        </em>
-      </p>
     </>
   )
 }

@@ -7,6 +7,7 @@ import { ActionTab } from '../tabs/ActionTab'
 import { MarketTab } from '../tabs/MarketTab'
 import { SkillTab } from '../tabs/SkillTab'
 import { ActionPlanTab } from '../tabs/ActionPlanTab'
+import { GrowthCoachTab } from '../tabs/coach/GrowthCoachTab'
 import {
   ALL_PERIOD,
   DEFAULT_PERIOD,
@@ -40,6 +41,7 @@ const TABS = [
   { id: 'm', label: 'M분석', title: 'Market [시장] 분석', eyebrow: '최근 6개월' },
   { id: 's', label: 'S분석', title: 'Skill [기술] 분석', eyebrow: '최근 6개월' },
   { id: 'plan', label: '액션플랜', title: '액션플랜', eyebrow: 'Action Plan' },
+  { id: 'coach', label: '성장코칭', title: '성장 코칭', eyebrow: '' },
 ] as const
 
 type TabId = (typeof TABS)[number]['id']
@@ -56,6 +58,7 @@ const PERIOD_CAPS: Record<TabId, PeriodCaps> = {
   m: {},
   s: { scope: true },
   plan: {},
+  coach: {},
 }
 
 export function Report({
@@ -80,6 +83,7 @@ export function Report({
     m: DEFAULT_PERIOD,
     s: DEFAULT_PERIOD,
     plan: DEFAULT_PERIOD,
+    coach: DEFAULT_PERIOD,
   }))
   const period = periods[tab]
   const setPeriod = (p: Period) => setPeriods((prev) => ({ ...prev, [tab]: p }))
@@ -317,6 +321,7 @@ export function Report({
           {tab === 'm' && <MarketTab A={A} period={period} />}
           {tab === 's' && <SkillTab A={A} period={period} />}
           {tab === 'plan' && <ActionPlanTab A={A} />}
+          {tab === 'coach' && <GrowthCoachTab A={A} caption={caption ?? ''} />}
         </div>
         <p className="screen__caption">
           {caption} · v{APP_VERSION} · {CONTACT_LINE}

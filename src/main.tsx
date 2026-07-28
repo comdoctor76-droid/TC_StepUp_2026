@@ -4,6 +4,7 @@ import { App } from './App'
 import './styles/theme.css'
 import './styles/app.css'
 import './styles/print.css'
+import './styles/coach.css'
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
