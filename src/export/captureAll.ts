@@ -54,8 +54,8 @@ async function waitForFonts(timeoutMs = FONT_WAIT_TIMEOUT_MS) {
   await Promise.race([ready, new Promise((r) => setTimeout(r, timeoutMs))])
 }
 
-/** #print-root 안의 .a4-page 들을 순서대로 캡처해 하나의 PNG blob 으로 */
-export async function captureAllPages(onProgress?: CaptureProgress): Promise<Blob> {
+/** #print-root 안의 .a4-page 들을 순서대로 캡처해 캔버스 배열로 반환 (스티칭 없음) */
+export async function capturePageCanvases(onProgress?: CaptureProgress): Promise<HTMLCanvasElement[]> {
   const root = document.getElementById('print-root')
   if (!root) throw new Error('인쇄 영역을 찾을 수 없습니다.')
 
@@ -83,6 +83,12 @@ export async function captureAllPages(onProgress?: CaptureProgress): Promise<Blo
     canvases.push(c)
     onProgress?.(i + 1, pages.length)
   }
+  return canvases
+}
+
+/** #print-root 안의 .a4-page 들을 순서대로 캡처해 하나의 PNG blob 으로 */
+export async function captureAllPages(onProgress?: CaptureProgress): Promise<Blob> {
+  const canvases = await capturePageCanvases(onProgress)
 
   const width = Math.max(...canvases.map((c) => c.width))
   const height =
@@ -120,9 +126,17 @@ export async function captureAllPages(onProgress?: CaptureProgress): Promise<Blo
  * 떠 있는 동안 브라우저가 JS 를 멈추더라도 이 함수의 async 흐름과는 무관하다.
  * onReady 는 폰트 대기가 끝나고 print() 를 호출하기 직전에 불려, 호출부가 자체
  * 오버레이를 그 시점에 바로 닫을 수 있게 한다 (오버레이가 인쇄창과 겹쳐 떠 있지 않도록).
+ *
+ * fileStem 은 인쇄 대화상자에서 "PDF로 저장"을 고를 때 브라우저가 제안하는 파일명이
+ * document.title 을 그대로 쓰기 때문에 필요하다 — 인쇄 직전에만 잠깐 바꿨다가 복원한다.
+ * window.print() 가 대화상자가 떠 있는 동안 JS 를 멈추므로, 복원 코드는 항상 대화상자가
+ * 닫힌 뒤에만 실행된다.
  */
-export async function printAll(onReady?: () => void) {
+export async function printAll(fileStem: string, onReady?: () => void) {
   await waitForFonts()
+  const originalTitle = document.title
+  document.title = fileStem
   onReady?.()
   window.print()
+  document.title = originalTitle
 }

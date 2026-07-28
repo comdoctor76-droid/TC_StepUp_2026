@@ -886,6 +886,44 @@
 .overlay__box .overlay__dismiss {
   margin-top: 16px;
 }
+
+/* ── 인쇄 / PDF 선택창 ────────────────────────────────────────────── */
+.choice-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 65;
+  background: rgba(20, 20, 20, 0.5);
+  display: grid;
+  place-items: center;
+  padding: 20px;
+}
+.choice-overlay__box {
+  background: #fff;
+  border-radius: 16px;
+  padding: 28px 30px 24px;
+  text-align: center;
+  max-width: 320px;
+}
+.choice-overlay__title {
+  margin: 0 0 18px;
+  font-size: 17px;
+  font-weight: 700;
+  color: var(--hi-navy);
+}
+.choice-overlay__actions {
+  display: flex;
+  gap: 10px;
+  justify-content: center;
+}
+.choice-overlay__actions .btn {
+  flex: 1 1 0;
+}
+.choice-overlay__cancel {
+  margin-top: 14px;
+  width: 100%;
+  justify-content: center;
+}
+
 .toast {
   position: fixed;
   left: 50%;

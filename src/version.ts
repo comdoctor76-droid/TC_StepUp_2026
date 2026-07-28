@@ -5,7 +5,7 @@
    CHANGELOG 에 한 줄씩 남긴다.
    ══════════════════════════════════════════════════════════════════════ */
 
-export const APP_VERSION = '0.08'
+export const APP_VERSION = '0.09'
 
 export const CONTACT = {
   dept: '개인마케팅교육본부 / 영업교육운영파트',
@@ -31,6 +31,10 @@ export const TOTAL_PAGES = 6
 
 /** 수정 이력 (최신이 위) */
 export const CHANGELOG: { version: string; note: string }[] = [
+  {
+    version: '0.09',
+    note: '전체 인쇄에 인쇄/PDF 저장 선택창 추가 — PDF는 실제 6페이지 파일로 생성해 저장 위치를 물음, 인쇄창의 PDF 저장 파일명도 성명(사번)_출력일시로 수정',
+  },
   {
     version: '0.08',
     note: '액션플랜 디자인 재구성 — 원본 표 양식(강점/약점 × Action Plan 3행)을 현대해상 CI(오렌지·네이비)로 재현, 인쇄 글자 3px 확대',

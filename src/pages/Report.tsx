@@ -8,7 +8,15 @@ import { MarketTab } from '../tabs/MarketTab'
 import { SkillTab } from '../tabs/SkillTab'
 import { ActionPlanTab } from '../tabs/ActionPlanTab'
 import { captureAllPages, printAll } from '../export/captureAll'
-import { canShareFiles, isMobile, outputFileName, shareOrDownload } from '../export/share'
+import { exportPdf } from '../export/pdf'
+import { savePdf } from '../export/pdfSave'
+import {
+  canShareFiles,
+  isMobile,
+  outputFileName,
+  outputFileStem,
+  shareOrDownload,
+} from '../export/share'
 import type { FullAnalysis } from '../calc'
 import {
   APP_VERSION,
@@ -43,8 +51,9 @@ export function Report({
 }) {
   const [tab, setTab] = useState<TabId>('report')
   const [busy, setBusy] = useState<string | null>(null)
-  const [busyMode, setBusyMode] = useState<'print' | 'image' | null>(null)
+  const [busyMode, setBusyMode] = useState<'print' | 'image' | 'pdf' | null>(null)
   const [showDismiss, setShowDismiss] = useState(false)
+  const [showPrintChoice, setShowPrintChoice] = useState(false)
   const [toast, setToast] = useState<string | null>(null)
   const [refreshing, setRefreshing] = useState(false)
 
@@ -121,7 +130,8 @@ export function Report({
     setBusyMode('print')
     setBusy('준비 중')
     try {
-      await printAll(() => {
+      const fileStem = outputFileStem(A.profile.name, A.profile.code)
+      await printAll(fileStem, () => {
         // 폰트 대기가 끝나 인쇄창을 여는 시점 — 자체 오버레이를 바로 닫는다.
         // window.print() 의 결과를 기다리지 않으므로 오버레이가 무한정 떠 있을 수 없다.
         if (isCurrent(id)) {
@@ -140,7 +150,52 @@ export function Report({
         setBusyMode(null)
       }
     }
-  }, [mobile, makeImage])
+  }, [mobile, makeImage, A])
+
+  const doExportPdf = useCallback(async () => {
+    const id = startOp()
+    setBusyMode('pdf')
+    setBusy(`0 / ${TOTAL_PAGES}`)
+    try {
+      const blob = await exportPdf((d, t) => {
+        if (isCurrent(id)) setBusy(`${d} / ${t}`)
+      })
+      const fileName = outputFileName(A.profile.name, A.profile.code, 'pdf')
+      const result = await savePdf(blob, fileName)
+      if (!isCurrent(id)) return
+      setToast(
+        result === 'cancelled' ? 'PDF 저장을 취소했습니다.' : `PDF를 저장했습니다 — ${fileName}`,
+      )
+      setTimeout(() => setToast(null), 5000)
+    } catch (e) {
+      if (!isCurrent(id)) return
+      setToast(e instanceof Error ? e.message : 'PDF를 만들지 못했습니다.')
+      setTimeout(() => setToast(null), 5000)
+    } finally {
+      if (isCurrent(id)) {
+        setBusy(null)
+        setBusyMode(null)
+      }
+    }
+  }, [A])
+
+  const openPrintChoice = useCallback(() => {
+    if (mobile) {
+      void doPrintAll()
+      return
+    }
+    setShowPrintChoice(true)
+  }, [mobile, doPrintAll])
+
+  const choosePrint = useCallback(() => {
+    setShowPrintChoice(false)
+    void doPrintAll()
+  }, [doPrintAll])
+
+  const choosePdf = useCallback(() => {
+    setShowPrintChoice(false)
+    void doExportPdf()
+  }, [doExportPdf])
 
   return (
     <div className="app">
@@ -175,11 +230,13 @@ export function Report({
             </span>
             <span className="btn__text">새로고침</span>
           </button>
-          <button className="btn btn--primary" onClick={doPrintAll} disabled={!!busy || refreshing}>
+          <button className="btn btn--primary" onClick={openPrintChoice} disabled={!!busy || refreshing}>
             {busy
               ? busyMode === 'print'
                 ? '인쇄 준비 중'
-                : `출력 중 ${busy}`
+                : busyMode === 'pdf'
+                  ? `PDF 저장 중 ${busy}`
+                  : `출력 중 ${busy}`
               : mobile
                 ? '전체 인쇄 (이미지 저장·공유)'
                 : `전체 인쇄 (A4 ${TOTAL_PAGES}장)`}
@@ -226,12 +283,45 @@ export function Report({
         </p>
       </main>
 
+      {showPrintChoice && (
+        <div
+          className="choice-overlay"
+          role="dialog"
+          aria-modal="true"
+          onClick={() => setShowPrintChoice(false)}
+        >
+          <div className="choice-overlay__box" onClick={(e) => e.stopPropagation()}>
+            <p className="choice-overlay__title">어떻게 출력할까요?</p>
+            <div className="choice-overlay__actions">
+              <button className="btn btn--primary" onClick={choosePrint}>
+                인쇄
+              </button>
+              <button className="btn btn--primary" onClick={choosePdf}>
+                PDF로 저장
+              </button>
+            </div>
+            <button
+              className="btn choice-overlay__cancel"
+              onClick={() => setShowPrintChoice(false)}
+            >
+              취소
+            </button>
+          </div>
+        </div>
+      )}
+
       {busy && (
         <div className="overlay" role="status" aria-live="polite">
           <div className="overlay__box">
             <div className="overlay__spin" />
             {busyMode === 'print' ? (
               <p>인쇄 준비 중입니다</p>
+            ) : busyMode === 'pdf' ? (
+              <p>
+                PDF를 만드는 중입니다
+                <br />
+                <b>{busy}</b>
+              </p>
             ) : (
               <p>
                 A4 {TOTAL_PAGES}장을 이미지로 만드는 중입니다

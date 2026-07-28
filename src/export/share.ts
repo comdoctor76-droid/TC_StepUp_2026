@@ -21,11 +21,20 @@ function safe(s: string): string {
 }
 
 /**
+ * 출력 파일명 몸통(확장자 없음) — `성명(사번)_출력일시`
+ * 예: 염도경(1B4503)_20260727_1530
+ * 문서 제목(인쇄 대화상자의 PDF 저장 제안 파일명)처럼 확장자가 필요 없는 곳에 재사용한다.
+ */
+export function outputFileStem(name: string, code: string, d = new Date()): string {
+  return `${safe(name)}(${safe(code).toUpperCase()})_${stamp(d)}`
+}
+
+/**
  * 출력 파일명 — `성명(사번)_출력일시.png`
  * 예: 염도경(1B4503)_20260727_1530.png
  */
 export function outputFileName(name: string, code: string, ext = 'png', d = new Date()): string {
-  return `${safe(name)}(${safe(code).toUpperCase()})_${stamp(d)}.${ext}`
+  return `${outputFileStem(name, code, d)}.${ext}`
 }
 
 export type ShareOutcome = 'shared' | 'downloaded' | 'cancelled'
