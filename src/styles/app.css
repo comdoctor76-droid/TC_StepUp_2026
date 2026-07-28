@@ -403,6 +403,28 @@
   font-size: 13px;
   opacity: 0.9;
 }
+.appbar__brand {
+  display: flex;
+  flex-direction: column;
+  line-height: 1.25;
+  min-width: 0;
+  overflow: hidden;
+}
+.appbar__brand-title {
+  /* 모바일(360px)~데스크톱(1400px 이상)까지 화면 폭에 맞춰 자연스럽게 조절 */
+  font-size: clamp(13px, 3vw, 18px);
+  font-weight: 800;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.appbar__brand-meta {
+  font-size: clamp(10px, 1.6vw, 12.5px);
+  opacity: 0.9;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
 .appbar__actions {
   margin-left: auto;
   display: flex;
@@ -518,8 +540,14 @@
   background: rgba(0, 0, 0, 0.18);
   letter-spacing: 0;
 }
-.ptitle__page {
+.ptitle__credit {
   margin-left: auto;
+  font-size: 13px;
+  font-style: italic;
+  opacity: 0.85;
+  white-space: nowrap;
+}
+.ptitle__page {
   font-size: 15px;
   font-weight: 700;
   opacity: 0.9;
@@ -554,6 +582,9 @@
 .ptitle--dense .ptitle__ver {
   font-size: 12.5px;
   padding: 1px 5px;
+}
+.ptitle--dense .ptitle__credit {
+  font-size: 10.5px;
 }
 .ptitle--dense .ptitle__page {
   font-size: 14px;

@@ -13,6 +13,7 @@ export function PageTitle({
   months,
   dense,
   page,
+  credit = true,
 }: {
   /** 소제목 (예: '최근 6개월') */
   eyebrow?: string
@@ -22,6 +23,8 @@ export function PageTitle({
   dense?: boolean
   /** 인쇄 시 페이지 번호 (n/5) */
   page?: number
+  /** 원작 크레딧 표기 — 성장코칭 탭처럼 별도 크레딧이 있는 화면에서는 끈다 */
+  credit?: boolean
 }) {
   const range =
     months.length >= 2 ? `${ym(months[0])} ~ ${ym(months[months.length - 1])}` : ''
@@ -33,6 +36,7 @@ export function PageTitle({
           {eyebrow && <span className="ptitle__eyebrow">{eyebrow}</span>}
           <span className="ptitle__ver">v{APP_VERSION}</span>
         </h1>
+        {credit && <span className="ptitle__credit">원작 : 보우만레포트 주 활 전임강사</span>}
         {page ? <span className="ptitle__page">{page} / {TOTAL_PAGES}</span> : null}
       </div>
       <div className="ptitle__sub">

@@ -66,7 +66,11 @@ export function Search({
   return (
     <div className="gate">
       <form className="gate__card" onSubmit={submit}>
-        <h1 className="gate__title">현대해상 TC Step-Up On-line(26년 3분기)</h1>
+        <h1 className="gate__title">
+          현대해상 26년 3분기
+          <br />
+          TC Step-Up On-line
+        </h1>
         <p className="gate__sub">
           {meta
             ? `기준 ${ym(meta.months[0])} ~ ${ym(meta.months[meta.months.length - 1])} · 플래너 ${meta.rowCount.toLocaleString('ko-KR')}명`
