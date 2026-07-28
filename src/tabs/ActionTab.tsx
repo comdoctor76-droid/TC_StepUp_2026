@@ -5,12 +5,29 @@ import { LineTrend } from '../components/charts/LineTrend'
 import { ChartCard } from '../components/charts/Frame'
 import { SimpleTable } from '../components/CompareTable'
 import { SERIES } from '../components/charts/palette'
+import { monthsInPeriod, PeriodNote, type Period } from '../components/PeriodPicker'
 import { dec1, dec2, int } from '../calc/format'
 import type { FullAnalysis } from '../calc'
 
-export function ActionTab({ A, dense }: { A: FullAnalysis; dense?: boolean }) {
+export function ActionTab({
+  A,
+  dense,
+  period,
+}: {
+  A: FullAnalysis
+  dense?: boolean
+  period?: Period
+}) {
   const a = A.action
   const name = A.profile.name
+
+  // 인쇄물은 항상 원본과 같은 '최근 6개월' 기준으로 고정한다
+  const showAll = !dense && period?.mode === 'all'
+  const perCust = showAll ? a.perCustomerAll : a.perCustomer6m
+  const scope = showAll ? '전체기간' : '최근 6개월'
+
+  const keep = !dense && period?.mode === 'custom' ? monthsInPeriod(period, A.ctx.months) : null
+  const trend = keep ? a.trend.filter((t) => keep.includes(t.month)) : a.trend
 
   const S = dense
     ? {
@@ -26,12 +43,20 @@ export function ActionTab({ A, dense }: { A: FullAnalysis; dense?: boolean }) {
 
   return (
     <>
+      {!dense && (
+        <PeriodNote>
+          이 탭에서 조회기간이 적용되는 곳은 <b>인당 가입건수</b> 그래프(전체기간 ↔ 최근 6개월)와
+          맨 아래 <b>월별 추이</b> 그래프(저장된 6개월 안에서 구간 선택)입니다. 보종별·신규/기존
+          항목은 원본에 기간 구분이 없어 그대로입니다.
+        </PeriodNote>
+      )}
+
       <h2 className="sec">▶ 장기보험 신계약 가입고객수 및 1인당 계약건수</h2>
       <p className="sec-note">※ TC 표준그룹 : 육성소득(500 ~ 700) 그룹</p>
 
       <div className="grid grid--3">
-        <ChartCard title="인당 가입건수 (최근 6개월)">
-          <BarTriple {...S.one} dense={dense} data={triple(a.perCustomer6m)} format={(v) => dec2(v)} />
+        <ChartCard title={`인당 가입건수 (${scope})`}>
+          <BarTriple {...S.one} dense={dense} data={triple(perCust)} format={(v) => dec2(v)} />
         </ChartCard>
 
         <div className="span2">
@@ -124,7 +149,7 @@ export function ActionTab({ A, dense }: { A: FullAnalysis; dense?: boolean }) {
         <LineTrend
           {...S.wide}
           dense={dense}
-          data={a.trend}
+          data={trend}
           series={[
             { key: '건수본인', color: SERIES.self },
             { key: '건수TC', color: SERIES.tc, dashed: true },

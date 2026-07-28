@@ -33,11 +33,8 @@ export function PageTitle({
           {eyebrow && <span className="ptitle__eyebrow">{eyebrow}</span>}
           <span className="ptitle__ver">v{APP_VERSION}</span>
         </h1>
-        {page ? (
-          <span className="ptitle__page">{page} / {TOTAL_PAGES}</span>
-        ) : (
-          <span className="ptitle__contact">{CONTACT_LINE}</span>
-        )}
+        {/* 문의 표기는 인쇄물에만 남긴다 — 화면에서는 그 자리를 기간 선택이 쓴다 */}
+        {page ? <span className="ptitle__page">{page} / {TOTAL_PAGES}</span> : null}
       </div>
       <div className="ptitle__sub">
         <b>

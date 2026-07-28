@@ -5,7 +5,7 @@
    CHANGELOG 에 한 줄씩 남긴다.
    ══════════════════════════════════════════════════════════════════════ */
 
-export const APP_VERSION = '0.09'
+export const APP_VERSION = '0.10'
 
 export const CONTACT = {
   dept: '개인마케팅교육본부 / 영업교육운영파트',
@@ -35,6 +35,10 @@ export const DISCLAIMER =
 
 /** 수정 이력 (최신이 위) */
 export const CHANGELOG: { version: string; note: string }[] = [
+  {
+    version: '0.10',
+    note: 'C/A/M/S 탭 상단에 조회기간 선택(최근 6개월·전체기간·기간선택) 추가 — 화면의 문의 표기를 대체(인쇄물에는 유지). 저장 데이터가 허용하는 범위에서만 값이 바뀌며 탭마다 적용 범위를 안내',
+  },
   {
     version: '0.09',
     note: '전체 인쇄에 인쇄/PDF 저장 선택창 추가 — PDF는 실제 6페이지 파일로 생성해 저장 위치를 물음, 인쇄창의 PDF 저장 파일명도 성명(사번)_출력일시로 수정',

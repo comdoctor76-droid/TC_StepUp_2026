@@ -5,13 +5,26 @@ import { LineTrend } from '../components/charts/LineTrend'
 import { ChartCard } from '../components/charts/Frame'
 import { SimpleTable } from '../components/CompareTable'
 import { SERIES } from '../components/charts/palette'
+import { monthsInPeriod, PeriodNote, type Period } from '../components/PeriodPicker'
 import { dec1, dec2, int, ymShort } from '../calc/format'
 import type { FullAnalysis } from '../calc'
 
-export function CustomerTab({ A, dense }: { A: FullAnalysis; dense?: boolean }) {
+export function CustomerTab({
+  A,
+  dense,
+  period,
+}: {
+  A: FullAnalysis
+  dense?: boolean
+  period?: Period
+}) {
   const c = A.customer
   const b = c.blocks
   const name = A.profile.name
+
+  // 인쇄물은 항상 원본과 같은 6개월 전체를 보여준다
+  const keep = !dense && period?.mode === 'custom' ? monthsInPeriod(period, A.ctx.months) : null
+  const trend = keep ? c.trend.filter((t) => keep.includes(t.month)) : c.trend
 
   const S = dense
     ? { trio: { w: 224, h: 118 }, wide: { w: 700, h: 126 }, band: { w: 700, h: 132 } }
@@ -19,6 +32,14 @@ export function CustomerTab({ A, dense }: { A: FullAnalysis; dense?: boolean }) 
 
   return (
     <>
+      {!dense && (
+        <PeriodNote>
+          이 탭에서 조회기간이 적용되는 곳은 <b>최근 유지고객 추이</b> 그래프와 그 아래 표뿐입니다
+          (저장된 6개월 안에서 구간 선택). 유지고객군·소득군별 항목은 원본이 전체기간 누계라
+          기간을 나눌 수 없습니다.
+        </PeriodNote>
+      )}
+
       <h2 className="sec">▶ 유지고객군 분석</h2>
       <p className="sec-note">※ TC 표준그룹 : 육성소득(500 ~ 700) 그룹 · 이관제외 기준</p>
 
@@ -65,7 +86,7 @@ export function CustomerTab({ A, dense }: { A: FullAnalysis; dense?: boolean }) 
         <LineTrend
           {...S.wide}
           dense={dense}
-          data={c.trend}
+          data={trend}
           series={[
             { key: '총유지', color: SERIES.self },
             { key: '장기', color: SERIES.tc, dashed: true },
@@ -77,12 +98,12 @@ export function CustomerTab({ A, dense }: { A: FullAnalysis; dense?: boolean }) 
       {/* C분석!DC31:DG32 — 월별 증감 / 2개월 이동평균 */}
       <SimpleTable
         dense={dense}
-        head={['구분', ...c.trend.map((t) => ymShort(t.month))]}
+        head={['구분', ...trend.map((t) => ymShort(t.month))]}
         rows={[
-          ['총유지고객', ...c.trend.map((t) => int(t.총유지))],
+          ['총유지고객', ...trend.map((t) => int(t.총유지))],
           [
             '전월 대비',
-            ...c.trend.map((t) =>
+            ...trend.map((t) =>
               t.delta === null ? (
                 '-'
               ) : t.delta > 0 ? (
@@ -94,8 +115,8 @@ export function CustomerTab({ A, dense }: { A: FullAnalysis; dense?: boolean }) 
               ),
             ),
           ],
-          ['2개월 평균', ...c.trend.map((t) => (t.movingAvg === null ? '-' : dec1(t.movingAvg)))],
-          ['TC 표준그룹', ...c.trend.map((t) => int(t.TC표준그룹))],
+          ['2개월 평균', ...trend.map((t) => (t.movingAvg === null ? '-' : dec1(t.movingAvg)))],
+          ['TC 표준그룹', ...trend.map((t) => int(t.TC표준그룹))],
         ]}
       />
 

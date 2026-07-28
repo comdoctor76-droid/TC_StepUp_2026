@@ -3,39 +3,63 @@
 import { BarTriple } from '../components/charts/BarCompare'
 import { ChartCard } from '../components/charts/Frame'
 import { SimpleTable } from '../components/CompareTable'
+import { PeriodNote, type Period } from '../components/PeriodPicker'
 import { dec1, pct, won } from '../calc/format'
 import type { FullAnalysis } from '../calc'
 
 /** 큰 금액은 축약해서 라벨이 겹치지 않게 */
 const manwon = (v: number) => `${(v / 10000).toFixed(1)}만`
 
-export function SkillTab({ A, dense }: { A: FullAnalysis; dense?: boolean }) {
+export function SkillTab({
+  A,
+  dense,
+  period,
+}: {
+  A: FullAnalysis
+  dense?: boolean
+  period?: Period
+}) {
   const s = A.skill
   const name = A.profile.name
+
+  // 인쇄물은 항상 원본과 같은 '최근 6개월' 기준으로 고정한다
+  const showAll = !dense && period?.mode === 'all'
+  const amount = showAll ? s.amountAll : s.amount6m
+  const scope = showAll ? '전체기간' : '6개월'
 
   const S = dense
     ? { trio: { w: 224, h: 136 }, prod: { w: 112, h: 118 }, crit: { w: 168, h: 124 } }
     : { trio: { h: 230 }, prod: { h: 190 }, crit: { h: 210 } }
 
   const six = (pick: (r: (typeof s.amount6m)[number]) => number) =>
-    s.amount6m.map((r) => ({
+    amount.map((r) => ({
       name: r.label === name ? '본인' : r.label === 'TC 표준그룹' ? 'TC' : r.label,
       value: pick(r),
     }))
 
   return (
     <>
+      {!dense && (
+        <PeriodNote>
+          이 탭에서 조회기간이 적용되는 곳은 아래 <b>인당·건당·최고 금액</b> 3개 그래프뿐입니다
+          (엑셀이 전체기간·최근 6개월 두 벌을 계산해 둔 항목). 주력상품·암·심뇌 항목은 원본에
+          기간 구분이 없어 전체기간 값 그대로입니다.
+        </PeriodNote>
+      )}
+
       <h2 className="sec">▶ 장기고객 인당 가입금액 / 건당 가입금액 / 건당 최대 보험료</h2>
-      <p className="sec-note">※ 그래프는 최근 6개월 기준 · TC 표준그룹 : 육성소득(500 ~ 700) 그룹</p>
+      <p className="sec-note">
+        ※ 그래프는 {scope} 기준 · TC 표준그룹 : 육성소득(500 ~ 700) 그룹
+      </p>
 
       <div className="grid grid--3">
-        <ChartCard title="인당 금액 (6개월)">
+        <ChartCard title={`인당 금액 (${scope})`}>
           <BarTriple {...S.trio} dense={dense} data={six((r) => r.perCust)} format={manwon} />
         </ChartCard>
-        <ChartCard title="건당 금액 (6개월)">
+        <ChartCard title={`건당 금액 (${scope})`}>
           <BarTriple {...S.trio} dense={dense} data={six((r) => r.perCase)} format={manwon} />
         </ChartCard>
-        <ChartCard title="최고 금액 (6개월)">
+        <ChartCard title={`최고 금액 (${scope})`}>
           <BarTriple {...S.trio} dense={dense} data={six((r) => r.max)} format={manwon} />
         </ChartCard>
       </div>

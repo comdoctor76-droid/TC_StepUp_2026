@@ -7,6 +7,7 @@ import { ActionTab } from '../tabs/ActionTab'
 import { MarketTab } from '../tabs/MarketTab'
 import { SkillTab } from '../tabs/SkillTab'
 import { ActionPlanTab } from '../tabs/ActionPlanTab'
+import { DEFAULT_PERIOD, PeriodPicker, type Period } from '../components/PeriodPicker'
 import { captureAllPages, printAll } from '../export/captureAll'
 import { exportPdf } from '../export/pdf'
 import { savePdf } from '../export/pdfSave'
@@ -50,6 +51,7 @@ export function Report({
   onRefresh: () => Promise<void>
 }) {
   const [tab, setTab] = useState<TabId>('report')
+  const [period, setPeriod] = useState<Period>(DEFAULT_PERIOD)
   const [busy, setBusy] = useState<string | null>(null)
   const [busyMode, setBusyMode] = useState<'print' | 'image' | 'pdf' | null>(null)
   const [showDismiss, setShowDismiss] = useState(false)
@@ -270,12 +272,16 @@ export function Report({
           profile={A.profile}
           months={A.ctx.months}
         />
+        {/* 기간 선택 — 레포트·액션플랜에는 적용 대상이 없어 띄우지 않는다 */}
+        {(tab === 'c' || tab === 'a' || tab === 'm' || tab === 's') && (
+          <PeriodPicker value={period} months={A.ctx.months} onChange={setPeriod} />
+        )}
         <div className="screen__body">
           {tab === 'report' && <ReportTab A={A} />}
-          {tab === 'c' && <CustomerTab A={A} />}
-          {tab === 'a' && <ActionTab A={A} />}
-          {tab === 'm' && <MarketTab A={A} />}
-          {tab === 's' && <SkillTab A={A} />}
+          {tab === 'c' && <CustomerTab A={A} period={period} />}
+          {tab === 'a' && <ActionTab A={A} period={period} />}
+          {tab === 'm' && <MarketTab A={A} period={period} />}
+          {tab === 's' && <SkillTab A={A} period={period} />}
           {tab === 'plan' && <ActionPlanTab A={A} />}
         </div>
         <p className="screen__caption">

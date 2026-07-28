@@ -4,10 +4,19 @@ import { PieShare } from '../components/charts/PieShare'
 import { ChartCard } from '../components/charts/Frame'
 import { SimpleTable } from '../components/CompareTable'
 import { GEN_COLORS } from '../components/charts/palette'
+import { PeriodNote, type Period } from '../components/PeriodPicker'
 import { dec1, dec2, int, pct } from '../calc/format'
 import type { FullAnalysis } from '../calc'
 
-export function MarketTab({ A, dense }: { A: FullAnalysis; dense?: boolean }) {
+export function MarketTab({
+  A,
+  dense,
+}: {
+  A: FullAnalysis
+  dense?: boolean
+  /** 이 탭은 기간을 나눌 수 있는 데이터가 없어 값이 바뀌지 않는다 (안내만 표시) */
+  period?: Period
+}) {
   const m = A.market
   const name = A.profile.name
 
@@ -17,6 +26,13 @@ export function MarketTab({ A, dense }: { A: FullAnalysis; dense?: boolean }) {
 
   return (
     <>
+      {!dense && (
+        <PeriodNote>
+          M분석은 원본 워크북이 <b>전체기간 누계</b> 하나만 제공해 기간을 나눌 수 없습니다.
+          조회기간을 바꿔도 아래 값은 변하지 않습니다.
+        </PeriodNote>
+      )}
+
       <h2 className="sec">▶ 장기 / 자동차 고객 및 연계고객 분포</h2>
       <p className="sec-note">※ TC 표준그룹 : 육성소득(500 ~ 700) 그룹</p>
 
