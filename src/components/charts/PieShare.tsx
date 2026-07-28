@@ -22,7 +22,7 @@ export function PieShare({
   colors?: string[]
   showLegend?: boolean
 }) {
-  const fs = dense ? 11.5 : 12
+  const fs = dense ? 14.5 : 12
   const rows = data.map((d) => ({ name: d.label, value: Math.max(0, d.share) }))
   const total = rows.reduce((a, b) => a + b.value, 0)
 

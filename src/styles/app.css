@@ -325,11 +325,6 @@
   font-weight: 700;
   opacity: 0.9;
 }
-.ptitle__contact {
-  margin-left: auto;
-  font-size: 13px;
-  opacity: 0.92;
-}
 .ptitle__sub {
   margin-top: 10px;
   display: flex;
@@ -372,11 +367,7 @@
 .ptitle--dense .ptitle__sub b {
   font-size: 13.5px;
 }
-.ptitle--dense .ptitle__contact {
-  font-size: 12px;
-  margin-left: 0;
-}
-
+.ptitle--dense 
 /* ── 섹션 헤더 ────────────────────────────────────────────────────── */
 .sec {
   margin: 26px 0 8px;
@@ -403,18 +394,18 @@
 
 .dense .sec {
   margin: 6px 0 3px;
-  font-size: 14.5px;
+  font-size: 17.5px;
   border-left-width: 3px;
   padding-left: 6px;
 }
 .dense .sec-note {
   margin: 0 0 3px;
-  font-size: 11px;
+  font-size: 14px;
 }
 .dense .lede {
   margin: 4px 0 0;
   padding: 4px 7px;
-  font-size: 11.5px;
+  font-size: 14.5px;
   border-radius: 4px;
 }
 
@@ -501,23 +492,23 @@
   border-radius: 4px;
 }
 .summary--dense .tile__label {
-  font-size: 11px;
+  font-size: 14px;
 }
 .summary--dense .tile__value {
-  font-size: 18px;
+  font-size: 21px;
   margin-top: 1px;
 }
 .summary--dense .tile__value i {
-  font-size: 11px;
+  font-size: 14px;
 }
 .summary--dense .summary__scores {
-  font-size: 12px;
+  font-size: 15px;
 }
 .summary--dense .summary__scores li {
   padding: 0;
 }
 .summary--dense .summary__scores--na {
-  font-size: 10.5px;
+  font-size: 13.5px;
 }
 
 /* ── 비교표 (원본 엑셀 가로 배치 — 본인·TC 를 같은 행에 좌우 열 그룹으로) ── */
@@ -571,6 +562,7 @@
   font-size: 15px;
   font-weight: 700;
   color: var(--hi-navy);
+  word-break: keep-all;
 }
 .grp__note {
   display: block;
@@ -655,7 +647,7 @@
 
 /* 인쇄용 압축 */
 .cmp--dense {
-  gap: 2.5px;
+  gap: 1.5px;
 }
 .cmp--dense .cmp__block {
   border-radius: 3px;
@@ -663,42 +655,65 @@
   border: 1px solid var(--hi-orange-line);
 }
 .cmp--dense .cmp__sec {
-  width: 46px;
-  padding: 2px 2px;
-  font-size: 9.5px;
+  width: 40px;
+  padding: 2px 1px;
+  font-size: 12.5px;
   word-break: keep-all;
 }
 .cmp--dense .grp {
-  padding: 1.5px 5px;
-  gap: 5px;
+  padding: 0 3px;
+  gap: 4px;
+  line-height: 1.15;
 }
 .cmp--dense .grp__title {
-  flex: 0 0 76px;
-  font-size: 10px;
+  flex: 0 0 84px;
+  font-size: 13px;
 }
 .cmp--dense .grp__note {
   margin-top: 0;
-  font-size: 7.5px;
+  font-size: 10.5px;
 }
 .cmp--dense .grp__scroll {
   overflow: visible;
 }
 .cmp--dense .grp__t2 th,
 .cmp--dense .grp__t2 td {
-  padding: 1px 2px;
+  padding: 0.5px 1px;
   letter-spacing: -0.03em;
   font-variant-numeric: tabular-nums;
 }
 .cmp--dense .grp__gh {
-  font-size: 9px;
+  font-size: 12px;
 }
 .cmp--dense .grp__sub {
-  font-size: 8px;
+  font-size: 11px;
 }
 .cmp--dense .grp__val {
-  font-size: 10.5px;
+  font-size: 13.5px;
 }
 .cmp--dense .grp__val--tc {
+  font-size: 13px;
+}
+/* 열이 많은 그룹(6자리 금액 6열 등)은 값 글자를 한 단계 낮춰
+   숫자끼리 붙지 않게 한다. 그래도 이전(10.5px)보다는 크다. */
+.cmp--dense .grp__t2[data-cols='6'] .grp__val {
+  font-size: 12px;
+}
+.cmp--dense .grp__t2[data-cols='6'] .grp__val--tc {
+  font-size: 11.5px;
+}
+.cmp--dense .grp__t2[data-cols='6'] .grp__sub {
+  font-size: 10px;
+}
+/* 열이 많을수록 한 칸 폭이 좁아진다 — 6자리 보험료가 6열까지 들어가는 그룹은
+   값 글자를 한 단계 줄여야 숫자끼리 붙지 않는다 (세로가 아니라 가로 제약) */
+.cmp--dense .grp__t2[data-cols='5'] .grp__val {
+  font-size: 12.5px;
+}
+.cmp--dense .grp__t2[data-cols='6'] .grp__val {
+  font-size: 11.5px;
+}
+.cmp--dense .grp__t2[data-cols='6'] .grp__sub {
   font-size: 10px;
 }
 
@@ -758,15 +773,15 @@
   padding: 2.5px 4px;
 }
 .simple-wrap--dense .simple__cap {
-  font-size: 11px;
+  font-size: 14px;
   margin-bottom: 1.5px;
 }
 .simple--dense {
-  font-size: 11.5px;
+  font-size: 14.5px;
 }
 .simple--dense th {
   padding: 1.5px 3px;
-  font-size: 10.5px;
+  font-size: 13.5px;
 }
 .simple--dense td {
   padding: 1.2px 3px;
@@ -799,10 +814,10 @@
 }
 .dense .chart-card__title {
   margin: 0 0 1px;
-  font-size: 11.5px;
+  font-size: 14.5px;
 }
 .dense .chart-card__note {
-  font-size: 10px;
+  font-size: 13px;
 }
 
 .grid {
@@ -867,18 +882,18 @@
   padding: 3px 6px;
   border-left-width: 3px;
   border-radius: 3px;
-  font-size: 12px;
+  font-size: 15px;
 }
 .dense .score-line b {
-  font-size: 13px;
+  font-size: 16px;
   margin-right: 4px;
 }
 .dense .score-line span {
-  font-size: 11px;
+  font-size: 14px;
 }
 .dense .score-line em {
   margin-top: 1px;
-  font-size: 10.5px;
+  font-size: 13.5px;
 }
 
 /* ── 오버레이 / 토스트 / 힌트 ─────────────────────────────────────── */
@@ -1195,11 +1210,7 @@
   .ptitle__h1 {
     font-size: 26px;
   }
-  .ptitle__contact {
-    margin-left: 0;
-    width: 100%;
-  }
-  .appbar {
+    .appbar {
     flex-wrap: wrap;
   }
   .appbar__actions {
@@ -1570,7 +1581,7 @@
   bottom: -14px;
 }
 .plan--dense .plan__headline {
-  font-size: 21px;
+  font-size: 24px;
   margin: 0 0 10px;
 }
 .plan--dense .plan__forms {
@@ -1585,15 +1596,15 @@
 }
 .plan--dense .plan__th {
   padding: 6px 10px;
-  font-size: 15px;
+  font-size: 18px;
 }
 .plan--dense .plan__th span {
-  font-size: 11px;
+  font-size: 14px;
 }
 .plan--dense .plan__sign {
   margin-top: 10px;
   padding-top: 8px;
-  font-size: 14px;
+  font-size: 17px;
   gap: 26px;
 }
 

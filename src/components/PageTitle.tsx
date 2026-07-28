@@ -1,6 +1,6 @@
 import type { Profile } from '../calc/resolve'
 import { hireDate as fmtHire, ym } from '../calc/format'
-import { APP_VERSION, CONTACT_LINE, TOTAL_PAGES } from '../version'
+import { APP_VERSION, TOTAL_PAGES } from '../version'
 
 /**
  * 각 탭/페이지 최상단의 오렌지 타이틀 바.
@@ -33,7 +33,6 @@ export function PageTitle({
           {eyebrow && <span className="ptitle__eyebrow">{eyebrow}</span>}
           <span className="ptitle__ver">v{APP_VERSION}</span>
         </h1>
-        {/* 문의 표기는 인쇄물에만 남긴다 — 화면에서는 그 자리를 기간 선택이 쓴다 */}
         {page ? <span className="ptitle__page">{page} / {TOTAL_PAGES}</span> : null}
       </div>
       <div className="ptitle__sub">
@@ -47,7 +46,6 @@ export function PageTitle({
         <span>육성소득 {profile.incomeRaw}</span>
         <span>입사 {fmtHire(profile.hireDate)}</span>
         {range && <span className="ptitle__range">기준 {range}</span>}
-        {page && <span className="ptitle__contact">{CONTACT_LINE}</span>}
       </div>
     </header>
   )

@@ -53,6 +53,13 @@ export function hireDate(v: string | number | undefined): string {
   return `${s.slice(0, 4)}.${s.slice(4, 6)}.${s.slice(6, 8)}`
 }
 
+/** 입사일자 '20211110' → '2021.11' (연월만) */
+export function hireYm(v: string | number | undefined): string {
+  const s = String(v ?? '')
+  if (!/^\d{8}$/.test(s)) return '-'
+  return `${s.slice(0, 4)}.${s.slice(4, 6)}`
+}
+
 /** 기준월 202601 → '2026.01' */
 export function ym(v: number): string {
   const s = String(v)

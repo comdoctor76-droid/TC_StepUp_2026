@@ -81,7 +81,9 @@ export function CompareTable({
 
                 {/* 데스크톱/인쇄 — 원본처럼 본인·TC 가 같은 행에 좌우 열 그룹으로 */}
                 <div className="grp__scroll">
-                  <table className="grp__t2">
+                  {/* data-cols — 열이 많은 그룹(6자리 보험료 6열 등)은 CSS 가
+                      값 글자를 한 단계 줄여 숫자끼리 붙지 않게 한다 */}
+                  <table className="grp__t2" data-cols={g.cells.length}>
                     <thead>
                       <tr>
                         <th colSpan={g.cells.length} className="grp__gh grp__gh--self">

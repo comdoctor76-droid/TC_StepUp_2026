@@ -17,7 +17,7 @@ export interface Series {
   color: string
 }
 
-const FONT = (dense?: boolean) => (dense ? 12 : 13)
+const FONT = (dense?: boolean) => (dense ? 15 : 13)
 
 /**
  * 누적막대 값 라벨.

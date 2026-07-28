@@ -27,7 +27,7 @@ export function CustomerTab({
   const trend = keep ? c.trend.filter((t) => keep.includes(t.month)) : c.trend
 
   const S = dense
-    ? { trio: { w: 224, h: 118 }, wide: { w: 700, h: 126 }, band: { w: 700, h: 132 } }
+    ? { trio: { w: 224, h: 112 }, wide: { w: 700, h: 120 }, band: { w: 700, h: 126 } }
     : { trio: { h: 240 }, wide: { h: 260 }, band: { h: 280 } }
 
   return (
