@@ -6,29 +6,50 @@
    ══════════════════════════════════════════════════════════════════════ */
 
 import { useEffect, useMemo, useRef, useState } from 'react'
-import { loadAllPlanners, type RosterEntry } from '../data/repository'
+import {
+  addStepupTargets,
+  loadAllPlanners,
+  loadPlanner,
+  loadReference,
+  loadStepupTargets,
+  removeStepupTarget,
+  type RosterEntry,
+} from '../data/repository'
 import {
   buildCodeIndex,
+  groupByHq,
   groupByOrg,
   matchPastedCodes,
   parsePastedCodes,
   sortedKeys,
   sortedPlanners,
+  STEPUP_VISION_CENTER,
+  type HqGroup,
   type OrgTree,
 } from '../data/roster'
-import { runBulkExport, type BulkMode, type BulkProgress } from '../export/bulk'
+import { runBulkExport, type BulkMode, type BulkProgress, type BulkTarget } from '../export/bulk'
 import { PrintRoot } from '../PrintRoot'
-import type { FullAnalysis } from '../calc'
+import { CoachPrintRootForPerson } from '../tabs/coach/CoachPrintRootForPerson'
+import { analyze, type FullAnalysis } from '../calc'
 
-type PickMode = 'tree' | 'paste'
+export type PickMode = 'tree' | 'paste'
 
-export function Roster({ onBack }: { onBack: () => void }) {
+export function Roster({
+  pickMode,
+  onBack,
+  onView,
+}: {
+  /** Search.tsx 상단 메뉴에서 고른 진입 방식 — 이 화면 안에서는 바꾸지 않는다 */
+  pickMode: PickMode
+  onBack: () => void
+  /** 명단에서 사번을 클릭해 그 사람의 레포트를 바로 볼 때 */
+  onView: (A: FullAnalysis, caption: string) => void
+}) {
   const [planners, setPlanners] = useState<RosterEntry[] | null>(null)
   const [tree, setTree] = useState<OrgTree | null>(null)
   const [loadProgress, setLoadProgress] = useState('0 / 256')
   const [err, setErr] = useState<string | null>(null)
 
-  const [pickMode, setPickMode] = useState<PickMode>('tree')
   const [hq, setHq] = useState('')
   const [vc, setVc] = useState('')
   const [branch, setBranch] = useState('')
@@ -37,11 +58,21 @@ export function Roster({ onBack }: { onBack: () => void }) {
 
   const [showChoice, setShowChoice] = useState(false)
   const [showConfirmPrint, setShowConfirmPrint] = useState(false)
+  const [bulkTarget, setBulkTarget] = useState<BulkTarget>('report')
   const [current, setCurrent] = useState<{ A: FullAnalysis; caption: string } | null>(null)
   const [bulkBusy, setBulkBusy] = useState<string | null>(null)
   // ref 로 둔다 — 실행 중인 루프가 setState 클로저 caveat 없이 매 반복마다 최신 값을 읽는다
   const cancelRef = useRef(false)
   const [toast, setToast] = useState<string | null>(null)
+
+  // TC스텝업 대상자 (지역단별 저장 명단)
+  const [stepupMap, setStepupMap] = useState<Record<string, string[]>>({})
+  const [saveStepupPrompt, setSaveStepupPrompt] = useState<HqGroup[] | null>(null)
+  const [savingStepup, setSavingStepup] = useState(false)
+
+  // 명단 행의 사번을 클릭해 그 사람 레포트를 미리 볼 때
+  const [previewTarget, setPreviewTarget] = useState<RosterEntry | null>(null)
+  const [previewBusy, setPreviewBusy] = useState(false)
 
   useEffect(() => {
     loadAllPlanners((done, total) => setLoadProgress(`${done} / ${total}`))
@@ -50,18 +81,33 @@ export function Roster({ onBack }: { onBack: () => void }) {
         setTree(groupByOrg(list))
       })
       .catch((e) => setErr(e instanceof Error ? e.message : String(e)))
+    loadStepupTargets()
+      .then(setStepupMap)
+      .catch(() => {}) // 저장 명단은 부가 기능이라 실패해도 조회 자체는 막지 않는다
   }, [])
 
   const hqOptions = tree ? sortedKeys(tree) : []
   const vcNode = tree && hq ? tree[hq] : null
-  const vcOptions = vcNode ? sortedKeys(vcNode.visionCenters) : []
-  const brNode = vcNode && vc ? vcNode.visionCenters[vc] : null
+  const stepupCodes = hq ? (stepupMap[hq] ?? []) : []
+  const vcOptions = useMemo(() => {
+    const real = vcNode ? sortedKeys(vcNode.visionCenters) : []
+    return stepupCodes.length > 0 ? [STEPUP_VISION_CENTER, ...real] : real
+  }, [vcNode, stepupCodes])
+  const isStepupView = vc === STEPUP_VISION_CENTER
+  const brNode = !isStepupView && vcNode && vc ? vcNode.visionCenters[vc] : null
   const brOptions = brNode ? sortedKeys(brNode.branches) : []
   const branchNode = brNode && branch ? brNode.branches[branch] : null
-  const roster = useMemo(() => (branchNode ? sortedPlanners(branchNode.planners) : []), [branchNode])
-  const selected = useMemo(() => [...checked.values()], [checked])
 
   const codeIndex = useMemo(() => buildCodeIndex(planners ?? []), [planners])
+  const stepupRoster = useMemo(
+    () => (isStepupView ? sortedPlanners(matchPastedCodes(codeIndex, stepupCodes).matched) : []),
+    [isStepupView, stepupCodes, codeIndex],
+  )
+  const roster = useMemo(
+    () => (isStepupView ? stepupRoster : branchNode ? sortedPlanners(branchNode.planners) : []),
+    [isStepupView, stepupRoster, branchNode],
+  )
+  const selected = useMemo(() => [...checked.values()], [checked])
   const { matched: pasteMatched, missing: pasteMissing } = useMemo(
     () => matchPastedCodes(codeIndex, parsePastedCodes(pasteText)),
     [codeIndex, pasteText],
@@ -87,6 +133,63 @@ export function Roster({ onBack }: { onBack: () => void }) {
 
   const busy = !!current || !!bulkBusy
 
+  const removeFromStepup = async (targetHq: string, code: string) => {
+    try {
+      await removeStepupTarget(targetHq, code)
+      setStepupMap((prev) => {
+        const next = { ...prev, [targetHq]: (prev[targetHq] ?? []).filter((c) => c !== code) }
+        if (next[targetHq].length === 0) delete next[targetHq]
+        return next
+      })
+      if (targetHq === hq && (stepupMap[targetHq]?.length ?? 0) <= 1) setVc('')
+    } catch (e) {
+      setToast(e instanceof Error ? e.message : 'TC스텝업 명단에서 빼지 못했습니다.')
+      setTimeout(() => setToast(null), 5000)
+    }
+  }
+
+  const confirmPreview = async () => {
+    if (!previewTarget) return
+    setPreviewBusy(true)
+    try {
+      const ref = await loadReference()
+      const planner = await loadPlanner(previewTarget.code)
+      if (!planner) throw new Error(`사번 '${previewTarget.code}' 데이터를 찾지 못했습니다.`)
+      const A = analyze(previewTarget.code, planner, ref.benchmarks, ref.incomeMap, ref.dataset.months)
+      onView(A, ref.dataset.caption)
+    } catch (e) {
+      setToast(e instanceof Error ? e.message : '레포트를 불러오지 못했습니다.')
+      setTimeout(() => setToast(null), 5000)
+    } finally {
+      setPreviewBusy(false)
+      setPreviewTarget(null)
+    }
+  }
+
+  const confirmSaveStepup = async () => {
+    if (!saveStepupPrompt) return
+    setSavingStepup(true)
+    try {
+      for (const g of saveStepupPrompt) {
+        await addStepupTargets(
+          g.hq,
+          g.entries.map((p) => p.code),
+        )
+        setStepupMap((prev) => ({
+          ...prev,
+          [g.hq]: [...new Set([...(prev[g.hq] ?? []), ...g.entries.map((p) => p.code)])],
+        }))
+      }
+      setToast('TC스텝업 대상자로 저장했습니다.')
+    } catch (e) {
+      setToast(e instanceof Error ? e.message : '저장하지 못했습니다.')
+    } finally {
+      setTimeout(() => setToast(null), 5000)
+      setSavingStepup(false)
+      setSaveStepupPrompt(null)
+    }
+  }
+
   const startBulk = async (mode: BulkMode) => {
     setShowChoice(false)
     setShowConfirmPrint(false)
@@ -96,6 +199,7 @@ export function Roster({ onBack }: { onBack: () => void }) {
     const result = await runBulkExport(
       codes,
       mode,
+      bulkTarget,
       setCurrent,
       (p: BulkProgress) => {
         const who = p.name ?? p.code
@@ -110,6 +214,16 @@ export function Roster({ onBack }: { onBack: () => void }) {
       `${codes.length}명 중 ${result.ok.length}명 완료` +
         (result.failed.length ? ` · ${result.failed.length}명 실패` : ''),
     )
+
+    // 방금 처리에 성공한 사람 중, 아직 그 지역단의 TC스텝업 명단에 없는 사람이 있으면
+    // 저장할지 물어본다(이미 전부 저장돼 있으면 — 즉 TC스텝업 목록을 그대로 재인쇄한
+    // 경우 — 다시 묻지 않는다).
+    const okCodes = new Set(result.ok.map((o) => o.code))
+    const okEntries = selected.filter((p) => okCodes.has(p.code))
+    const groups = groupByHq(okEntries).filter((g) =>
+      g.entries.some((p) => !(stepupMap[g.hq] ?? []).includes(p.code)),
+    )
+    if (groups.length > 0) setSaveStepupPrompt(groups)
     setTimeout(() => setToast(null), 6000)
   }
 
@@ -119,30 +233,13 @@ export function Roster({ onBack }: { onBack: () => void }) {
         <button type="button" className="roster__back" onClick={onBack}>
           ← 사번으로 조회
         </button>
-        <h1 className="gate__title">명단에서 선택</h1>
+        <h1 className="gate__title">{pickMode === 'paste' ? '사번 붙여넣기' : '명단에서 선택'}</h1>
 
         {err && <p className="field__err">{err}</p>}
         {!tree && !err && <p className="gate__sub">명단을 불러오는 중… {loadProgress}</p>}
 
         {tree && (
           <>
-            <div className="gate__mode roster__pickmode" role="group" aria-label="선택 방식">
-              <button
-                type="button"
-                className={`gate__mode-btn ${pickMode === 'tree' ? 'is-on' : ''}`}
-                onClick={() => setPickMode('tree')}
-              >
-                지역단·비전센터·지점
-              </button>
-              <button
-                type="button"
-                className={`gate__mode-btn ${pickMode === 'paste' ? 'is-on' : ''}`}
-                onClick={() => setPickMode('paste')}
-              >
-                사번 붙여넣기
-              </button>
-            </div>
-
             {pickMode === 'paste' && (
               <div className="roster__paste">
                 <label className="field">
@@ -218,32 +315,37 @@ export function Roster({ onBack }: { onBack: () => void }) {
                       ))}
                     </select>
                   </label>
-                  <label className="field">
-                    <span>지점</span>
-                    <select value={branch} disabled={!brNode} onChange={(e) => setBranch(e.target.value)}>
-                      <option value="">선택</option>
-                      {brOptions.map((k) => (
-                        <option key={k} value={k}>
-                          {k} ({brNode!.branches[k].count.toLocaleString('ko-KR')}명)
-                        </option>
-                      ))}
-                    </select>
-                  </label>
+                  {!isStepupView && (
+                    <label className="field">
+                      <span>지점</span>
+                      <select value={branch} disabled={!brNode} onChange={(e) => setBranch(e.target.value)}>
+                        <option value="">선택</option>
+                        {brOptions.map((k) => (
+                          <option key={k} value={k}>
+                            {k} ({brNode!.branches[k].count.toLocaleString('ko-KR')}명)
+                          </option>
+                        ))}
+                      </select>
+                    </label>
+                  )}
                 </div>
 
-                {branchNode && (
+                {(branchNode || isStepupView) && (
                   <>
                     <p className="roster__sum">
-                      {hq} · {vc} · {branch} — 총 {branchNode.count.toLocaleString('ko-KR')}명
+                      {isStepupView
+                        ? `${hq} · TC스텝업 — 총 ${stepupRoster.length.toLocaleString('ko-KR')}명`
+                        : `${hq} · ${vc} · ${branch} — 총 ${branchNode!.count.toLocaleString('ko-KR')}명`}
                     </p>
                     <ul className="roster__list">
-                      <li className="roster__list-head">
+                      <li className={`roster__list-head ${isStepupView ? 'roster__list--stepup' : ''}`}>
                         <span />
                         <span>이름</span>
                         <span>사번</span>
+                        {isStepupView && <span />}
                       </li>
                       {roster.map((p) => (
-                        <li key={p.code}>
+                        <li key={p.code} className={isStepupView ? 'roster__list--stepup' : undefined}>
                           <input
                             type="checkbox"
                             checked={checked.has(p.code)}
@@ -251,7 +353,23 @@ export function Roster({ onBack }: { onBack: () => void }) {
                             aria-label={`${p.name} 선택`}
                           />
                           <span>{p.name}</span>
-                          <span className="num">{p.code}</span>
+                          <button
+                            type="button"
+                            className="roster__code-link num"
+                            onClick={() => setPreviewTarget(p)}
+                          >
+                            {p.code}
+                          </button>
+                          {isStepupView && (
+                            <button
+                              type="button"
+                              className="roster__stepup-remove"
+                              onClick={() => void removeFromStepup(hq, p.code)}
+                              aria-label={`${p.name} TC스텝업 명단에서 빼기`}
+                            >
+                              빼기
+                            </button>
+                          )}
                         </li>
                       ))}
                     </ul>
@@ -280,9 +398,23 @@ export function Roster({ onBack }: { onBack: () => void }) {
                 type="button"
                 className="btn btn--primary btn--block"
                 disabled={selected.length === 0 || busy}
-                onClick={() => setShowChoice(true)}
+                onClick={() => {
+                  setBulkTarget('report')
+                  setShowChoice(true)
+                }}
               >
                 선택한 {selected.length}명 일괄 인쇄
+              </button>
+              <button
+                type="button"
+                className="btn btn--block roster__coach-print"
+                disabled={selected.length === 0 || busy}
+                onClick={() => {
+                  setBulkTarget('coach')
+                  setShowChoice(true)
+                }}
+              >
+                성장코칭 인쇄하기
               </button>
             </div>
           </>
@@ -297,7 +429,10 @@ export function Roster({ onBack }: { onBack: () => void }) {
           onClick={() => setShowChoice(false)}
         >
           <div className="choice-overlay__box" onClick={(e) => e.stopPropagation()}>
-            <p className="choice-overlay__title">선택한 {selected.length}명을 어떻게 출력할까요?</p>
+            <p className="choice-overlay__title">
+              선택한 {selected.length}명{bulkTarget === 'coach' ? '의 성장코칭 리포트를' : ''} 어떻게
+              출력할까요?
+            </p>
             <div className="choice-overlay__actions">
               <button className="btn btn--primary" onClick={() => setShowConfirmPrint(true)}>
                 인쇄
@@ -321,7 +456,10 @@ export function Roster({ onBack }: { onBack: () => void }) {
           onClick={() => setShowConfirmPrint(false)}
         >
           <div className="choice-overlay__box" onClick={(e) => e.stopPropagation()}>
-            <p className="choice-overlay__title">{selected.length}명을 한 번에 인쇄 하겠습니다.</p>
+            <p className="choice-overlay__title">
+              {selected.length}명{bulkTarget === 'coach' ? '의 성장코칭 리포트를' : ''} 한 번에 인쇄
+              하겠습니다.
+            </p>
             <p className="choice-overlay__note">
               사람마다 인쇄창이 뜹니다 — 창을 닫아야 다음 사람으로 넘어갑니다.
             </p>
@@ -353,10 +491,86 @@ export function Roster({ onBack }: { onBack: () => void }) {
         </div>
       )}
 
+      {previewTarget && (
+        <div
+          className="choice-overlay"
+          role="dialog"
+          aria-modal="true"
+          onClick={() => !previewBusy && setPreviewTarget(null)}
+        >
+          <div className="choice-overlay__box" onClick={(e) => e.stopPropagation()}>
+            <p className="choice-overlay__title">
+              {previewTarget.name}({previewTarget.code})님의 자가진단 레포트를 확인하시겠습니까?
+            </p>
+            <div className="choice-overlay__actions">
+              <button className="btn btn--primary" disabled={previewBusy} onClick={() => void confirmPreview()}>
+                {previewBusy ? '불러오는 중…' : '예'}
+              </button>
+            </div>
+            <button
+              className="btn choice-overlay__cancel"
+              disabled={previewBusy}
+              onClick={() => setPreviewTarget(null)}
+            >
+              아니오
+            </button>
+          </div>
+        </div>
+      )}
+
+      {saveStepupPrompt && (
+        <div
+          className="choice-overlay"
+          role="dialog"
+          aria-modal="true"
+          onClick={() => !savingStepup && setSaveStepupPrompt(null)}
+        >
+          <div className="choice-overlay__box" onClick={(e) => e.stopPropagation()}>
+            {saveStepupPrompt.length === 1 ? (
+              <p className="choice-overlay__title">
+                '{saveStepupPrompt[0].hq}' 지역단 TC스텝업 대상자로 저장하시겠습니까?
+                <br />({saveStepupPrompt[0].entries.length}명)
+              </p>
+            ) : (
+              <>
+                <p className="choice-overlay__title">
+                  선택한 인원이 여러 지역단에 걸쳐 있습니다. 각 지역단의 TC스텝업 대상자로
+                  저장하시겠습니까?
+                </p>
+                <p className="choice-overlay__note">
+                  {saveStepupPrompt.map((g) => `${g.hq} ${g.entries.length}명`).join(' · ')}
+                </p>
+              </>
+            )}
+            <div className="choice-overlay__actions">
+              <button
+                className="btn btn--primary"
+                disabled={savingStepup}
+                onClick={() => void confirmSaveStepup()}
+              >
+                {savingStepup ? '저장 중…' : '저장'}
+              </button>
+            </div>
+            <button
+              className="btn choice-overlay__cancel"
+              disabled={savingStepup}
+              onClick={() => setSaveStepupPrompt(null)}
+            >
+              저장 안 함
+            </button>
+          </div>
+        </div>
+      )}
+
       {toast && <div className="toast">{toast}</div>}
 
       {/* 일괄 처리 중 캡처/인쇄 대상 — 한 번에 한 명만 마운트한다 */}
-      {current && <PrintRoot A={current.A} caption={current.caption} />}
+      {current &&
+        (bulkTarget === 'coach' ? (
+          <CoachPrintRootForPerson A={current.A} caption={current.caption} />
+        ) : (
+          <PrintRoot A={current.A} caption={current.caption} />
+        ))}
     </div>
   )
 }

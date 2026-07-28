@@ -29,6 +29,8 @@ export type OrgTree = Record<string, HqNode>
 const UNSET = '(미지정)'
 /** 비전센터가 비어 있는 인원 — 지역단 직속으로 배치된 별도 조직 */
 const UNSET_VISION_CENTER = '드림영업실'
+/** 비전센터 드롭다운에 끼워 넣는 가상 항목 — 실제 조직이 아니라 저장된 명단 */
+export const STEPUP_VISION_CENTER = 'TC스텝업'
 
 export function groupByOrg(planners: RosterEntry[]): OrgTree {
   const tree: OrgTree = {}
@@ -101,4 +103,29 @@ export function matchPastedCodes(
     else missing.push(raw)
   }
   return { matched, missing }
+}
+
+/* ── TC스텝업 대상자 저장 ─────────────────────────────────────────── */
+
+export interface HqGroup {
+  hq: string
+  entries: RosterEntry[]
+}
+
+/**
+ * 선택된 사람들을 실제 소속 지역단(hq)별로 묶는다 — 일괄 인쇄/PDF 저장 뒤
+ * "OO지역단 TC스텝업 대상자로 저장할까요?" 프롬프트에 쓴다. 선택 인원이
+ * 여러 지역단에 걸쳐 있으면 그룹이 여러 개로 나온다(지역단마다 각자 저장).
+ */
+export function groupByHq(entries: RosterEntry[]): HqGroup[] {
+  const map = new Map<string, RosterEntry[]>()
+  for (const p of entries) {
+    const hq = p.hq || UNSET
+    const arr = map.get(hq)
+    if (arr) arr.push(p)
+    else map.set(hq, [p])
+  }
+  return [...map.keys()]
+    .sort((a, b) => a.localeCompare(b, 'ko'))
+    .map((hq) => ({ hq, entries: map.get(hq)! }))
 }

@@ -221,10 +221,8 @@
   font-size: 14px;
   color: var(--ink-3);
 }
-.roster__pickmode {
-  margin: 4px 0 18px;
-}
 .roster__paste {
+  margin-top: 4px;
   margin-bottom: 18px;
 }
 .roster__paste-status {
@@ -285,9 +283,38 @@
   width: 17px;
   height: 17px;
 }
+.roster__list li.roster__list--stepup {
+  grid-template-columns: 24px 1fr auto auto;
+}
+.roster__code-link {
+  border: 0;
+  background: none;
+  padding: 0;
+  font-size: 15px;
+  color: var(--hi-orange-deep);
+  font-weight: 600;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+  cursor: pointer;
+}
+.roster__stepup-remove {
+  border: 0;
+  background: none;
+  padding: 3px 7px;
+  font-size: 12.5px;
+  font-weight: 600;
+  color: var(--neg);
+  border-radius: 6px;
+}
+.roster__stepup-remove:hover {
+  background: rgba(200, 40, 40, 0.08);
+}
 .roster__picked {
   border-top: 1px solid var(--line);
   padding-top: 16px;
+}
+.roster__coach-print {
+  margin-top: 8px;
 }
 .roster__picked-title {
   margin: 0 0 8px;

@@ -5,7 +5,7 @@
    벤치마크/메타는 세션 캐시에 담아 두 번째 조회부터는 샤드 1건만 읽는다.
    ══════════════════════════════════════════════════════════════════════ */
 
-import { doc, getDoc } from 'firebase/firestore'
+import { arrayRemove, arrayUnion, collection, doc, getDoc, getDocs, setDoc } from 'firebase/firestore'
 import { db } from '../firebase'
 import type { BenchRow, DatasetMeta, IncomeMap, PlannerRow } from './schema'
 import { s } from './schema'
@@ -15,6 +15,7 @@ export const COL = {
   shards: 'plannerShards',
   benchmarks: 'benchmarks',
   meta: 'meta',
+  stepupTargets: 'stepupTargets',
 } as const
 
 export const DOC = {
@@ -136,6 +137,38 @@ export async function loadAllPlanners(
 
   rosterCache = entries
   return entries
+}
+
+/* ── TC스텝업 대상자 (지역단별 저장 명단) ─────────────────────────────
+   "명단에서 선택" 화면에서 일괄 인쇄/PDF 저장 후 "이 지역단의 TC스텝업
+   대상자로 저장할까요?" 에 예를 누르면 쌓인다. 실제 조직(비전센터·지점)을
+   바꾸는 게 아니라 나중에 다시 불러와 쓰는 용도의 사번 목록일 뿐이다. */
+
+let stepupCache: Record<string, string[]> | null = null
+
+/** 지역단 → 저장된 사번 배열. 세션당 한 번만 전체를 읽는다. */
+export async function loadStepupTargets(force = false): Promise<Record<string, string[]>> {
+  if (stepupCache && !force) return stepupCache
+  const snap = await getDocs(collection(db, COL.stepupTargets))
+  const map: Record<string, string[]> = {}
+  snap.forEach((d) => {
+    const codes = (d.data() as { codes?: string[] }).codes
+    if (Array.isArray(codes) && codes.length > 0) map[d.id] = codes
+  })
+  stepupCache = map
+  return map
+}
+
+/** codes 를 hq(지역단)의 저장 명단에 추가(중복은 자동으로 한 번만 남는다) */
+export async function addStepupTargets(hq: string, codes: string[]): Promise<void> {
+  await setDoc(doc(db, COL.stepupTargets, hq), { codes: arrayUnion(...codes) }, { merge: true })
+  if (stepupCache) stepupCache[hq] = [...new Set([...(stepupCache[hq] ?? []), ...codes])]
+}
+
+/** 저장 명단에서 한 명 제거 */
+export async function removeStepupTarget(hq: string, code: string): Promise<void> {
+  await setDoc(doc(db, COL.stepupTargets, hq), { codes: arrayRemove(code) }, { merge: true })
+  if (stepupCache?.[hq]) stepupCache[hq] = stepupCache[hq].filter((c) => c !== code)
 }
 
 /** 뷰어 비밀번호 해시 (로그인 전에 읽는다) */

@@ -10,11 +10,15 @@
 
 import { analyze, type FullAnalysis } from '../calc'
 import { loadPlanner, loadReference } from '../data/repository'
-import { printAll } from './captureAll'
+import { printAll, type CaptureOptions } from './captureAll'
 import { exportPdf } from './pdf'
 import { download, outputFileName, outputFileStem } from './share'
 
 export type BulkMode = 'print' | 'pdf'
+/** 'report' = 기존 6페이지 자가진단 레포트, 'coach' = 성장코칭 리포트 */
+export type BulkTarget = 'report' | 'coach'
+
+const COACH_CAPTURE_OPTS: CaptureOptions = { rootId: 'coach-print-root', pageSelector: '.sheet' }
 
 export interface BulkProgress {
   index: number
@@ -44,6 +48,7 @@ function nextPaint(): Promise<void> {
 export async function runBulkExport(
   codes: string[],
   mode: BulkMode,
+  target: BulkTarget,
   setCurrent: (v: { A: FullAnalysis; caption: string } | null) => void,
   onProgress: (p: BulkProgress) => void,
   cancelled: () => boolean,
@@ -68,13 +73,17 @@ export async function runBulkExport(
       await nextPaint()
       if (cancelled()) break
 
+      const stem = outputFileStem(name, A.profile.code)
       if (mode === 'pdf') {
         onProgress({ ...base, name, phase: 'capturing' })
-        const blob = await exportPdf((d, t) => onProgress({ ...base, name, phase: 'capturing', page: d, pageTotal: t }))
-        download(blob, outputFileName(name, A.profile.code, 'pdf'))
+        const blob = await exportPdf(
+          (d, t) => onProgress({ ...base, name, phase: 'capturing', page: d, pageTotal: t }),
+          target === 'coach' ? COACH_CAPTURE_OPTS : undefined,
+        )
+        download(blob, target === 'coach' ? `${stem}_성장코칭.pdf` : outputFileName(name, A.profile.code, 'pdf'))
       } else {
         onProgress({ ...base, name, phase: 'printing' })
-        await printAll(outputFileStem(name, A.profile.code))
+        await printAll(target === 'coach' ? `${stem}_성장코칭` : stem, undefined, target === 'coach' ? 'printing-coach' : undefined)
       }
       ok.push({ code, name })
     } catch (e) {
