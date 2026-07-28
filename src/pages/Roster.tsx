@@ -7,20 +7,33 @@
 
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { loadAllPlanners, type RosterEntry } from '../data/repository'
-import { groupByOrg, sortedKeys, sortedPlanners, type OrgTree } from '../data/roster'
+import {
+  buildCodeIndex,
+  groupByOrg,
+  matchPastedCodes,
+  parsePastedCodes,
+  sortedKeys,
+  sortedPlanners,
+  type OrgTree,
+} from '../data/roster'
 import { runBulkExport, type BulkMode, type BulkProgress } from '../export/bulk'
 import { PrintRoot } from '../PrintRoot'
 import type { FullAnalysis } from '../calc'
 
+type PickMode = 'tree' | 'paste'
+
 export function Roster({ onBack }: { onBack: () => void }) {
+  const [planners, setPlanners] = useState<RosterEntry[] | null>(null)
   const [tree, setTree] = useState<OrgTree | null>(null)
   const [loadProgress, setLoadProgress] = useState('0 / 256')
   const [err, setErr] = useState<string | null>(null)
 
+  const [pickMode, setPickMode] = useState<PickMode>('tree')
   const [hq, setHq] = useState('')
   const [vc, setVc] = useState('')
   const [branch, setBranch] = useState('')
   const [checked, setChecked] = useState<Map<string, RosterEntry>>(new Map())
+  const [pasteText, setPasteText] = useState('')
 
   const [showChoice, setShowChoice] = useState(false)
   const [showConfirmPrint, setShowConfirmPrint] = useState(false)
@@ -32,7 +45,10 @@ export function Roster({ onBack }: { onBack: () => void }) {
 
   useEffect(() => {
     loadAllPlanners((done, total) => setLoadProgress(`${done} / ${total}`))
-      .then((list) => setTree(groupByOrg(list)))
+      .then((list) => {
+        setPlanners(list)
+        setTree(groupByOrg(list))
+      })
       .catch((e) => setErr(e instanceof Error ? e.message : String(e)))
   }, [])
 
@@ -44,6 +60,21 @@ export function Roster({ onBack }: { onBack: () => void }) {
   const branchNode = brNode && branch ? brNode.branches[branch] : null
   const roster = useMemo(() => (branchNode ? sortedPlanners(branchNode.planners) : []), [branchNode])
   const selected = useMemo(() => [...checked.values()], [checked])
+
+  const codeIndex = useMemo(() => buildCodeIndex(planners ?? []), [planners])
+  const { matched: pasteMatched, missing: pasteMissing } = useMemo(
+    () => matchPastedCodes(codeIndex, parsePastedCodes(pasteText)),
+    [codeIndex, pasteText],
+  )
+  const addPasteMatches = () => {
+    if (pasteMatched.length === 0) return
+    setChecked((prev) => {
+      const next = new Map(prev)
+      for (const p of pasteMatched) next.set(p.code, p)
+      return next
+    })
+    setPasteText('')
+  }
 
   const toggle = (p: RosterEntry) => {
     setChecked((prev) => {
@@ -95,80 +126,137 @@ export function Roster({ onBack }: { onBack: () => void }) {
 
         {tree && (
           <>
-            <div className="roster__drill">
-              <label className="field">
-                <span>지역단</span>
-                <select
-                  value={hq}
-                  onChange={(e) => {
-                    setHq(e.target.value)
-                    setVc('')
-                    setBranch('')
-                  }}
-                >
-                  <option value="">선택</option>
-                  {hqOptions.map((k) => (
-                    <option key={k} value={k}>
-                      {k} ({tree[k].count.toLocaleString('ko-KR')}명)
-                    </option>
-                  ))}
-                </select>
-              </label>
-              <label className="field">
-                <span>비전센터</span>
-                <select
-                  value={vc}
-                  disabled={!vcNode}
-                  onChange={(e) => {
-                    setVc(e.target.value)
-                    setBranch('')
-                  }}
-                >
-                  <option value="">선택</option>
-                  {vcOptions.map((k) => (
-                    <option key={k} value={k}>
-                      {k} ({vcNode!.visionCenters[k].count.toLocaleString('ko-KR')}명)
-                    </option>
-                  ))}
-                </select>
-              </label>
-              <label className="field">
-                <span>지점</span>
-                <select value={branch} disabled={!brNode} onChange={(e) => setBranch(e.target.value)}>
-                  <option value="">선택</option>
-                  {brOptions.map((k) => (
-                    <option key={k} value={k}>
-                      {k} ({brNode!.branches[k].count.toLocaleString('ko-KR')}명)
-                    </option>
-                  ))}
-                </select>
-              </label>
+            <div className="gate__mode roster__pickmode" role="group" aria-label="선택 방식">
+              <button
+                type="button"
+                className={`gate__mode-btn ${pickMode === 'tree' ? 'is-on' : ''}`}
+                onClick={() => setPickMode('tree')}
+              >
+                지역단·비전센터·지점
+              </button>
+              <button
+                type="button"
+                className={`gate__mode-btn ${pickMode === 'paste' ? 'is-on' : ''}`}
+                onClick={() => setPickMode('paste')}
+              >
+                사번 붙여넣기
+              </button>
             </div>
 
-            {branchNode && (
+            {pickMode === 'paste' && (
+              <div className="roster__paste">
+                <label className="field">
+                  <span>사번 붙여넣기 (헤더 없이 한 줄에 하나씩)</span>
+                  <textarea
+                    value={pasteText}
+                    onChange={(e) => setPasteText(e.target.value)}
+                    placeholder={'1B4503\n1C1234\n...'}
+                    rows={8}
+                    spellCheck={false}
+                  />
+                </label>
+                {pasteText.trim() && (
+                  <p className="roster__paste-status">
+                    인식됨 {pasteMatched.length}명
+                    {pasteMissing.length > 0 && (
+                      <>
+                        {' '}
+                        · 찾지 못함 {pasteMissing.length}개 (
+                        {pasteMissing.slice(0, 5).join(', ')}
+                        {pasteMissing.length > 5 ? ' 외' : ''})
+                      </>
+                    )}
+                  </p>
+                )}
+                <button
+                  type="button"
+                  className="btn btn--primary btn--block"
+                  disabled={pasteMatched.length === 0}
+                  onClick={addPasteMatches}
+                >
+                  선택에 추가{pasteMatched.length > 0 ? ` (${pasteMatched.length}명)` : ''}
+                </button>
+              </div>
+            )}
+
+            {pickMode === 'tree' && (
               <>
-                <p className="roster__sum">
-                  {hq} · {vc} · {branch} — 총 {branchNode.count.toLocaleString('ko-KR')}명
-                </p>
-                <ul className="roster__list">
-                  <li className="roster__list-head">
-                    <span />
-                    <span>이름</span>
-                    <span>사번</span>
-                  </li>
-                  {roster.map((p) => (
-                    <li key={p.code}>
-                      <input
-                        type="checkbox"
-                        checked={checked.has(p.code)}
-                        onChange={() => toggle(p)}
-                        aria-label={`${p.name} 선택`}
-                      />
-                      <span>{p.name}</span>
-                      <span className="num">{p.code}</span>
-                    </li>
-                  ))}
-                </ul>
+                <div className="roster__drill">
+                  <label className="field">
+                    <span>지역단</span>
+                    <select
+                      value={hq}
+                      onChange={(e) => {
+                        setHq(e.target.value)
+                        setVc('')
+                        setBranch('')
+                      }}
+                    >
+                      <option value="">선택</option>
+                      {hqOptions.map((k) => (
+                        <option key={k} value={k}>
+                          {k} ({tree[k].count.toLocaleString('ko-KR')}명)
+                        </option>
+                      ))}
+                    </select>
+                  </label>
+                  <label className="field">
+                    <span>비전센터</span>
+                    <select
+                      value={vc}
+                      disabled={!vcNode}
+                      onChange={(e) => {
+                        setVc(e.target.value)
+                        setBranch('')
+                      }}
+                    >
+                      <option value="">선택</option>
+                      {vcOptions.map((k) => (
+                        <option key={k} value={k}>
+                          {k} ({vcNode!.visionCenters[k].count.toLocaleString('ko-KR')}명)
+                        </option>
+                      ))}
+                    </select>
+                  </label>
+                  <label className="field">
+                    <span>지점</span>
+                    <select value={branch} disabled={!brNode} onChange={(e) => setBranch(e.target.value)}>
+                      <option value="">선택</option>
+                      {brOptions.map((k) => (
+                        <option key={k} value={k}>
+                          {k} ({brNode!.branches[k].count.toLocaleString('ko-KR')}명)
+                        </option>
+                      ))}
+                    </select>
+                  </label>
+                </div>
+
+                {branchNode && (
+                  <>
+                    <p className="roster__sum">
+                      {hq} · {vc} · {branch} — 총 {branchNode.count.toLocaleString('ko-KR')}명
+                    </p>
+                    <ul className="roster__list">
+                      <li className="roster__list-head">
+                        <span />
+                        <span>이름</span>
+                        <span>사번</span>
+                      </li>
+                      {roster.map((p) => (
+                        <li key={p.code}>
+                          <input
+                            type="checkbox"
+                            checked={checked.has(p.code)}
+                            onChange={() => toggle(p)}
+                            aria-label={`${p.name} 선택`}
+                          />
+                          <span>{p.name}</span>
+                          <span className="num">{p.code}</span>
+                        </li>
+                      ))}
+                    </ul>
+                  </>
+                )}
               </>
             )}
 
