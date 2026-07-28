@@ -29,7 +29,7 @@ export function MarketTab({
       {!dense && (
         <PeriodNote>
           M분석은 원본 워크북이 <b>전체기간 누계</b> 하나만 제공해 기간을 나눌 수 없습니다.
-          조회기간을 바꿔도 아래 값은 변하지 않습니다.
+          바꿀 수 있는 것이 없어 조회기간 선택을 두지 않았습니다.
         </PeriodNote>
       )}
 

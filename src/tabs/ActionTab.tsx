@@ -5,8 +5,9 @@ import { LineTrend } from '../components/charts/LineTrend'
 import { ChartCard } from '../components/charts/Frame'
 import { SimpleTable } from '../components/CompareTable'
 import { SERIES } from '../components/charts/palette'
-import { monthsInPeriod, PeriodNote, type Period } from '../components/PeriodPicker'
-import { dec1, dec2, int } from '../calc/format'
+import { PeriodNote, type Period } from '../components/PeriodPicker'
+import { flowAvg, flowSum, windowOf } from '../calc/period'
+import { dec1, dec2, int, ym } from '../calc/format'
 import type { FullAnalysis } from '../calc'
 
 export function ActionTab({
@@ -26,8 +27,12 @@ export function ActionTab({
   const perCust = showAll ? a.perCustomerAll : a.perCustomer6m
   const scope = showAll ? '전체기간' : '최근 6개월'
 
-  const keep = !dense && period?.mode === 'custom' ? monthsInPeriod(period, A.ctx.months) : null
-  const trend = keep ? a.trend.filter((t) => keep.includes(t.month)) : a.trend
+  const w = windowOf(dense ? undefined : period, A.ctx.months)
+  const trend = w.isFull ? a.trend : a.trend.filter((t) => w.months.includes(t.month))
+  // 장기건수는 흐름 — 구간 합계·월평균이 의미 있다 (calc/period.ts 참조)
+  const cntSeries = a.trend.map((t) => t.건수본인)
+  const rangeSum = flowSum(cntSeries, w)
+  const rangeAvg = flowAvg(cntSeries, w)
 
   const S = dense
     ? {
@@ -45,9 +50,18 @@ export function ActionTab({
     <>
       {!dense && (
         <PeriodNote>
-          이 탭에서 조회기간이 적용되는 곳은 <b>인당 가입건수</b> 그래프(전체기간 ↔ 최근 6개월)와
-          맨 아래 <b>월별 추이</b> 그래프(저장된 6개월 안에서 구간 선택)입니다. 보종별·신규/기존
-          항목은 원본에 기간 구분이 없어 그대로입니다.
+          <b>인당 가입건수</b> 그래프는 <b>{scope}</b> 기준입니다.{' '}
+          {w.isFull ? (
+            <>맨 아래 월별 추이는 저장된 6개월 전체를 보여줍니다.</>
+          ) : (
+            <>
+              맨 아래 월별 추이와 그 요약은 선택 구간{' '}
+              <b>{ym(w.months[0])} ~ {ym(w.months[w.months.length - 1])}</b> 기준입니다. 구간을
+              좁혀도 인당 가입건수는 분모(중복 제외 고객수)가 구간별로 없어 다시 계산할 수 없어
+              위 기준 그대로입니다.
+            </>
+          )}{' '}
+          보종별·신규/기존 항목은 원본에 기간 구분이 없어 그대로입니다.
         </PeriodNote>
       )}
 
@@ -158,6 +172,13 @@ export function ActionTab({
           format={(v) => dec1(v)}
         />
       </ChartCard>
+      {!dense && (
+        <p className="range-summary">
+          선택 구간 {ym(w.months[0])} ~ {ym(w.months[w.months.length - 1])} ({w.months.length}개월)
+          · 장기 가입건수 합계 <b>{dec1(rangeSum)}건</b> · 월평균 <b>{dec1(rangeAvg)}건</b>
+          <em>앱이 월별 데이터로 계산한 값입니다</em>
+        </p>
+      )}
 
       <h2 className="sec">▣ 참고 : 소득군별 인당 가입건수</h2>
       <SimpleTable

@@ -15,6 +15,7 @@ import expected from './fixtures/expected-demo02.json'
 import { analyze } from '../src/calc'
 import type { BenchRow, IncomeMap, PlannerRow } from '../src/data/schema'
 import { allShardIds, normalizeCode, shardIdOf } from '../src/data/shard'
+import { flowSum, stockAt, windowOf } from '../src/calc/period'
 
 const A = analyze(
   fixture.code,
@@ -397,5 +398,50 @@ describe('샤딩', () => {
     for (const c of ['demo02', '000008', '014210', 'zz9999', '']) {
       expect(ids).toContain(shardIdOf(c))
     }
+  })
+})
+
+/* ══════════════════════════════════════════════════════════════════════
+   조회기간 적용 규칙 — 재고/흐름 구분의 근거를 고정한다.
+
+   이 동등성이 깨지면 기간 선택이 잘못된 수치를 내놓게 되므로,
+   엑셀 원본이 바뀌었는지부터 확인해야 한다. (calc/period.ts 주석 참조)
+   ══════════════════════════════════════════════════════════════════════ */
+describe('조회기간 — 재고/흐름', () => {
+  const months = fixture.months as number[]
+  const full = windowOf(undefined, months)
+  const s = (fixture.planner as PlannerRow).s
+  const f = (fixture.planner as PlannerRow).f
+
+  it('재고: 마지막 달 유지고객 = 전체기간 스칼라', () => {
+    expect(stockAt(s.retainLong, full)).toBe(f.longCustNet)
+    expect(stockAt(s.retainAuto, full)).toBe(f.autoCustNet)
+    expect(stockAt(s.retainBoth, full)).toBe(f.bothCustNet)
+  })
+
+  it('재고: 기본(전체 구간)일 때 화면 값과 blocks.self 가 같다', () => {
+    const long = stockAt(A.customer.series.long, full)
+    const auto = stockAt(A.customer.series.auto, full)
+    const both = stockAt(A.customer.series.both, full)
+    expect(long).toBe(A.customer.blocks.self.long)
+    expect(auto).toBe(A.customer.blocks.self.auto)
+    expect(both).toBe(A.customer.blocks.self.both)
+    expect(long + auto - both).toBe(A.customer.blocks.self.total)
+  })
+
+  it('흐름: 6개월 장기건수 합계 = 6개월 스칼라', () => {
+    expect(flowSum(s.cntLong, full)).toBe(f.longCnt6m)
+  })
+
+  it('흐름: custLong 합계는 6개월 총계와 다르다 (중복 제거) — 구간 인당건수 계산 불가', () => {
+    expect(flowSum(s.custLong, full)).not.toBe(f.longCust6m)
+  })
+
+  it('구간을 좁히면 종료월 시점 값이 나온다', () => {
+    const w = windowOf({ mode: 'custom', from: months[0], to: months[2] }, months)
+    expect(w.isFull).toBe(false)
+    expect(w.endIdx).toBe(2)
+    expect(stockAt(s.retainLong, w)).toBe(s.retainLong[2])
+    expect(flowSum(s.cntLong, w)).toBe(s.cntLong[0] + s.cntLong[1] + s.cntLong[2])
   })
 })

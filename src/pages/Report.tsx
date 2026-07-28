@@ -7,7 +7,13 @@ import { ActionTab } from '../tabs/ActionTab'
 import { MarketTab } from '../tabs/MarketTab'
 import { SkillTab } from '../tabs/SkillTab'
 import { ActionPlanTab } from '../tabs/ActionPlanTab'
-import { DEFAULT_PERIOD, PeriodPicker, type Period } from '../components/PeriodPicker'
+import {
+  ALL_PERIOD,
+  DEFAULT_PERIOD,
+  PeriodPicker,
+  type Period,
+  type PeriodCaps,
+} from '../components/PeriodPicker'
 import { captureAllPages, printAll } from '../export/captureAll'
 import { exportPdf } from '../export/pdf'
 import { savePdf } from '../export/pdfSave'
@@ -38,6 +44,20 @@ const TABS = [
 
 type TabId = (typeof TABS)[number]['id']
 
+/* 탭별로 "실제 값을 바꾸는" 컨트롤만 노출한다 (근거: src/calc/period.ts).
+     scope = 최근 6개월 ↔ 전체기간   — 엑셀이 두 벌 계산해 둔 항목이 있는 탭
+     range = 월 구간 선택            — 월별 계열이 있는 탭
+   유지고객 같은 재고는 6개월/전체 구분이 무의미하다(둘 다 '현재 시점')여서
+   C분석·레포트에는 scope 를 두지 않는다. M분석은 둘 다 없어 피커가 사라진다. */
+const PERIOD_CAPS: Record<TabId, PeriodCaps> = {
+  report: { range: true },
+  c: { range: true },
+  a: { scope: true, range: true },
+  m: {},
+  s: { scope: true },
+  plan: {},
+}
+
 export function Report({
   A,
   caption,
@@ -51,7 +71,18 @@ export function Report({
   onRefresh: () => Promise<void>
 }) {
   const [tab, setTab] = useState<TabId>('report')
-  const [period, setPeriod] = useState<Period>(DEFAULT_PERIOD)
+  // 탭마다 조회기간을 따로 기억한다 — 기본값도 탭마다 다르다.
+  // 레포트는 현황Ⅰ(전체)이 주인공이라 전체기간으로 연다.
+  const [periods, setPeriods] = useState<Record<TabId, Period>>(() => ({
+    report: ALL_PERIOD,
+    c: DEFAULT_PERIOD,
+    a: DEFAULT_PERIOD,
+    m: DEFAULT_PERIOD,
+    s: DEFAULT_PERIOD,
+    plan: DEFAULT_PERIOD,
+  }))
+  const period = periods[tab]
+  const setPeriod = (p: Period) => setPeriods((prev) => ({ ...prev, [tab]: p }))
   const [busy, setBusy] = useState<string | null>(null)
   const [busyMode, setBusyMode] = useState<'print' | 'image' | 'pdf' | null>(null)
   const [showDismiss, setShowDismiss] = useState(false)
@@ -272,12 +303,15 @@ export function Report({
           profile={A.profile}
           months={A.ctx.months}
         />
-        {/* 기간 선택 — 레포트·액션플랜에는 적용 대상이 없어 띄우지 않는다 */}
-        {(tab === 'c' || tab === 'a' || tab === 'm' || tab === 's') && (
-          <PeriodPicker value={period} months={A.ctx.months} onChange={setPeriod} />
-        )}
+        {/* 기간 선택 — 그 탭에서 실제로 값을 바꾸는 컨트롤만 띄운다 (PERIOD_CAPS) */}
+        <PeriodPicker
+          value={period}
+          months={A.ctx.months}
+          caps={PERIOD_CAPS[tab]}
+          onChange={setPeriod}
+        />
         <div className="screen__body">
-          {tab === 'report' && <ReportTab A={A} />}
+          {tab === 'report' && <ReportTab A={A} period={period} />}
           {tab === 'c' && <CustomerTab A={A} period={period} />}
           {tab === 'a' && <ActionTab A={A} period={period} />}
           {tab === 'm' && <MarketTab A={A} period={period} />}

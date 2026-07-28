@@ -1,26 +1,44 @@
 /* 레포트 — 요약 (원본 레포트 시트, 차트 없음) */
 
 import { CompareTable, type Group } from '../components/CompareTable'
-import { dec1, dec2, int, pct, won } from '../calc/format'
+import { PeriodNote, type Period } from '../components/PeriodPicker'
+import { stockAt, windowOf } from '../calc/period'
+import { dec1, dec2, int, pct, won, ym } from '../calc/format'
 import type { FullAnalysis } from '../calc'
 
 const sign = (a: number, b: number) => (a > b ? 1 : a < b ? -1 : 0)
 
-export function ReportTab({ A, dense }: { A: FullAnalysis; dense?: boolean }) {
+export function ReportTab({
+  A,
+  dense,
+  period,
+}: {
+  A: FullAnalysis
+  dense?: boolean
+  period?: Period
+}) {
   const { overall: o, recent: r, cams } = A.report
   const p = A.profile
+
+  // 유지고객은 재고 — 선택 구간의 '종료월 시점' 값. 인쇄물은 항상 원본 기준(마지막 달).
+  const w = windowOf(dense ? undefined : period, A.ctx.months)
+  const cLong = stockAt(A.customer.series.long, w)
+  const cAuto = stockAt(A.customer.series.auto, w)
+  const cBoth = stockAt(A.customer.series.both, w)
+  const cTotal = cLong + cAuto - cBoth
+  const asOf = w.isFull ? '' : ` (${ym(w.months[w.months.length - 1])} 시점)`
 
   // ── ■ 현황Ⅰ (전체) ────────────────────────────────────────────────
   const groupsI: Group[] = [
     {
       section: '고객분석',
       title: '유지고객(명)',
-      note: '※ 이관제외',
+      note: `※ 이관제외${asOf}`,
       cells: [
-        { label: '장기', self: int(o.customers.long.self), tc: int(o.customers.long.tc), sign: sign(o.customers.long.self, o.customers.long.tc) },
-        { label: '자동차', self: int(o.customers.auto.self), tc: int(o.customers.auto.tc), sign: sign(o.customers.auto.self, o.customers.auto.tc) },
-        { label: '연계고객', self: int(o.customers.link.self), tc: int(o.customers.link.tc), sign: sign(o.customers.link.self, o.customers.link.tc) },
-        { label: '총고객', self: int(o.customers.total.self), tc: int(o.customers.total.tc), sign: sign(o.customers.total.self, o.customers.total.tc) },
+        { label: '장기', self: int(cLong), tc: int(o.customers.long.tc), sign: sign(cLong, o.customers.long.tc) },
+        { label: '자동차', self: int(cAuto), tc: int(o.customers.auto.tc), sign: sign(cAuto, o.customers.auto.tc) },
+        { label: '연계고객', self: int(cBoth), tc: int(o.customers.link.tc), sign: sign(cBoth, o.customers.link.tc) },
+        { label: '총고객', self: int(cTotal), tc: int(o.customers.total.tc), sign: sign(cTotal, o.customers.total.tc) },
         { label: '월 신규고객', self: dec2(o.customers.monthlyNew.self), tc: dec2(o.customers.monthlyNew.tc), sign: sign(o.customers.monthlyNew.self, o.customers.monthlyNew.tc) },
       ],
     },
@@ -175,6 +193,26 @@ export function ReportTab({ A, dense }: { A: FullAnalysis; dense?: boolean }) {
       </section>
 
       {pctText && <p className="lede">{pctText}</p>}
+
+      {!dense && (
+        <PeriodNote>
+          {w.isFull ? (
+            <>
+              조회기간이 적용되는 곳은 <b>현황Ⅰ의 유지고객(명)</b> 행뿐입니다 — 유지고객은
+              재고라 <b>종료월 시점</b> 값으로 표시되며, 지금은 마지막 달(
+              {ym(A.ctx.months[A.ctx.months.length - 1])}) 기준입니다. 나머지는 원본이
+              전체기간 누계 또는 6개월 합산이라 기간을 나눌 수 없습니다.
+            </>
+          ) : (
+            <>
+              <b>현황Ⅰ의 유지고객(명)</b> 행이 선택 구간의 종료월(
+              {ym(w.months[w.months.length - 1])}) 시점 값으로 바뀌었습니다. 요약 타일의
+              총 보유고객은 산식이 달라(이관 포함) 월별 값이 없어 고정이며, 나머지 항목도
+              원본이 전체기간 누계 또는 6개월 합산이라 기간을 나눌 수 없습니다.
+            </>
+          )}
+        </PeriodNote>
+      )}
 
       <h2 className="sec">■ 현황Ⅰ (전체)</h2>
       <p className="sec-note">※ TC 표준그룹 : 육성소득(500 ~ 700) 그룹 · 단위: 건, 명, 원</p>

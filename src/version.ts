@@ -5,7 +5,7 @@
    CHANGELOG 에 한 줄씩 남긴다.
    ══════════════════════════════════════════════════════════════════════ */
 
-export const APP_VERSION = '0.10'
+export const APP_VERSION = '0.11'
 
 export const CONTACT = {
   dept: '개인마케팅교육본부 / 영업교육운영파트',
@@ -35,6 +35,10 @@ export const DISCLAIMER =
 
 /** 수정 이력 (최신이 위) */
 export const CHANGELOG: { version: string; note: string }[] = [
+  {
+    version: '0.11',
+    note: '인쇄 본문 3px 확대·제목바 문의 제거, 조회기간이 실제로 수치를 바꾸도록 수정(유지고객=종료월 시점, 건수=구간 합계), 레포트 탭에도 기간선택 추가, M분석은 바뀔 값이 없어 피커 제거',
+  },
   {
     version: '0.10',
     note: 'C/A/M/S 탭 상단에 조회기간 선택(최근 6개월·전체기간·기간선택) 추가 — 화면의 문의 표기를 대체(인쇄물에는 유지). 저장 데이터가 허용하는 범위에서만 값이 바뀌며 탭마다 적용 범위를 안내',

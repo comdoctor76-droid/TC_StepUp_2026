@@ -5,8 +5,9 @@ import { LineTrend } from '../components/charts/LineTrend'
 import { ChartCard } from '../components/charts/Frame'
 import { SimpleTable } from '../components/CompareTable'
 import { SERIES } from '../components/charts/palette'
-import { monthsInPeriod, PeriodNote, type Period } from '../components/PeriodPicker'
-import { dec1, dec2, int, ymShort } from '../calc/format'
+import { PeriodNote, type Period } from '../components/PeriodPicker'
+import { stockAt, windowOf } from '../calc/period'
+import { dec1, dec2, int, ym, ymShort } from '../calc/format'
 import type { FullAnalysis } from '../calc'
 
 export function CustomerTab({
@@ -23,8 +24,25 @@ export function CustomerTab({
   const name = A.profile.name
 
   // 인쇄물은 항상 원본과 같은 6개월 전체를 보여준다
-  const keep = !dense && period?.mode === 'custom' ? monthsInPeriod(period, A.ctx.months) : null
-  const trend = keep ? c.trend.filter((t) => keep.includes(t.month)) : c.trend
+  const w = windowOf(dense ? undefined : period, A.ctx.months)
+  const trend = w.isFull ? c.trend : c.trend.filter((t) => w.months.includes(t.month))
+
+  // 유지고객은 재고 — 선택 구간의 '종료월 시점' 값이 의미 있는 값이다.
+  // 전체 구간이면 종료월 = 마지막 달이라 기존 blocks.self 와 완전히 같다.
+  const selfLong = stockAt(c.series.long, w)
+  const selfAuto = stockAt(c.series.auto, w)
+  const selfBoth = stockAt(c.series.both, w)
+  const selfTotal = selfLong + selfAuto - selfBoth
+  /** 종료월 라벨 — 구간을 좁혔을 때만 붙인다 */
+  const asOf = w.isFull ? '' : ` (${ym(w.months[w.months.length - 1])} 시점)`
+
+  // 본인 막대만 종료월 값으로 바꾼다 (벤치마크는 월별 분해가 없어 비교 기준선으로 고정)
+  const retainChart = w.isFull
+    ? c.retainChart
+    : c.retainChart.map((r) => ({
+        ...r,
+        본인: r.name === '장기' ? selfLong : r.name === '자동차' ? selfAuto : selfTotal,
+      }))
 
   const S = dense
     ? { trio: { w: 224, h: 112 }, wide: { w: 700, h: 120 }, band: { w: 700, h: 126 } }
@@ -34,20 +52,35 @@ export function CustomerTab({
     <>
       {!dense && (
         <PeriodNote>
-          이 탭에서 조회기간이 적용되는 곳은 <b>최근 유지고객 추이</b> 그래프와 그 아래 표뿐입니다
-          (저장된 6개월 안에서 구간 선택). 유지고객군·소득군별 항목은 원본이 전체기간 누계라
-          기간을 나눌 수 없습니다.
+          {w.isFull ? (
+            <>
+              유지고객은 <b>재고</b>라 선택 구간의 <b>종료월 시점</b> 값으로 표시됩니다. 지금은
+              저장된 6개월 전체({ym(A.ctx.months[0])} ~ {ym(A.ctx.months[A.ctx.months.length - 1])})
+              라 마지막 달 기준입니다. 동급·차상급·TC는 월별 분해가 없어 비교 기준선으로
+              고정되며, 월평균 신규고객·소득군별 항목은 원본이 전체기간 누계라 기간을 나눌 수
+              없습니다.
+            </>
+          ) : (
+            <>
+              선택 구간 <b>{ym(w.months[0])} ~ {ym(w.months[w.months.length - 1])}</b> 기준입니다.
+              유지고객군 표·막대그래프의 <b>본인</b> 값과 아래 추이 그래프가 이 구간을 따릅니다
+              (유지고객은 재고라 종료월 시점 값). 동급·차상급·TC는 월별 분해가 없어 비교
+              기준선으로 고정되며, 월평균 신규고객·소득군별 항목은 기간을 나눌 수 없습니다.
+            </>
+          )}
         </PeriodNote>
       )}
 
       <h2 className="sec">▶ 유지고객군 분석</h2>
-      <p className="sec-note">※ TC 표준그룹 : 육성소득(500 ~ 700) 그룹 · 이관제외 기준</p>
+      <p className="sec-note">
+        ※ TC 표준그룹 : 육성소득(500 ~ 700) 그룹 · 이관제외 기준{asOf && ` · 본인 값은${asOf}`}
+      </p>
 
       <SimpleTable
         dense={dense}
         head={['구분', '장기', '자동차', '연계고객', '총보유고객', '월평균 신규고객', '평균차월']}
         rows={[
-          [`${name} (본인)`, int(b.self.long), int(b.self.auto), int(b.self.both), int(b.self.total), dec2(b.self.monthlyNew), int(A.profile.months)],
+          [`${name} (본인)`, int(selfLong), int(selfAuto), int(selfBoth), int(selfTotal), dec2(b.self.monthlyNew), int(A.profile.months)],
           [`동급 (${b.peer.label})`, int(b.peer.long), int(b.peer.auto), int(b.peer.both), int(b.peer.total), dec2(b.peer.monthlyNew), int(A.ctx.peer('months'))],
           [`차상급 (${b.next.label})`, int(b.next.long), int(b.next.auto), int(b.next.both), int(b.next.total), dec2(b.next.monthlyNew), int(A.ctx.next('months'))],
           ['TC 표준그룹', int(b.tc.long), int(b.tc.auto), int(b.tc.both), int(b.tc.total), dec2(b.tc.monthlyNew), int(A.ctx.tc('months'))],
@@ -55,11 +88,11 @@ export function CustomerTab({
       />
 
       <div className="grid grid--3">
-        <ChartCard title="유지고객 (장기·자동차·총고객)">
+        <ChartCard title={`유지고객 (장기·자동차·총고객)${asOf}`}>
           <BarCompare
             {...S.trio}
             dense={dense}
-            data={c.retainChart}
+            data={retainChart}
             series={[
               { key: '본인', color: SERIES.self },
               { key: '동급', color: SERIES.peer },

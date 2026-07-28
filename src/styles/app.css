@@ -992,20 +992,20 @@
   font-size: 13.5px;
   color: var(--ink-3);
 }
-.period__row {
+.period__field {
   display: flex;
-  gap: 12px;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 10px;
 }
-.period__row label {
-  flex: 1 1 0;
-  display: flex;
-  flex-direction: column;
-  gap: 5px;
+.period__field > span {
+  flex: 0 0 56px;
   font-size: 14px;
   font-weight: 600;
   color: var(--ink-2);
 }
-.period__row select {
+.period__field select {
+  flex: 1 1 0;
   padding: 9px 10px;
   font-size: 16px;
   font-family: inherit;
@@ -1013,11 +1013,62 @@
   border-radius: 8px;
   background: #fff;
 }
+.period__chips {
+  flex: 1 1 0;
+  display: flex;
+  gap: 6px;
+}
+.period__chip {
+  flex: 1 1 0;
+  padding: 9px 4px;
+  font-size: 15px;
+  font-weight: 700;
+  font-family: inherit;
+  color: var(--ink-2);
+  background: #fff;
+  border: 1.5px solid var(--line);
+  border-radius: 8px;
+}
+.period__chip.is-on {
+  background: var(--hi-orange);
+  border-color: var(--hi-orange);
+  color: #fff;
+}
+.period__echo {
+  margin: 12px 0 0;
+  font-size: 14.5px;
+  font-weight: 700;
+  color: var(--hi-navy);
+}
+.period__warn {
+  margin: 5px 0 0;
+  font-size: 13.5px;
+  color: var(--hi-orange-deep);
+}
 .period__pop-actions {
   display: flex;
   gap: 8px;
   justify-content: flex-end;
   margin-top: 14px;
+}
+.range-summary {
+  margin: 8px 0 0;
+  padding: 10px 14px;
+  background: var(--hi-orange-soft);
+  border-radius: 8px;
+  font-size: 15px;
+  color: var(--ink-2);
+}
+.range-summary b {
+  color: var(--hi-orange-deep);
+  font-weight: 800;
+}
+.range-summary em {
+  display: block;
+  margin-top: 3px;
+  font-style: normal;
+  font-size: 13px;
+  color: var(--ink-3);
 }
 .period-note {
   margin: 14px 0 0;

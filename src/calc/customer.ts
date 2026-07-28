@@ -12,6 +12,10 @@ export interface CustomerAnalysis {
   /** 유지고객군 — 본인/동급/차상급/TC */
   blocks: { self: CustomerBlock; peer: CustomerBlock; next: CustomerBlock; tc: CustomerBlock }
 
+  /** 본인 월별 유지고객 원본 계열 (재고) — 조회기간을 적용해 종료월 시점 값을
+   *  다시 뽑기 위한 것. 마지막 달 값이 blocks.self 와 같다 (calc/period.ts 주석 참조) */
+  series: { long: number[]; auto: number[]; both: number[] }
+
   /** chart5 — 유지고객 장기/자동차/총보유고객 (C분석!CG28:CI32) */
   retainChart: { name: string; 본인: number; 동급: number; TC표준그룹: number }[]
 
@@ -166,6 +170,7 @@ export function analyzeCustomer(ctx: Ctx, selfName: string): CustomerAnalysis {
     retainChart,
     monthlyNewChart,
     linkChart,
+    series: { long: s.retainLong, auto: s.retainAuto, both: s.retainBoth },
     trend,
     bandChart,
     composition,
