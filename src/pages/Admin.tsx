@@ -83,6 +83,7 @@ function AdminLogin() {
             spellCheck={false}
             autoCapitalize="characters"
           />
+          <em className="field__hint">v0.20 이전에 이메일로 만든 계정은 그 이메일을 그대로 입력하세요.</em>
         </label>
         <label className="field">
           <span>비밀번호</span>

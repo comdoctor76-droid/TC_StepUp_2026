@@ -308,7 +308,7 @@ export function Report({
           eyebrow={active.eyebrow || undefined}
           profile={A.profile}
           months={A.ctx.months}
-          credit={tab !== 'coach'}
+          credit={tab === 'coach' ? '성장코칭 제작 : 이경석 전임강사' : undefined}
         />
         {/* 기간 선택 — 그 탭에서 실제로 값을 바꾸는 컨트롤만 띄운다 (PERIOD_CAPS) */}
         <PeriodPicker
