@@ -19,7 +19,13 @@ import { exportPdf } from '../../export/pdf'
 import { savePdf } from '../../export/pdfSave'
 import { canShareFiles, isMobile, outputFileName, outputFileStem, shareOrDownload } from '../../export/share'
 
-const COACH_CAPTURE_OPTS = { rootId: 'coach-print-root', pageSelector: '.sheet' }
+/* bodyClass: 캡처하는 동안 인쇄와 같은 조밀 스타일 + A4 고정 높이를 적용한다
+   (coach.css 의 body.capturing-coach 규칙 참고) */
+const COACH_CAPTURE_OPTS = {
+  rootId: 'coach-print-root',
+  pageSelector: '.sheet',
+  bodyClass: 'capturing-coach',
+}
 
 function maskId(id: string): string {
   const s = String(id ?? '')
@@ -294,12 +300,13 @@ export function CoachPages(props: CoachPageProps) {
       {/* P1 진단 개요 + CAMS */}
       <article className="sheet">
         <PageHead title={<>하이플래너 <span className="accent">성장 코칭</span></>} sub={sub1} tag="TC STEP-UP" />
+        {/* 사번은 성명과 같은 칩에 붙인다 — 따로 두면 칩 5개가 한 줄(210mm 기준 688px)에
+            안 들어가 사번만 둘째 줄로 밀려 한 줄치 높이를 통째로 낭비했다. */}
         <div className="person num">
-          <div className="pchip"><b>성명</b><span>{name} 플래너</span></div>
+          <div className="pchip"><b>성명</b><span>{name} 플래너</span><em>{maskId(b.code)}</em></div>
           <div className="pchip"><b>소속</b><span>{b.hq} · {b.branch}</span></div>
           <div className="pchip"><b>입사</b><span>{joinYm(b.hireDate)} ({b.months}차월)</span></div>
           <div className="pchip"><b>육성소득</b><span>{incomeBand(b.incomeRaw)}</span></div>
-          <div className="pchip"><b>사번</b><span>{maskId(b.code)}</span></div>
         </div>
         <div className="sec">
           <SecHead n="1" title="나의 한 줄 진단" />

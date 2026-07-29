@@ -27,6 +27,17 @@ export interface CaptureOptions {
   rootId?: string
   /** 컨테이너 안에서 페이지 하나하나를 고르는 선택자. 기본 '.a4-page' */
   pageSelector?: string
+  /**
+   * 캡처하는 동안만 <body> 에 붙일 클래스 (예: 'capturing-coach').
+   *
+   * html-to-image 는 지금 화면에 있는 DOM 을 그대로 찍기 때문에, @media print 안에만
+   * 있는 조밀 스타일은 캡처에 반영되지 않는다. 성장코칭은 화면용 큰 글자 그대로 찍히면
+   * 페이지가 A4(297mm)를 넘겨 pdf.ts 가 눌러 담아 상하가 찌그러졌다 — 이 클래스로
+   * 인쇄와 같은 조밀 스타일 + A4 고정 높이를 적용한다.
+   *
+   * 기존 6페이지 리포트(.a4-page)는 이미 height 가 297mm 로 못박혀 있어 필요 없다.
+   */
+  bodyClass?: string
 }
 
 /** p 가 ms 안에 끝나지 않으면 onTimeout() 이 만든 에러로 대신 거부한다 (p 자체를 취소하진 않는다). */
@@ -67,35 +78,42 @@ export async function capturePageCanvases(
   onProgress?: CaptureProgress,
   opts: CaptureOptions = {},
 ): Promise<HTMLCanvasElement[]> {
-  const { rootId = 'print-root', pageSelector = '.a4-page' } = opts
+  const { rootId = 'print-root', pageSelector = '.a4-page', bodyClass } = opts
   const root = document.getElementById(rootId)
   if (!root) throw new Error('인쇄 영역을 찾을 수 없습니다.')
 
   const pages = Array.from(root.querySelectorAll<HTMLElement>(pageSelector))
   if (pages.length === 0) throw new Error('출력할 페이지가 없습니다.')
 
-  await waitForFonts()
+  // 조밀 스타일은 크기를 재기 전에 붙여야 한다 — 붙인 뒤 레이아웃이 정착하도록
+  // waitForFonts() 의 프레임 양보를 그 다음에 둔다.
+  if (bodyClass) document.body.classList.add(bodyClass)
+  try {
+    await waitForFonts()
 
-  const canvases: HTMLCanvasElement[] = []
-  for (let i = 0; i < pages.length; i++) {
-    const el = pages[i]
-    const c = await withTimeout(
-      toCanvas(el, {
-        pixelRatio: PIXEL_RATIO,
-        backgroundColor: '#ffffff',
-        cacheBust: false,
-        // 화면 밖에 있는 요소이므로 실제 크기를 명시한다
-        width: el.offsetWidth,
-        height: el.offsetHeight,
-        style: { transform: 'none', margin: '0' },
-      }),
-      PAGE_CAPTURE_TIMEOUT_MS,
-      () => new Error(`이미지를 만들지 못했습니다. (${i + 1}번째 페이지)`),
-    )
-    canvases.push(c)
-    onProgress?.(i + 1, pages.length)
+    const canvases: HTMLCanvasElement[] = []
+    for (let i = 0; i < pages.length; i++) {
+      const el = pages[i]
+      const c = await withTimeout(
+        toCanvas(el, {
+          pixelRatio: PIXEL_RATIO,
+          backgroundColor: '#ffffff',
+          cacheBust: false,
+          // 화면 밖에 있는 요소이므로 실제 크기를 명시한다
+          width: el.offsetWidth,
+          height: el.offsetHeight,
+          style: { transform: 'none', margin: '0' },
+        }),
+        PAGE_CAPTURE_TIMEOUT_MS,
+        () => new Error(`이미지를 만들지 못했습니다. (${i + 1}번째 페이지)`),
+      )
+      canvases.push(c)
+      onProgress?.(i + 1, pages.length)
+    }
+    return canvases
+  } finally {
+    if (bodyClass) document.body.classList.remove(bodyClass)
   }
-  return canvases
 }
 
 /** rootId 안의 pageSelector 들을 순서대로 캡처해 하나의 PNG blob 으로 */

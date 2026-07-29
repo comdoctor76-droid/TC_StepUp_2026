@@ -20,7 +20,15 @@ export async function exportPdf(onProgress?: CaptureProgress, opts: CaptureOptio
     if (!blob) throw new Error('PDF를 만들지 못했습니다.')
     const img = await doc.embedPng(await blob.arrayBuffer())
     const page = doc.addPage([pw, ph])
-    page.drawImage(img, { x: 0, y: 0, width: pw, height: ph })
+
+    // A4 비율을 유지한 채 페이지에 맞춰 넣고 가운데 정렬한다.
+    // 예전에는 width/height 를 A4 로 그냥 못박아 그렸는데, 캡처된 페이지가 A4 보다
+    // 길면(성장코칭에서 실측 최대 38% 초과) 그만큼 상하가 눌려 글자가 찌그러졌다.
+    // 비율을 지키면 최악의 경우 위아래 여백이 생길 뿐 왜곡은 나오지 않는다.
+    const scale = Math.min(pw / img.width, ph / img.height)
+    const w = img.width * scale
+    const h = img.height * scale
+    page.drawImage(img, { x: (pw - w) / 2, y: ph - h, width: w, height: h })
   }
 
   const bytes = await doc.save()
