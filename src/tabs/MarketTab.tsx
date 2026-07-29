@@ -66,23 +66,23 @@ export function MarketTab({
       <h2 className="sec">▶ 주력 인보험 보종별 건수 구성비율</h2>
       <div className="grid grid--3">
         <ChartCard title={`본인 (${name})`}>
-          <PieShare {...S.pie} dense={dense} data={m.countShare.self} />
+          <PieShare {...S.pie} dense={dense} data={m.countShare.self} leaderLines />
         </ChartCard>
         <ChartCard title={`동급 (${A.ctx.levelLabel})`}>
-          <PieShare {...S.pie} dense={dense} data={m.countShare.peer} />
+          <PieShare {...S.pie} dense={dense} data={m.countShare.peer} leaderLines />
         </ChartCard>
         <ChartCard title="TC 표준그룹">
-          <PieShare {...S.pie} dense={dense} data={m.countShare.tc} />
+          <PieShare {...S.pie} dense={dense} data={m.countShare.tc} leaderLines />
         </ChartCard>
       </div>
 
       <h2 className="sec">▶ 플래너 · TC그룹 보유실손 비중 현황 (전체 기간)</h2>
       <div className="grid grid--3">
         <ChartCard title={`본인 · 총 ${int(m.silson.selfTotal)}건`}>
-          <PieShare {...S.gen} dense={dense} data={m.silson.self} colors={GEN_COLORS} leaderLines={!dense} />
+          <PieShare {...S.gen} dense={dense} data={m.silson.self} colors={GEN_COLORS} leaderLines />
         </ChartCard>
         <ChartCard title={`TC 표준그룹 · 총 ${dec1(m.silson.tcTotal)}건`}>
-          <PieShare {...S.gen} dense={dense} data={m.silson.tc} colors={GEN_COLORS} leaderLines={!dense} />
+          <PieShare {...S.gen} dense={dense} data={m.silson.tc} colors={GEN_COLORS} leaderLines />
         </ChartCard>
         <SimpleTable
           dense={dense}
