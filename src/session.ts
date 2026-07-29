@@ -62,9 +62,14 @@ export function lockViewer() {
   void signOut(auth)
 }
 
-/** 사번 → Firebase Auth 용 가짜 이메일. 실제 메일함이 아니라 로그인 식별자일 뿐이다. */
-function adminEmailOf(code: string): string {
-  return `${normalizeCode(code)}@admin.tc-stepup.local`
+/**
+ * 사번 → Firebase Auth 용 가짜 이메일. 실제 메일함이 아니라 로그인 식별자일 뿐이다.
+ * 이미 이메일 형식(@ 포함)이면 그대로 쓴다 — v0.20 이전에 실제 이메일로 만들어 둔
+ * 기존 관리자 계정(예: comdoctor76@gmail.com)이 계속 로그인할 수 있어야 하기 때문이다.
+ */
+function adminEmailOf(codeOrEmail: string): string {
+  const v = codeOrEmail.trim()
+  return v.includes('@') ? v : `${normalizeCode(v)}@admin.tc-stepup.local`
 }
 
 /** 관리자 로그인 — 사번 + 비밀번호 */
