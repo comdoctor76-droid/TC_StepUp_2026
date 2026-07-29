@@ -120,10 +120,7 @@ export function CustomerTab({
           {...S.wide}
           dense={dense}
           data={trend}
-          series={[
-            { key: '총유지', color: SERIES.self },
-            { key: '장기', color: SERIES.tc, dashed: true },
-          ]}
+          series={[{ key: '총유지', color: SERIES.self }]}
           format={(v) => int(v)}
           deltaKey="delta"
         />
