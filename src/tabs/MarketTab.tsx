@@ -20,7 +20,7 @@ export function MarketTab({
   const m = A.market
   const name = A.profile.name
 
-  const S = dense ? { pie: { w: 224, h: 162 }, gen: { w: 224, h: 162 } } : { pie: { h: 250 }, gen: { h: 250 } }
+  const S = dense ? { pie: { w: 224, h: 162 }, gen: { w: 224, h: 162 } } : { pie: { h: 270 }, gen: { h: 270 } }
 
   const lbl = (l: string) => (l === name ? `${name} (본인)` : l)
 
@@ -79,10 +79,10 @@ export function MarketTab({
       <h2 className="sec">▶ 플래너 · TC그룹 보유실손 비중 현황 (전체 기간)</h2>
       <div className="grid grid--3">
         <ChartCard title={`본인 · 총 ${int(m.silson.selfTotal)}건`}>
-          <PieShare {...S.gen} dense={dense} data={m.silson.self} colors={GEN_COLORS} />
+          <PieShare {...S.gen} dense={dense} data={m.silson.self} colors={GEN_COLORS} leaderLines={!dense} />
         </ChartCard>
         <ChartCard title={`TC 표준그룹 · 총 ${dec1(m.silson.tcTotal)}건`}>
-          <PieShare {...S.gen} dense={dense} data={m.silson.tc} colors={GEN_COLORS} />
+          <PieShare {...S.gen} dense={dense} data={m.silson.tc} colors={GEN_COLORS} leaderLines={!dense} />
         </ChartCard>
         <SimpleTable
           dense={dense}
