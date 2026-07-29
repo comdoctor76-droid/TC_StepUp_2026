@@ -131,6 +131,19 @@ export function Roster({
     })
   }
 
+  const allChecked = roster.length > 0 && roster.every((p) => checked.has(p.code))
+  const toggleAll = () => {
+    setChecked((prev) => {
+      const next = new Map(prev)
+      if (allChecked) {
+        for (const p of roster) next.delete(p.code)
+      } else {
+        for (const p of roster) next.set(p.code, p)
+      }
+      return next
+    })
+  }
+
   const busy = !!current || !!bulkBusy
 
   const removeFromStepup = async (targetHq: string, code: string) => {
@@ -344,7 +357,7 @@ export function Roster({
                     </p>
                     <ul className="roster__list">
                       <li className={`roster__list-head ${isStepupView ? 'roster__list--stepup' : ''}`}>
-                        <span />
+                        <input type="checkbox" checked={allChecked} onChange={toggleAll} aria-label="전체선택" />
                         <span>이름</span>
                         <span>사번</span>
                         {isStepupView && <span />}

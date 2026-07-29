@@ -35,9 +35,9 @@ export const STEPUP_VISION_CENTER = 'TC스텝업'
 export function groupByOrg(planners: RosterEntry[]): OrgTree {
   const tree: OrgTree = {}
   for (const p of planners) {
-    const hq = p.hq || UNSET
-    const vc = p.visionCenter || UNSET_VISION_CENTER
-    const br = p.branch || UNSET
+    const hq = p.hq.trim() || UNSET
+    const vc = p.visionCenter.trim() || UNSET_VISION_CENTER
+    const br = p.branch.trim() || UNSET
 
     const hqNode = (tree[hq] ??= { count: 0, visionCenters: {} })
     hqNode.count++
