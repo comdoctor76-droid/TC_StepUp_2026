@@ -46,6 +46,16 @@ describe('groupByOrg — 비전센터 빈 값은 드림영업실로 묶는다', 
     const t2 = groupByOrg([entry({ code: 'B001', branch: '' })])
     expect(t2['호남'].visionCenters['광주비전센터'].branches['(미지정)']).toBeTruthy()
   })
+
+  it('공백만 있는 비전센터도 빈 값과 똑같이 "드림영업실"로 묶인다', () => {
+    const t2 = groupByOrg([
+      entry({ code: 'C001', visionCenter: ' ' }),
+      entry({ code: 'C002', visionCenter: '   ' }),
+      entry({ code: 'C003', visionCenter: '' }),
+    ])
+    expect(t2['호남'].visionCenters['드림영업실'].count).toBe(3)
+    expect(Object.keys(t2['호남'].visionCenters)).toEqual(['드림영업실'])
+  })
 })
 
 describe('parsePastedCodes — 헤더 없는 사번 목록 파싱', () => {
