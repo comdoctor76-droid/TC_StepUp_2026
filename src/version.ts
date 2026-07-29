@@ -5,7 +5,7 @@
    CHANGELOG 에 한 줄씩 남긴다.
    ══════════════════════════════════════════════════════════════════════ */
 
-export const APP_VERSION = '0.22'
+export const APP_VERSION = '0.23'
 
 export const CONTACT = {
   dept: '개인마케팅교육본부 / 영업교육운영파트',
@@ -35,6 +35,10 @@ export const DISCLAIMER =
 
 /** 수정 이력 (최신이 위) */
 export const CHANGELOG: { version: string; note: string }[] = [
+  {
+    version: '0.23',
+    note: '(수정) "명단에서 선택"에서 TC스텝업 저장 명단이 있는 지역단을 선택하면 화면이 하얗게 되던 버그 수정(비전센터 드롭다운이 가상 "TC스텝업" 옵션의 인원수를 실제 조직 데이터에서 조회하려다 오류가 나던 문제)',
+  },
   {
     version: '0.22',
     note: 'C분석 "플래너 최근 유지고객 추이" 그래프에서 "장기" 라인을 빼고 "총유지"(총유지고객) 라인만 표시',
