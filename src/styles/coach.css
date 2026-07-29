@@ -1029,10 +1029,14 @@
   outline: none;
   border-bottom-color: var(--cr-hi);
 }
+/* 실행선언 — 예전에는 검정(--cr-text) 배경 + 흰 글자였는데, 인쇄물에서 큰 검정
+   덩어리로 나와 잉크만 먹고 보기 안 좋았다. 밝은 배경 + 오렌지 강조선으로 바꾼다. */
 .coach-report .declare {
   margin-top: 16px;
-  background: var(--cr-text);
-  color: #fff;
+  background: var(--cr-surface2);
+  color: var(--cr-text);
+  border: 1px solid var(--cr-border);
+  border-left: 4px solid var(--cr-hi);
   border-radius: var(--cr-radius-md);
   padding: 21px 25px;
   font-size: 16px;
@@ -1043,7 +1047,7 @@
   font-size: 12px;
   font-weight: 800;
   letter-spacing: 0.1em;
-  color: #fbb07c;
+  color: var(--cr-hi-dk);
   display: block;
   margin-bottom: 6px;
   line-height: 1.4;
@@ -1051,8 +1055,8 @@
 .coach-report .declare input {
   background: transparent;
   border: none;
-  border-bottom: 2px solid rgba(255, 255, 255, 0.45);
-  color: #fff;
+  border-bottom: 2px solid var(--cr-hi);
+  color: var(--cr-text);
   font-family: inherit;
   font-size: 16px;
   width: 76px;
@@ -1807,28 +1811,36 @@ body.capturing-coach .coach-report .sheets {
 
 /* ── 인쇄 전용 (조밀 타이포그래피는 위의 인쇄·캡처 공통 블록에 있다) ── */
 @media print {
+  /* 한 장 = 정확히 A4. 6페이지 리포트(.a4-page)에서 이미 검증된 방식과 같다.
+     예전에는 min-height:auto(내용 높이) + 푸터를 position:static 으로 흐름에 넣어,
+     화면·PDF 에서는 absolute 라 높이에 안 잡히던 푸터가 인쇄에서만 페이지당 약
+     42px 을 더 차지했다. 여유가 2px 밖에 없던 페이지는 그만큼 다음 장으로 넘쳐
+     "푸터만 있는 페이지 + 빈 페이지"가 끼어들었다. */
   body.printing-coach .coach-report .sheet {
     box-shadow: none;
     border: none;
     border-radius: 0;
     margin: 0;
-    width: auto;
+    width: 210mm;
     max-width: none;
-    min-height: auto;
+    height: 297mm;
+    min-height: 297mm;
     padding: 10mm 13mm 12mm;
     page-break-after: always;
-    overflow: visible;
+    break-after: page;
+    overflow: hidden;
   }
   body.printing-coach .coach-report .sheet:last-of-type {
     page-break-after: auto;
+    break-after: auto;
   }
-  body:not(.show-coach-guide) .coach-report .sheet.coach {
-    display: none;
+  body.printing-coach .coach-report .sheets {
+    padding: 0;
   }
-  body.printing-coach .coach-report .sheet-foot {
-    position: static;
-    margin-top: 14px;
-  }
+  /* 강사용 가이드 장을 body.show-coach-guide 로 가리던 규칙이 있었는데, 그 클래스를
+     붙이는 코드가 어디에도 없어서 가이드를 켜고 인쇄하면 가이드 2장이 조용히 빠졌다
+     (PDF/이미지 저장에는 나왔다). 가이드 장은 이미 React 쪽에서 showCoachGuide 로
+     조건부 렌더하므로 CSS 로 다시 가릴 필요가 없다. */
   body.printing-coach [contenteditable]:hover,
   body.printing-coach [contenteditable]:focus {
     box-shadow: none;
