@@ -5,7 +5,7 @@
    CHANGELOG 에 한 줄씩 남긴다.
    ══════════════════════════════════════════════════════════════════════ */
 
-export const APP_VERSION = '0.21'
+export const APP_VERSION = '0.22'
 
 export const CONTACT = {
   dept: '개인마케팅교육본부 / 영업교육운영파트',
@@ -35,6 +35,10 @@ export const DISCLAIMER =
 
 /** 수정 이력 (최신이 위) */
 export const CHANGELOG: { version: string; note: string }[] = [
+  {
+    version: '0.22',
+    note: 'C분석 "플래너 최근 유지고객 추이" 그래프에서 "장기" 라인을 빼고 "총유지"(총유지고객) 라인만 표시',
+  },
   {
     version: '0.21',
     note: '(수정) "성장코칭 제작 : 이경석 전임강사" 크레딧을 성장코칭 리포트 본문 안이 아니라 "원작 : 보우만레포트..."와 같은 자리인 메인 타이틀 바로 옮김. (수정) v0.20 이전에 실제 이메일로 만든 관리자 계정(예: comdoctor76@gmail.com)이 사번 로그인 화면에서도 그 이메일을 그대로 입력해 로그인할 수 있도록 수정',
