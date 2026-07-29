@@ -139,26 +139,36 @@
 .coach-report .person {
   display: flex;
   flex-wrap: wrap;
-  gap: 9px;
-  margin-bottom: 22px;
+  gap: 6px;
+  margin-bottom: 16px;
 }
 .coach-report .pchip {
   display: flex;
   align-items: baseline;
-  gap: 7px;
+  gap: 6px;
   background: var(--cr-surface2);
   border-radius: 12px;
-  padding: 9px 15px;
+  padding: 7px 11px;
   font-size: 13.5px;
+  /* 칩 안에서 줄바꿈되면 한 줄 높이가 통째로 늘어난다 — 항상 한 줄로 둔다 */
+  white-space: nowrap;
 }
 .coach-report .pchip b {
-  font-size: 12px;
+  font-size: 11.5px;
   color: var(--cr-text2);
   font-weight: 600;
 }
 .coach-report .pchip span {
   font-weight: 700;
-  font-size: 14.5px;
+  font-size: 14px;
+}
+/* 성명 칩에 붙는 사번 */
+.coach-report .pchip em {
+  font-style: normal;
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--cr-text3);
+  letter-spacing: 0.02em;
 }
 
 .coach-report .sec {
@@ -1540,6 +1550,234 @@
   color: #c0261c;
 }
 
+/* ══ 인쇄 · 캡처 공통 (조밀 모드) ═════════════════════════════════════
+   네이티브 인쇄(body.printing-coach)와 PDF/PNG 캡처(body.capturing-coach)가
+   똑같은 조밀 타이포그래피를 쓴다.
+
+   예전에는 이 규칙들이 @media print 안에만 있었다 — html-to-image 는 현재
+   화면 DOM 을 그대로 찍으므로 PDF/PNG 는 화면용 큰 글자(16.5px)를 담았고,
+   내용이 297mm 를 넘긴 페이지는 .sheet 가 min-height 라서 그만큼 늘어난 뒤
+   pdf.ts 가 A4 한 장에 눌러 담아 상하가 찌그러졌다(실측 3페이지 38% 압축).
+   ══════════════════════════════════════════════════════════════════════ */
+body.printing-coach .coach-report,
+body.capturing-coach .coach-report {
+  background: #fff;
+  font-size: 13.5px;
+}
+body.printing-coach .coach-toolbar,
+body.printing-coach .edit-hint,
+body.capturing-coach .coach-toolbar,
+body.capturing-coach .edit-hint {
+  display: none !important;
+}
+body.printing-coach .insight,
+body.capturing-coach .insight {
+  padding: 11px 16px;
+  margin-bottom: 10px;
+}
+body.printing-coach .insight-h,
+body.capturing-coach .insight-h {
+  font-size: 16.5px;
+}
+body.printing-coach .insight-p,
+body.capturing-coach .insight-p {
+  font-size: 12.5px;
+}
+body.printing-coach .rp-head,
+body.capturing-coach .rp-head {
+  margin-bottom: 11px;
+}
+body.printing-coach .sec,
+body.capturing-coach .sec {
+  margin-bottom: 17px;
+}
+body.printing-coach .oneliner,
+body.capturing-coach .oneliner {
+  box-shadow: none;
+}
+body.printing-coach .ol-t,
+body.capturing-coach .ol-t {
+  font-size: 18px;
+}
+body.printing-coach .kpi-val,
+body.capturing-coach .kpi-val {
+  font-size: 26px;
+}
+body.printing-coach .trend-plot,
+body.capturing-coach .trend-plot {
+  height: 130px;
+}
+
+/* 카드 세로 여백 압축 — 실측으로 A4 를 넘긴 페이지(2·3·7)를 한 장에 담기 위한 값이다.
+   폰트 크기는 최대한 유지하고 패딩·마진·줄간격만 줄여 가독성을 지킨다. */
+body.printing-coach .sec-h,
+body.capturing-coach .sec-h {
+  margin-bottom: 8px;
+}
+body.printing-coach .basecap,
+body.capturing-coach .basecap {
+  margin-top: 5px;
+}
+/* 그룹 비교(3페이지) — vs-card 4장 */
+body.printing-coach .vs-card,
+body.capturing-coach .vs-card {
+  padding: 8px 14px;
+  margin-bottom: 6px;
+}
+body.printing-coach .vs-head,
+body.capturing-coach .vs-head {
+  margin-bottom: 6px;
+}
+body.printing-coach .vs-name,
+body.capturing-coach .vs-name {
+  font-size: 14.5px;
+}
+body.printing-coach .vs-rows,
+body.capturing-coach .vs-rows {
+  gap: 3px;
+}
+body.printing-coach .vs-msg,
+body.capturing-coach .vs-msg {
+  margin-top: 5px;
+  padding: 6px 11px;
+  font-size: 12px;
+  line-height: 1.4;
+}
+body.printing-coach .vs-who,
+body.capturing-coach .vs-who {
+  font-size: 12px;
+}
+/* 핵심 지표(2페이지) — KPI 카드 4장 */
+body.printing-coach .kpi,
+body.capturing-coach .kpi {
+  padding: 9px 14px 8px;
+}
+body.printing-coach .kpi-grid,
+body.capturing-coach .kpi-grid {
+  gap: 9px;
+}
+body.printing-coach .kpi-cap,
+body.capturing-coach .kpi-cap {
+  margin-top: 6px;
+  padding: 6px 10px;
+  font-size: 12px;
+  line-height: 1.45;
+}
+/* 활동 구조 비교(2페이지) — 나비 차트 */
+body.printing-coach .bf-row,
+body.capturing-coach .bf-row {
+  margin: 4px 0;
+}
+/* 90일 실행 플랜(7페이지) — goal 카드 2장 */
+body.printing-coach .goal,
+body.capturing-coach .goal {
+  margin-bottom: 10px;
+}
+body.printing-coach .goal-head,
+body.capturing-coach .goal-head {
+  padding: 10px 18px;
+}
+body.printing-coach .goal-body,
+body.capturing-coach .goal-body {
+  padding: 12px 18px 13px;
+}
+/* goal 표의 각 행 — 행마다 위아래 11px 이 붙어 12행이면 그것만 264px 이었다 */
+body.printing-coach .g-row,
+body.capturing-coach .g-row {
+  padding: 5px 0;
+}
+body.printing-coach .g-k,
+body.capturing-coach .g-k {
+  padding: 3px 0;
+}
+body.printing-coach .g-v,
+body.capturing-coach .g-v {
+  font-size: 14px;
+}
+body.printing-coach .goal-why,
+body.capturing-coach .goal-why {
+  padding: 10px 14px;
+  margin-top: 10px;
+}
+/* vs-card 막대 행 — 높이가 vs-val 의 line-height 로 결정된다 */
+body.printing-coach .vs-val,
+body.capturing-coach .vs-val {
+  font-size: 12.5px;
+}
+body.printing-coach .vs-row.me .vs-val,
+body.capturing-coach .vs-row.me .vs-val {
+  font-size: 15px;
+}
+body.printing-coach .basecap,
+body.capturing-coach .basecap {
+  font-size: 10.5px;
+  line-height: 1.35;
+}
+/* 강사용 가이드 페이지 */
+body.printing-coach .coach-band,
+body.capturing-coach .coach-band {
+  margin-bottom: 12px;
+}
+body.printing-coach .note-card,
+body.capturing-coach .note-card {
+  margin-bottom: 6px;
+  padding: 10px 15px;
+}
+
+/* 좁은 화면 규칙(아래 @media max-width:760px)이 인쇄·캡처 결과를 바꾸지 못하도록
+   A4 기준 데스크톱 레이아웃을 되돌린다 — 캡처 대상(#coach-print-root)은 실제 창
+   너비로 레이아웃되므로, 휴대폰이나 좁은 창에서 저장하면 CAMS 신호등이 1단으로
+   무너지고 .sheet 가 A4 높이를 잃은 채 PDF 에 담겼다. */
+body.printing-coach .coach-report .type-row,
+body.capturing-coach .coach-report .type-row,
+body.printing-coach .coach-report .choice,
+body.capturing-coach .coach-report .choice,
+body.printing-coach .coach-report .ring-duo,
+body.capturing-coach .coach-report .ring-duo {
+  grid-template-columns: 1fr 1fr;
+}
+body.printing-coach .coach-report .kpi-grid,
+body.capturing-coach .coach-report .kpi-grid {
+  grid-template-columns: repeat(2, 1fr);
+}
+body.printing-coach .coach-report .cg,
+body.capturing-coach .coach-report .cg {
+  grid-template-columns: 104px 1fr;
+  gap: 16px;
+}
+body.printing-coach .coach-report .bf-row,
+body.capturing-coach .coach-report .bf-row,
+body.printing-coach .coach-report .bfly-top,
+body.capturing-coach .coach-report .bfly-top {
+  grid-template-columns: 1fr 170px 1fr;
+}
+body.printing-coach .coach-report .vs-row,
+body.capturing-coach .coach-report .vs-row {
+  grid-template-columns: 58px 1fr 92px;
+}
+
+/* ── PDF/PNG 캡처 전용 ────────────────────────────────────────────────
+   너비는 210mm 로 못박는다 — 기본 규칙의 max-width:100% 때문에 좁은 창에서
+   210mm 보다 작게 캡처될 수 있다.
+
+   높이는 일부러 min-height(297mm) 로 둔다. height 로 못박고 overflow:hidden 을
+   걸면 A4 를 넘는 내용이 잘려 나가 데이터가 사라진다 — 지금은 조밀 모드로 모든
+   페이지가 A4 안에 들어가지만, 실제 데이터가 데모보다 길어 넘칠 경우를 대비해
+   잘라내기보다 넘치게 두고, pdf.ts 가 비율을 지켜 축소(레터박스)하도록 맡긴다.
+   상하만 눌리는 예전 왜곡은 pdf.ts 쪽에서 이미 막았다. */
+body.capturing-coach .coach-report .sheet {
+  width: 210mm;
+  max-width: none;
+  margin: 0;
+  box-shadow: none;
+  border: none;
+  border-radius: 0;
+  padding: 10mm 13mm 12mm;
+}
+body.capturing-coach .coach-report .sheets {
+  padding: 0;
+}
+
 @media (max-width: 760px) {
   .coach-report .sheet {
     padding: 24px 18px;
@@ -1567,16 +1805,8 @@
   }
 }
 
-/* ── 인쇄 ── */
+/* ── 인쇄 전용 (조밀 타이포그래피는 위의 인쇄·캡처 공통 블록에 있다) ── */
 @media print {
-  body.printing-coach .coach-report {
-    background: #fff;
-    font-size: 13.5px;
-  }
-  body.printing-coach .coach-toolbar,
-  body.printing-coach .edit-hint {
-    display: none !important;
-  }
   body.printing-coach .coach-report .sheet {
     box-shadow: none;
     border: none;
@@ -1615,41 +1845,14 @@
   body.printing-coach .note-card,
   body.printing-coach .type-card,
   body.printing-coach .bfly,
-  body.printing-coach .cams,
-  body.printing-coach .cams-col,
   body.printing-coach .cams2,
   body.printing-coach .insight,
   body.printing-coach .ex-card {
     box-shadow: none;
     break-inside: avoid;
   }
-  body.printing-coach .insight {
-    padding: 14px 19px;
-    margin-bottom: 13px;
-  }
-  body.printing-coach .insight-h {
-    font-size: 16.5px;
-  }
-  body.printing-coach .insight-p {
-    font-size: 12.5px;
-  }
   body.printing-coach .sec .sec-h {
     break-after: avoid;
-  }
-  body.printing-coach .rp-head {
-    margin-bottom: 14px;
-  }
-  body.printing-coach .sec {
-    margin-bottom: 17px;
-  }
-  body.printing-coach .oneliner {
-    box-shadow: none;
-  }
-  body.printing-coach .ol-t {
-    font-size: 18px;
-  }
-  body.printing-coach .kpi-val {
-    font-size: 26px;
   }
   body.printing-coach .trend-plot {
     height: 130px;

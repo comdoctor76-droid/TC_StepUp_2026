@@ -18,7 +18,13 @@ export type BulkMode = 'print' | 'pdf'
 /** 'report' = 기존 6페이지 자가진단 레포트, 'coach' = 성장코칭 리포트 */
 export type BulkTarget = 'report' | 'coach'
 
-const COACH_CAPTURE_OPTS: CaptureOptions = { rootId: 'coach-print-root', pageSelector: '.sheet' }
+/* bodyClass: 캡처하는 동안 인쇄와 같은 조밀 스타일 + A4 고정 높이를 적용한다
+   (coach.css 의 body.capturing-coach 규칙 참고) */
+const COACH_CAPTURE_OPTS: CaptureOptions = {
+  rootId: 'coach-print-root',
+  pageSelector: '.sheet',
+  bodyClass: 'capturing-coach',
+}
 
 export interface BulkProgress {
   index: number
