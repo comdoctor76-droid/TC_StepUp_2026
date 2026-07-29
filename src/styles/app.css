@@ -1066,6 +1066,10 @@
   padding: 12px 12px 6px;
   box-shadow: var(--shadow);
 }
+/* 원형차트 12시 근처 라벨이 SVG 기본 overflow:hidden 에 잘리지 않도록 */
+.recharts-surface {
+  overflow: visible;
+}
 .chart-card__title {
   margin: 0 0 6px;
   font-size: 16px;

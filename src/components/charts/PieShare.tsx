@@ -56,12 +56,31 @@ function leaderLabel(fs: number, rows: LeaderRow[]) {
     })
 
     const gap = fs + 3
-    ;(['start', 'end'] as const).forEach((side) => {
-      const group = raw.filter((r) => !r.skip && r.anchor === side).sort((a, b) => a.my - b.my)
+    const startGroup = raw.filter((r) => !r.skip && r.anchor === 'start').sort((a, b) => a.my - b.my)
+    const endGroup = raw.filter((r) => !r.skip && r.anchor === 'end').sort((a, b) => a.my - b.my)
+    for (const group of [startGroup, endGroup]) {
       group.forEach((r, i) => {
         if (i > 0) r.y = Math.max(r.my, group[i - 1].y + gap)
       })
-    })
+    }
+
+    // 12시 근처에서는 좌우 그룹의 첫 라벨(각 그룹에서 아직 밀려나지 않은 항목)의
+    // x 좌표가 서로 가까워질 수 있어, 같은 그룹이 아니어도 세로 간격이 없으면
+    // 겹쳐 보인다 — 두 그룹의 첫 항목끼리만 별도로 겹침을 보정한다.
+    if (startGroup.length && endGroup.length) {
+      const a = startGroup[0]
+      const b = endGroup[0]
+      if (Math.abs(a.mx - b.mx) < gap * 2) {
+        const [top, bottom] = a.y <= b.y ? [a, b] : [b, a]
+        const need = top.y + gap - bottom.y
+        if (need > 0) {
+          const bottomGroup = bottom === a ? startGroup : endGroup
+          bottomGroup.forEach((r) => {
+            r.y += need
+          })
+        }
+      }
+    }
 
     return raw.map((r) => (r.skip ? null : { ...r }))
   }
@@ -183,7 +202,7 @@ export function PieShare({
         {showLegend && (
           <Legend
             verticalAlign="bottom"
-            height={dense ? 34 : 30}
+            height={dense ? 34 : 44}
             iconSize={dense ? 6 : 8}
             wrapperStyle={{ fontSize: legendFs, lineHeight: 1.2 }}
             formatter={(value, entry) => {
