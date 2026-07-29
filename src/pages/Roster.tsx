@@ -310,7 +310,12 @@ export function Roster({
                       <option value="">선택</option>
                       {vcOptions.map((k) => (
                         <option key={k} value={k}>
-                          {k} ({vcNode!.visionCenters[k].count.toLocaleString('ko-KR')}명)
+                          {k} (
+                          {(k === STEPUP_VISION_CENTER
+                            ? stepupCodes.length
+                            : vcNode!.visionCenters[k].count
+                          ).toLocaleString('ko-KR')}
+                          명)
                         </option>
                       ))}
                     </select>
