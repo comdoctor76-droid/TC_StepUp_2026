@@ -5,7 +5,7 @@
    CHANGELOG 에 한 줄씩 남긴다.
    ══════════════════════════════════════════════════════════════════════ */
 
-export const APP_VERSION = '0.36'
+export const APP_VERSION = '0.37'
 
 export const CONTACT = {
   dept: '개인마케팅교육본부 / 영업교육운영파트',
@@ -35,6 +35,10 @@ export const DISCLAIMER =
 
 /** 수정 이력 (최신이 위) */
 export const CHANGELOG: { version: string; note: string }[] = [
+  {
+    version: '0.37',
+    note: '현황Ⅱ "실적현황" 항목명 변경 — 인실적 → 인보험실적',
+  },
   {
     version: '0.36',
     note: '세로쓰기 구분 라벨("고객분석" 등) 칸 폭을 20px 더 넓힘(25→45px) — 미리보기 확인 후 적용',
