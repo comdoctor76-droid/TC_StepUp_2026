@@ -5,7 +5,7 @@
    CHANGELOG 에 한 줄씩 남긴다.
    ══════════════════════════════════════════════════════════════════════ */
 
-export const APP_VERSION = '0.34'
+export const APP_VERSION = '0.35'
 
 export const CONTACT = {
   dept: '개인마케팅교육본부 / 영업교육운영파트',
@@ -35,6 +35,10 @@ export const DISCLAIMER =
 
 /** 수정 이력 (최신이 위) */
 export const CHANGELOG: { version: string; note: string }[] = [
+  {
+    version: '0.35',
+    note: '갱신된 원본 엑셀에 새로 추가된 "실적현황(월평균 인실적/환산실적)"을 현황Ⅱ 첫 항목으로 추가, 6개월 유지고객/장기건수 시트 이름이 바뀐 최신 워크북도 정상 인식하도록 임포터 보강(이전 이름과 새 이름 둘 다 지원 — 기존 워크북과도 호환)',
+  },
   {
     version: '0.34',
     note: '세로쓰기 구분 라벨("고객분석" 등) 칸 폭을 3px 넓힘(22→25px) — 실기기에서 캡처된 이미지/PDF로 볼 때 글자가 너무 빡빡해 보이던 것을 완화',

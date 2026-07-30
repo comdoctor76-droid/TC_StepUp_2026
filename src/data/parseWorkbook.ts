@@ -53,8 +53,11 @@ export function colIndex(col: string): number {
 const cell = (g: Grid, row0: number, col0: number): Cell => g[row0]?.[col0] ?? null
 
 /** 실제로 읽는 시트만 파싱한다. 원본에는 16,250행짜리 숨김 시트가 여럿 있어
- *  전체를 읽으면 브라우저에서 30초 가까이 걸린다. */
-const NEEDED_SHEETS = ['input', '소득별Data', 'Q6 유지고객', 'Q7 장기건수']
+ *  전체를 읽으면 브라우저에서 30초 가까이 걸린다.
+ *  Q6/Q7 두 시트는 워크북 버전에 따라 탭 이름이 바뀐 적이 있어 후보를 여럿 둔다. */
+const Q6_SHEET_CANDIDATES = ['Q6 유지고객', '6개월 유지고객']
+const Q7_SHEET_CANDIDATES = ['Q7 장기건수', '장기건수']
+const NEEDED_SHEETS = ['input', '소득별Data', ...Q6_SHEET_CANDIDATES, ...Q7_SHEET_CANDIDATES]
 
 export function parseWorkbook(data: ArrayBuffer | Uint8Array): ParsedWorkbook {
   const wb = XLSX.read(data, {
@@ -95,7 +98,7 @@ export function parseWorkbook(data: ArrayBuffer | Uint8Array): ParsedWorkbook {
 
   // ── Q6 유지고객 ─────────────────────────────────────────────────────
   // A=사원번호, D~I=장기이관제외 M-5..M, J~O=자동차이관제외, P~U=자장이관제외
-  attachSeries(wb, 'Q6 유지고객', planners, warnings, [
+  attachSeries(wb, Q6_SHEET_CANDIDATES, planners, warnings, [
     ['retainLong', 3],
     ['retainAuto', 9],
     ['retainBoth', 15],
@@ -103,7 +106,7 @@ export function parseWorkbook(data: ArrayBuffer | Uint8Array): ParsedWorkbook {
 
   // ── Q7 장기건수 ─────────────────────────────────────────────────────
   // A=사원번호, D~I=장기건수 M-5..M, J~O=장기고객수 M-5..M
-  attachSeries(wb, 'Q7 장기건수', planners, warnings, [
+  attachSeries(wb, Q7_SHEET_CANDIDATES, planners, warnings, [
     ['cntLong', 3],
     ['custLong', 9],
   ])
@@ -176,19 +179,28 @@ export function parseWorkbook(data: ArrayBuffer | Uint8Array): ParsedWorkbook {
   }
 }
 
-/** Q6/Q7 시트의 6개월 시계열을 planner 레코드에 붙인다. */
+/** Q6/Q7 시트의 6개월 시계열을 planner 레코드에 붙인다.
+ *  `sheetNames` 는 후보 목록 — 첫 번째로 존재하는 시트를 쓴다. */
 function attachSeries(
   wb: XLSX.WorkBook,
-  sheet: string,
+  sheetNames: string[],
   planners: Record<string, PlannerRow>,
   warnings: string[],
   specs: [keyof PlannerRow['s'], number][],
 ) {
-  let g: Grid
-  try {
-    g = grid(wb, sheet)
-  } catch {
-    warnings.push(`선택 시트 "${sheet}" 가 없어 추이 그래프가 비게 됩니다.`)
+  let g: Grid | undefined
+  let matched = ''
+  for (const sheet of sheetNames) {
+    try {
+      g = grid(wb, sheet)
+      matched = sheet
+      break
+    } catch {
+      // 다음 후보 시도
+    }
+  }
+  if (!g) {
+    warnings.push(`선택 시트 "${sheetNames.join('/')}" 가 없어 추이 그래프가 비게 됩니다.`)
     return
   }
   let missing = 0
@@ -206,6 +218,6 @@ function attachSeries(
     }
   }
   if (missing > 0) {
-    warnings.push(`"${sheet}" 에 input 에 없는 사번 ${missing}건 — 무시했습니다.`)
+    warnings.push(`"${matched}" 에 input 에 없는 사번 ${missing}건 — 무시했습니다.`)
   }
 }
