@@ -108,23 +108,33 @@
   font-style: normal;
   color: var(--hi-orange);
 }
+/* 말풍선 3개 — 포스터에 박힌 흰 말풍선(픽셀 실측)과 크기·위치를 정확히 일치시킨다.
+   페이지는 794×1123px 고정이라 px 좌표가 정확하다 (object-fit:cover 세로 크롭 반영). */
 .cvf-total {
-  left: 3.5%;
-  top: 60.8%;
-  width: 22%;
-  height: 7.6%;
+  left: 59px;
+  top: 692px;
+  width: 138px;
+  height: 81px;
 }
 .cvf-new {
-  left: 53%;
-  top: 59.2%;
-  width: 26%;
-  height: 7.6%;
+  left: 441px;
+  top: 677px;
+  width: 133px;
+  height: 78px;
 }
 .cvf-cases {
-  left: 74.5%;
-  top: 50.2%;
-  width: 21%;
-  height: 7.8%;
+  left: 616px;
+  top: 581px;
+  width: 106px;
+  height: 74px;
+}
+/* 오른쪽 여백의 세로 영문(ILSAN VISION CENTER'S BEST!) 가리기 — 흰 여백 위 패치 */
+.cvf-side {
+  left: 749px;
+  top: 124px;
+  width: 35px;
+  height: 887px;
+  background: #fff;
 }
 
 /* ── 남자표지 (실제 포스터 1728×2464 기준 실측 좌표) ── */
@@ -172,13 +182,27 @@
   color: #16233c;
   white-space: nowrap;
 }
+/* 원 안 데이터 3개 — 흰 패치가 원 테두리(링)를 침범하지 않도록, 패치를
+   "원 안쪽 원판 ∩ 텍스트 밴드" 모양으로 만든다: 래퍼(overflow:hidden) 안에
+   ::before 로 링 안쪽 크기의 원판을 깔고 그 위에 글자를 얹는 구조.
+   래퍼 폭 = 원판 지름이라 ::before 는 left:0/width:100% 로 맞는다.
+   좌표는 페이지 794×1123px 기준 실측 px (원 중심·안반지름에서 계산). */
 .a4-cover__circle {
-  background: #fff;
   font-size: 15px;
   font-weight: 800;
   color: #14213d;
   gap: 1px;
-  border-radius: 16px;
+  overflow: hidden;
+  z-index: 0;
+}
+.a4-cover__circle::before {
+  content: '';
+  position: absolute;
+  z-index: -1;
+  left: 0;
+  width: 100%;
+  border-radius: 50%;
+  background: #fff;
 }
 .a4-cover__circle b {
   font-size: 18px;
@@ -189,22 +213,48 @@
   font-size: 17px;
 }
 .cvm-c1 {
-  left: 15%;
-  top: 79.4%;
-  width: 20%;
-  height: 7.6%;
+  left: 89px;
+  top: 889px;
+  width: 181px;
+  height: 91px;
 }
+.cvm-c1::before {
+  top: -75px;
+  height: 181px;
+}
+/* 원2 — 다른 두 원보다 약간 크고 아래에 있다(실측 중심 y+30px, 안반지름 205).
+   포스터의 샘플 글자는 원 중심보다 왼쪽에 박혀 있어, 원판을 링 안쪽에
+   정확히 맞추면 자연히 몇 px 오른쪽으로 이동해 링 간섭이 사라진다 (사용자 요청) */
 .cvm-c2 {
-  left: 40.8%;
-  top: 80.6%;
-  width: 18.4%;
-  height: 5.8%;
+  left: 323px;
+  top: 894px;
+  width: 188px;
+  height: 74px;
+}
+.cvm-c2::before {
+  top: -76px;
+  height: 188px;
 }
 .cvm-c3 {
-  left: 69%;
-  top: 79%;
-  width: 17%;
-  height: 7.8%;
+  left: 521px;
+  top: 884px;
+  width: 188px;
+  height: 88px;
+}
+.cvm-c3::before {
+  top: -64px;
+  height: 188px;
+}
+/* 하단 푸터줄 — 박힌 "v0.34 | 원작 : …" 을 덮고 원작 표기 없이 다시 그린다 */
+.cvm-foot {
+  left: 0;
+  top: 1048px;
+  width: 100%;
+  height: 34px;
+  background: #fff;
+  font-size: 12.5px;
+  font-weight: 700;
+  color: #17223b;
 }
 
 .a4-body {

@@ -259,8 +259,9 @@
   border-radius: 10px;
 }
 .roster__list li {
+  /* [체크] [이름·사번] [남/여] [코칭] [가이드] — 스텝업 뷰는 [빼기] 열 추가 */
   display: grid;
-  grid-template-columns: 24px 1fr auto auto;
+  grid-template-columns: 24px 1fr auto auto auto;
   align-items: center;
   gap: 10px;
   padding: 8px 12px;
@@ -284,12 +285,51 @@
   height: 17px;
 }
 .roster__list li.roster__list--stepup {
-  grid-template-columns: 24px 1fr auto auto auto;
+  grid-template-columns: 24px 1fr auto auto auto auto;
 }
 
 /* 이름 뒤 남/여 표지 성별 미니 토글 (기본 여) */
-.roster__gender-head {
+/* 이름 옆에 바로 붙는 사번 링크 */
+.roster__who {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  min-width: 0;
+  white-space: nowrap;
+  overflow: hidden;
+}
+/* 행의 코칭/가이드 체크박스 */
+.roster__opt {
+  width: 15px !important;
+  height: 15px !important;
+}
+/* 머리글의 "코칭/가이드 전체 선택" 라벨+체크박스 */
+.roster__opt-head {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 12px;
   font-weight: 700;
+  color: var(--ink-2);
+  cursor: pointer;
+}
+.roster__opt-head input[type='checkbox'] {
+  width: 14px;
+  height: 14px;
+}
+/* 선택됨 칩 안의 코칭/가이드 체크 */
+.roster__picked-opt {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  font-size: 12px;
+  font-weight: 700;
+  cursor: pointer;
+}
+.roster__picked-opt input[type='checkbox'] {
+  width: 13px;
+  height: 13px;
+  margin: 0;
 }
 .gender-mini {
   display: inline-flex;

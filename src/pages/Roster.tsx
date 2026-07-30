@@ -5,7 +5,7 @@
    src/data/repository.ts loadAllPlanners() 참조. 세션 1회만 읽도록 캐시된다.
    ══════════════════════════════════════════════════════════════════════ */
 
-import { useEffect, useMemo, useRef, useState } from 'react'
+import { useEffect, useMemo, useRef, useState, type Dispatch, type SetStateAction } from 'react'
 import {
   addStepupTargets,
   loadAllPlanners,
@@ -35,6 +35,9 @@ import { analyze, type FullAnalysis } from '../calc'
 
 export type PickMode = 'tree' | 'paste'
 
+/** 남/여 표지 선택값을 기기에 기억하는 localStorage 키 */
+const GENDER_STORE_KEY = 'tcstepup.coverGender'
+
 export function Roster({
   pickMode,
   onBack,
@@ -56,7 +59,19 @@ export function Roster({
   const [branch, setBranch] = useState('')
   const [checked, setChecked] = useState<Map<string, RosterEntry>>(new Map())
   // 사람별 표지 성별 — 지정 안 하면 'F'(여, 기본값). 표지는 report 일괄 인쇄에만 쓰인다.
-  const [genderMap, setGenderMap] = useState<Map<string, CoverGender>>(new Map())
+  // 한 번 고른 값은 이 기기(localStorage)에 저장되어 다음에 들어와도 그대로 남는다.
+  const [genderMap, setGenderMap] = useState<Map<string, CoverGender>>(() => {
+    try {
+      const raw = localStorage.getItem(GENDER_STORE_KEY)
+      if (raw) return new Map(Object.entries(JSON.parse(raw)) as [string, CoverGender][])
+    } catch {
+      /* 저장값이 깨져 있으면 무시하고 빈 상태로 시작 */
+    }
+    return new Map()
+  })
+  // 사람별 성장코칭 인쇄 여부 / 강사용 가이드 포함 여부 (일괄 인쇄 시)
+  const [coachSet, setCoachSet] = useState<Set<string>>(new Set())
+  const [guideSet, setGuideSet] = useState<Set<string>>(new Set())
   const [pasteText, setPasteText] = useState('')
 
   const [showChoice, setShowChoice] = useState(false)
@@ -65,7 +80,9 @@ export function Roster({
   const [current, setCurrent] = useState<{
     A: FullAnalysis
     caption: string
+    kind: 'report' | 'coach'
     cover?: CoverGender
+    guide?: boolean
   } | null>(null)
   const [bulkBusy, setBulkBusy] = useState<string | null>(null)
   // ref 로 둔다 — 실행 중인 루프가 setState 클로저 caveat 없이 매 반복마다 최신 값을 읽는다
@@ -138,16 +155,57 @@ export function Roster({
     })
   }
 
+  const persistGenders = (m: Map<string, CoverGender>) => {
+    try {
+      localStorage.setItem(GENDER_STORE_KEY, JSON.stringify(Object.fromEntries(m)))
+    } catch {
+      /* 저장 실패(시크릿 모드 등)해도 화면 동작에는 지장 없다 */
+    }
+  }
   const genderOf = (code: string): CoverGender => genderMap.get(code) ?? 'F'
   const setGender = (code: string, g: CoverGender) => {
     setGenderMap((prev) => {
       const next = new Map(prev)
       next.set(code, g)
+      persistGenders(next)
+      return next
+    })
+  }
+  /** 지금 보이는 명단 전체에 성별 일괄 적용 */
+  const setGenderAll = (g: CoverGender) => {
+    setGenderMap((prev) => {
+      const next = new Map(prev)
+      for (const p of roster) next.set(p.code, g)
+      persistGenders(next)
       return next
     })
   }
 
-  /** 이름 뒤 남/여 미니 토글 — 명단 행과 선택됨 목록에서 같이 쓴다 */
+  const toggleInSet =
+    (setFn: Dispatch<SetStateAction<Set<string>>>) => (code: string) => {
+      setFn((prev) => {
+        const next = new Set(prev)
+        if (next.has(code)) next.delete(code)
+        else next.add(code)
+        return next
+      })
+    }
+  const toggleCoach = toggleInSet(setCoachSet)
+  const toggleGuide = toggleInSet(setGuideSet)
+  /** 지금 보이는 명단 전체 켬/끔 — 전부 켜져 있으면 끄고, 아니면 켠다 */
+  const toggleAllInSet = (setFn: Dispatch<SetStateAction<Set<string>>>) => {
+    setFn((prev) => {
+      const allOn = roster.length > 0 && roster.every((p) => prev.has(p.code))
+      const next = new Set(prev)
+      for (const p of roster) {
+        if (allOn) next.delete(p.code)
+        else next.add(p.code)
+      }
+      return next
+    })
+  }
+
+  /** 남/여 미니 토글 — 명단 행과 선택됨 목록에서 같이 쓴다 */
   const GenderMini = ({ code, name }: { code: string; name: string }) => (
     <span className="gender-mini" role="radiogroup" aria-label={`${name} 표지 성별`}>
       {(['M', 'F'] as const).map((g) => (
@@ -241,9 +299,13 @@ export function Roster({
     setShowChoice(false)
     setShowConfirmPrint(false)
     cancelRef.current = false
-    const codes = selected.map((p) => p.code)
-    const people = selected.map((p) => ({ code: p.code, cover: genderOf(p.code) }))
-    setBulkBusy(`0 / ${codes.length}`)
+    const people = selected.map((p) => ({
+      code: p.code,
+      cover: genderOf(p.code),
+      coach: coachSet.has(p.code),
+      guide: guideSet.has(p.code),
+    }))
+    setBulkBusy(`0 / ${people.length}`)
     const result = await runBulkExport(
       people,
       mode,
@@ -259,7 +321,7 @@ export function Roster({
     setBulkBusy(null)
     setCurrent(null)
     setToast(
-      `${codes.length}명 중 ${result.ok.length}명 완료` +
+      `${people.length}명 중 ${result.ok.length}명 완료` +
         (result.failed.length ? ` · ${result.failed.length}명 실패` : ''),
     )
 
@@ -391,11 +453,45 @@ export function Roster({
                         : `${hq} · ${vc} · ${branch} — 총 ${branchNode!.count.toLocaleString('ko-KR')}명`}
                     </p>
                     <ul className="roster__list">
+                      {/* 머리글의 표지/코칭/가이드 컨트롤은 "한번에 선택" — 보이는 명단 전체에 적용 */}
                       <li className={`roster__list-head ${isStepupView ? 'roster__list--stepup' : ''}`}>
                         <input type="checkbox" checked={allChecked} onChange={toggleAll} aria-label="전체선택" />
-                        <span>이름</span>
-                        <span className="roster__gender-head">표지</span>
-                        <span>사번</span>
+                        <span>이름 · 사번</span>
+                        <span className="gender-mini" role="group" aria-label="표지 성별 전체 적용">
+                          {(['M', 'F'] as const).map((g) => (
+                            <button
+                              key={g}
+                              type="button"
+                              className={
+                                roster.length > 0 && roster.every((p) => genderOf(p.code) === g)
+                                  ? 'is-active'
+                                  : undefined
+                              }
+                              onClick={() => setGenderAll(g)}
+                              title={`전체 ${g === 'M' ? '남자' : '여자'}표지로`}
+                            >
+                              {g === 'M' ? '남' : '여'}
+                            </button>
+                          ))}
+                        </span>
+                        <label className="roster__opt-head" title="성장코칭 인쇄 전체 선택">
+                          코칭
+                          <input
+                            type="checkbox"
+                            checked={roster.length > 0 && roster.every((p) => coachSet.has(p.code))}
+                            onChange={() => toggleAllInSet(setCoachSet)}
+                            aria-label="성장코칭 인쇄 전체 선택"
+                          />
+                        </label>
+                        <label className="roster__opt-head" title="강사용 가이드 포함 전체 선택">
+                          가이드
+                          <input
+                            type="checkbox"
+                            checked={roster.length > 0 && roster.every((p) => guideSet.has(p.code))}
+                            onChange={() => toggleAllInSet(setGuideSet)}
+                            aria-label="강사용 가이드 포함 전체 선택"
+                          />
+                        </label>
                         {isStepupView && <span />}
                       </li>
                       {roster.map((p) => (
@@ -406,15 +502,31 @@ export function Roster({
                             onChange={() => toggle(p)}
                             aria-label={`${p.name} 선택`}
                           />
-                          <span>{p.name}</span>
+                          <span className="roster__who">
+                            {p.name}
+                            <button
+                              type="button"
+                              className="roster__code-link num"
+                              onClick={() => setPreviewTarget(p)}
+                            >
+                              {p.code}
+                            </button>
+                          </span>
                           <GenderMini code={p.code} name={p.name} />
-                          <button
-                            type="button"
-                            className="roster__code-link num"
-                            onClick={() => setPreviewTarget(p)}
-                          >
-                            {p.code}
-                          </button>
+                          <input
+                            type="checkbox"
+                            className="roster__opt"
+                            checked={coachSet.has(p.code)}
+                            onChange={() => toggleCoach(p.code)}
+                            aria-label={`${p.name} 성장코칭 인쇄`}
+                          />
+                          <input
+                            type="checkbox"
+                            className="roster__opt"
+                            checked={guideSet.has(p.code)}
+                            onChange={() => toggleGuide(p.code)}
+                            aria-label={`${p.name} 강사용 가이드 포함`}
+                          />
                           {isStepupView && (
                             <button
                               type="button"
@@ -443,6 +555,24 @@ export function Roster({
                         {p.name} ({p.code})
                       </span>
                       <GenderMini code={p.code} name={p.name} />
+                      <label className="roster__picked-opt">
+                        코칭
+                        <input
+                          type="checkbox"
+                          checked={coachSet.has(p.code)}
+                          onChange={() => toggleCoach(p.code)}
+                          aria-label={`${p.name} 성장코칭 인쇄`}
+                        />
+                      </label>
+                      <label className="roster__picked-opt">
+                        가이드
+                        <input
+                          type="checkbox"
+                          checked={guideSet.has(p.code)}
+                          onChange={() => toggleGuide(p.code)}
+                          aria-label={`${p.name} 강사용 가이드 포함`}
+                        />
+                      </label>
                       <button type="button" onClick={() => toggle(p)} aria-label={`${p.name} 선택 해제`}>
                         ✕
                       </button>
@@ -620,10 +750,16 @@ export function Roster({
 
       {toast && <div className="toast">{toast}</div>}
 
-      {/* 일괄 처리 중 캡처/인쇄 대상 — 한 번에 한 명만 마운트한다 */}
+      {/* 일괄 처리 중 캡처/인쇄 대상 — 한 번에 한 명만 마운트한다.
+          어떤 종류를 마운트할지는 루프가 단계별로 정한다(kind) — 레포트+성장코칭을
+          이어서 출력하는 사람은 같은 사람이 두 번(kind 만 바꿔) 마운트된다. */}
       {current &&
-        (bulkTarget === 'coach' ? (
-          <CoachPrintRootForPerson A={current.A} caption={current.caption} />
+        (current.kind === 'coach' ? (
+          <CoachPrintRootForPerson
+            A={current.A}
+            caption={current.caption}
+            includeGuide={current.guide}
+          />
         ) : (
           <PrintRoot A={current.A} caption={current.caption} cover={current.cover} />
         ))}

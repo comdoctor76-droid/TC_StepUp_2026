@@ -11,6 +11,7 @@
 
 import type { FullAnalysis } from '../calc'
 import { dec2, int, pct, won, ym } from '../calc/format'
+import { APP_VERSION, CONTACT } from '../version'
 import coverM from '../assets/cover-m.jpg'
 import coverF from '../assets/cover-f.jpg'
 
@@ -54,6 +55,8 @@ export function CoverPage({ A, gender }: { A: FullAnalysis; gender: CoverGender 
               <em>{dec2(o.casesPerCustomer.self)}건</em>
             </b>
           </div>
+          {/* 오른쪽 여백 세로 영문 가림 (사용자 요청) */}
+          <div className="a4-cover__patch cvf-side" />
         </>
       ) : (
         <>
@@ -92,6 +95,10 @@ export function CoverPage({ A, gender }: { A: FullAnalysis; gender: CoverGender 
             <span>
               연계율 <b>{pct(o.mixRate.linkRate.self)}</b>
             </span>
+          </div>
+          {/* 하단 푸터 — 박힌 "v0.34 | 원작 : …" 을 덮고 원작 표기 없이 재렌더 (사용자 요청) */}
+          <div className="a4-cover__patch cvm-foot">
+            스텝업 레포트 [Step - Up Report] v{APP_VERSION} | 문의: {CONTACT.dept}
           </div>
         </>
       )}

@@ -19,10 +19,14 @@ export type BulkMode = 'print' | 'pdf'
 /** 'report' = 기존 6페이지 자가진단 레포트, 'coach' = 성장코칭 리포트 */
 export type BulkTarget = 'report' | 'coach'
 
-/** 일괄 처리 대상 1명 — cover 는 report 출력 맨 앞에 붙는 남/여 표지 (coach 는 무시) */
+/** 일괄 처리 대상 1명 — cover 는 report 출력 맨 앞에 붙는 남/여 표지 (coach 는 무시).
+ *  coach 를 켜면 report 일괄 인쇄에서 그 사람의 성장코칭 리포트도 이어서 출력하고,
+ *  guide 는 성장코칭에 강사용 가이드 2장을 포함할지 여부다. */
 export interface BulkPerson {
   code: string
   cover?: CoverGender
+  coach?: boolean
+  guide?: boolean
 }
 
 /* bodyClass: 캡처하는 동안 인쇄와 같은 조밀 스타일 + A4 고정 높이를 적용한다
@@ -62,7 +66,15 @@ export async function runBulkExport(
   people: BulkPerson[],
   mode: BulkMode,
   target: BulkTarget,
-  setCurrent: (v: { A: FullAnalysis; caption: string; cover?: CoverGender } | null) => void,
+  setCurrent: (
+    v: {
+      A: FullAnalysis
+      caption: string
+      kind: 'report' | 'coach'
+      cover?: CoverGender
+      guide?: boolean
+    } | null,
+  ) => void,
   onProgress: (p: BulkProgress) => void,
   cancelled: () => boolean,
 ): Promise<BulkResult> {
@@ -72,7 +84,7 @@ export async function runBulkExport(
 
   for (let i = 0; i < people.length; i++) {
     if (cancelled()) break
-    const { code, cover } = people[i]
+    const { code, cover, coach, guide } = people[i]
     const base = { index: i + 1, total: people.length, code }
     try {
       onProgress({ ...base, phase: 'loading' })
@@ -81,23 +93,45 @@ export async function runBulkExport(
       const A = analyze(code, planner, ref.benchmarks, ref.incomeMap, ref.dataset.months)
       const name = A.profile.name
 
-      onProgress({ ...base, name, phase: 'rendering' })
-      setCurrent({ A, caption: ref.dataset.caption, cover: target === 'report' ? cover : undefined })
-      await nextPaint()
-      if (cancelled()) break
+      // 사람마다 출력할 문서 목록 — '일괄 인쇄' 는 레포트(+코칭 체크 시 성장코칭도),
+      // '성장코칭 인쇄하기' 는 성장코칭만.
+      const kinds: ('report' | 'coach')[] =
+        target === 'coach' ? ['coach'] : coach ? ['report', 'coach'] : ['report']
 
       const stem = outputFileStem(name, A.profile.code)
-      if (mode === 'pdf') {
-        onProgress({ ...base, name, phase: 'capturing' })
-        const blob = await exportPdf(
-          (d, t) => onProgress({ ...base, name, phase: 'capturing', page: d, pageTotal: t }),
-          target === 'coach' ? COACH_CAPTURE_OPTS : undefined,
-        )
-        download(blob, target === 'coach' ? `${stem}_성장코칭.pdf` : outputFileName(name, A.profile.code, 'pdf'))
-      } else {
-        onProgress({ ...base, name, phase: 'printing' })
-        await printAll(target === 'coach' ? `${stem}_성장코칭` : stem, undefined, target === 'coach' ? 'printing-coach' : undefined)
+      for (const kind of kinds) {
+        if (cancelled()) break
+        onProgress({ ...base, name, phase: 'rendering' })
+        setCurrent({
+          A,
+          caption: ref.dataset.caption,
+          kind,
+          cover: kind === 'report' ? cover : undefined,
+          guide: kind === 'coach' ? guide : undefined,
+        })
+        await nextPaint()
+        if (cancelled()) break
+
+        if (mode === 'pdf') {
+          onProgress({ ...base, name, phase: 'capturing' })
+          const blob = await exportPdf(
+            (d, t) => onProgress({ ...base, name, phase: 'capturing', page: d, pageTotal: t }),
+            kind === 'coach' ? COACH_CAPTURE_OPTS : undefined,
+          )
+          download(
+            blob,
+            kind === 'coach' ? `${stem}_성장코칭.pdf` : outputFileName(name, A.profile.code, 'pdf'),
+          )
+        } else {
+          onProgress({ ...base, name, phase: 'printing' })
+          await printAll(
+            kind === 'coach' ? `${stem}_성장코칭` : stem,
+            undefined,
+            kind === 'coach' ? 'printing-coach' : undefined,
+          )
+        }
       }
+      if (cancelled()) break
       ok.push({ code, name })
     } catch (e) {
       failed.push({ code, error: e instanceof Error ? e.message : String(e) })
