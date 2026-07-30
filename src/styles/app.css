@@ -709,7 +709,8 @@
   color: var(--ink-2);
 }
 .summary--dense {
-  padding: 5px 7px;
+  /* v0.38: 현황Ⅱ 실적현황 행 추가로 페이지 자연 높이가 3px 초과 — 여기서 회수 */
+  padding: 3px 7px;
   gap: 8px;
   border-radius: 5px;
   box-shadow: none;
@@ -720,7 +721,7 @@
   gap: 5px;
 }
 .summary--dense .tile {
-  padding: 4px 6px;
+  padding: 3px 6px;
   border-radius: 4px;
 }
 .summary--dense .tile__label {
@@ -912,7 +913,9 @@
   word-break: keep-all;
 }
 .cmp--dense .grp {
-  padding: 3px 5px;
+  /* v0.38: 현황Ⅱ에 실적현황 행이 추가돼(총 13행) 세로 3px 그대로면 A4를 6px 넘긴다 —
+     행당 1px 줄여 자연 높이를 낮추고, 남는 공간은 flex-grow 가 고르게 되돌려준다 */
+  padding: 2.5px 5px;
   gap: 6px;
   line-height: 1.3;
 }

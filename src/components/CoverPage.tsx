@@ -57,6 +57,15 @@ export function CoverPage({ A, gender }: { A: FullAnalysis; gender: CoverGender 
         </>
       ) : (
         <>
+          {/* 상단 큰 이름 블록 — 포스터에 박힌 샘플 이름을 덮는다 */}
+          <div className="a4-cover__patch cvm-top">
+            <b>
+              {p.name} <i>({p.code})</i> | {p.hq} {p.visionCenter}
+            </b>
+            <span>
+              {p.branch} | {p.months}차월
+            </span>
+          </div>
           {/* 하단 연청색 밴드 — 이름줄 */}
           <div className="a4-cover__patch cvm-name">
             <b>{nameLine}</b>
