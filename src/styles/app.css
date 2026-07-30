@@ -260,7 +260,7 @@
 }
 .roster__list li {
   display: grid;
-  grid-template-columns: 24px 1fr auto;
+  grid-template-columns: 24px 1fr auto auto;
   align-items: center;
   gap: 10px;
   padding: 8px 12px;
@@ -284,7 +284,35 @@
   height: 17px;
 }
 .roster__list li.roster__list--stepup {
-  grid-template-columns: 24px 1fr auto auto;
+  grid-template-columns: 24px 1fr auto auto auto;
+}
+
+/* 이름 뒤 남/여 표지 성별 미니 토글 (기본 여) */
+.roster__gender-head {
+  font-weight: 700;
+}
+.gender-mini {
+  display: inline-flex;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  overflow: hidden;
+}
+.gender-mini button {
+  border: 0;
+  background: var(--surface);
+  color: var(--ink-3);
+  font-size: 12.5px;
+  font-weight: 700;
+  line-height: 1;
+  padding: 5px 9px;
+  cursor: pointer;
+}
+.gender-mini button + button {
+  border-left: 1px solid var(--line);
+}
+.gender-mini button.is-active {
+  background: var(--hi-orange);
+  color: #fff;
 }
 .roster__code-link {
   border: 0;
@@ -1349,11 +1377,32 @@
 }
 .choice-overlay__actions .btn {
   flex: 1 1 0;
+  /* .btn 은 inline-flex 인데 justify-content 기본값이 없어, flex 로 늘어난 버튼의
+     글자가 왼쪽으로 쏠렸다 — 모든 팝업 버튼의 글자를 중앙 정렬한다 (요청 사항) */
+  justify-content: center;
 }
 .choice-overlay__cancel {
   margin-top: 14px;
   width: 100%;
   justify-content: center;
+}
+
+/* 출력 팝업의 남자표지/여자표지 선택 */
+.choice-overlay__gender {
+  display: flex;
+  gap: 10px;
+  justify-content: center;
+  margin: 0 0 12px;
+}
+.choice-overlay__gender .gender-btn {
+  flex: 1 1 0;
+  justify-content: center;
+}
+.gender-btn.is-active {
+  border-color: var(--hi-orange);
+  background: var(--hi-orange-soft);
+  color: var(--hi-orange-deep);
+  font-weight: 800;
 }
 .admin__add-form {
   text-align: left;

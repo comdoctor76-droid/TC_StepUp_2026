@@ -37,6 +37,141 @@
   margin-top: 6mm; /* 화면 밖 미리보기에서만 의미 있음 */
 }
 
+/* ── 표지 (CoverPage.tsx) ──────────────────────────────────────────────
+   포스터 이미지 풀블리드 + 교육생 데이터 오버레이.
+   포스터에 박힌 샘플 텍스트를 같은 배경색 패치로 덮고 다시 그린다.
+   좌표는 모두 페이지 좌상단 기준 % — 이미지를 바꾸면 여기만 손본다. */
+.a4-cover {
+  padding: 0; /* .a4-page 의 여백을 끄고 포스터를 종이 끝까지 */
+}
+.a4-cover__bg {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+.a4-cover__patch,
+.a4-cover__bubble,
+.a4-cover__circle {
+  position: absolute;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  word-break: keep-all;
+  line-height: 1.25;
+}
+
+/* ── 여자표지 ── */
+.cvf-name {
+  left: 5%;
+  top: 19.8%;
+  width: 90%;
+  height: 6.6%;
+  background: #fff;
+  align-items: flex-start;
+  text-align: left;
+  gap: 3px;
+}
+.cvf-name b {
+  font-size: 20px;
+  font-weight: 800;
+  color: #16233c;
+}
+.cvf-name span {
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--hi-navy);
+}
+.a4-cover__bubble {
+  background: #fff;
+  border-radius: 14px;
+  box-shadow: 0 3px 10px rgba(20, 40, 80, 0.18);
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--hi-navy);
+  gap: 1px;
+  padding: 4px 6px;
+}
+.a4-cover__bubble b {
+  font-size: 17px;
+  font-weight: 800;
+  color: var(--hi-navy);
+}
+.a4-cover__bubble em {
+  font-style: normal;
+  color: var(--hi-orange-deep);
+}
+.cvf-total {
+  left: 4%;
+  top: 63%;
+  width: 21%;
+  height: 7%;
+}
+.cvf-new {
+  left: 53.5%;
+  top: 61.2%;
+  width: 24.5%;
+  height: 7%;
+}
+.cvf-cases {
+  left: 74.5%;
+  top: 52.2%;
+  width: 21.5%;
+  height: 6.6%;
+}
+
+/* ── 남자표지 ── */
+.cvm-name {
+  left: 8%;
+  top: 57.3%;
+  width: 84%;
+  height: 3.1%;
+  background: #dce9f5;
+  border-radius: 8px;
+}
+.cvm-name b {
+  font-size: 19px;
+  font-weight: 800;
+  color: #16233c;
+}
+.a4-cover__circle {
+  background: #fff;
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--hi-navy);
+  gap: 2px;
+  border-radius: 10px;
+}
+.a4-cover__circle b {
+  font-size: 19px;
+  font-weight: 800;
+  color: var(--hi-orange-deep);
+}
+.a4-cover__circle span b {
+  font-size: 18px;
+}
+.cvm-c1 {
+  left: 13.7%;
+  top: 77%;
+  width: 20.4%;
+  height: 8.2%;
+}
+.cvm-c2 {
+  left: 39.4%;
+  top: 78%;
+  width: 21.6%;
+  height: 6.6%;
+}
+.cvm-c3 {
+  left: 66.2%;
+  top: 77%;
+  width: 20.8%;
+  height: 8.2%;
+}
+
 .a4-body {
   flex: 1 1 auto;
   min-height: 0;

@@ -9,6 +9,7 @@
    ══════════════════════════════════════════════════════════════════════ */
 
 import { analyze, type FullAnalysis } from '../calc'
+import type { CoverGender } from '../components/CoverPage'
 import { loadPlanner, loadReference } from '../data/repository'
 import { printAll, type CaptureOptions } from './captureAll'
 import { exportPdf } from './pdf'
@@ -17,6 +18,12 @@ import { download, outputFileName, outputFileStem } from './share'
 export type BulkMode = 'print' | 'pdf'
 /** 'report' = 기존 6페이지 자가진단 레포트, 'coach' = 성장코칭 리포트 */
 export type BulkTarget = 'report' | 'coach'
+
+/** 일괄 처리 대상 1명 — cover 는 report 출력 맨 앞에 붙는 남/여 표지 (coach 는 무시) */
+export interface BulkPerson {
+  code: string
+  cover?: CoverGender
+}
 
 /* bodyClass: 캡처하는 동안 인쇄와 같은 조밀 스타일 + A4 고정 높이를 적용한다
    (coach.css 의 body.capturing-coach 규칙 참고) */
@@ -47,15 +54,15 @@ function nextPaint(): Promise<void> {
 }
 
 /**
- * codes 를 순서대로 처리한다. setCurrent 는 캡처 대상 PrintRoot 를 그 사람으로
- * 갈아 끼우는 콜백(호출부가 상태로 들고 있다가 <PrintRoot A={...}/> 를 렌더한다).
+ * people 을 순서대로 처리한다. setCurrent 는 캡처 대상 PrintRoot 를 그 사람으로
+ * 갈아 끼우는 콜백(호출부가 상태로 들고 있다가 <PrintRoot A={...} cover={...}/> 를 렌더한다).
  * 도중에 cancelled() 가 true 를 반환하면 그 시점에서 멈춘다.
  */
 export async function runBulkExport(
-  codes: string[],
+  people: BulkPerson[],
   mode: BulkMode,
   target: BulkTarget,
-  setCurrent: (v: { A: FullAnalysis; caption: string } | null) => void,
+  setCurrent: (v: { A: FullAnalysis; caption: string; cover?: CoverGender } | null) => void,
   onProgress: (p: BulkProgress) => void,
   cancelled: () => boolean,
 ): Promise<BulkResult> {
@@ -63,10 +70,10 @@ export async function runBulkExport(
   const failed: BulkResult['failed'] = []
   const ref = await loadReference()
 
-  for (let i = 0; i < codes.length; i++) {
+  for (let i = 0; i < people.length; i++) {
     if (cancelled()) break
-    const code = codes[i]
-    const base = { index: i + 1, total: codes.length, code }
+    const { code, cover } = people[i]
+    const base = { index: i + 1, total: people.length, code }
     try {
       onProgress({ ...base, phase: 'loading' })
       const planner = await loadPlanner(code)
@@ -75,7 +82,7 @@ export async function runBulkExport(
       const name = A.profile.name
 
       onProgress({ ...base, name, phase: 'rendering' })
-      setCurrent({ A, caption: ref.dataset.caption })
+      setCurrent({ A, caption: ref.dataset.caption, cover: target === 'report' ? cover : undefined })
       await nextPaint()
       if (cancelled()) break
 

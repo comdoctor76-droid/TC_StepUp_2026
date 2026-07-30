@@ -140,7 +140,10 @@ const browser = await chromium.launch({ executablePath: EXECUTABLE })
   })
 
   const dl = page.waitForEvent('download', { timeout: 120_000 })
+  // v0.38: 이미지로 저장 전에 남/여 표지 선택 팝업이 뜬다 — 여자표지(기본 안내값)로 진행
   await page.getByRole('button', { name: '이미지로 저장' }).click()
+  await page.getByRole('radio', { name: '여자표지' }).click()
+  await page.getByRole('button', { name: '저장', exact: true }).click()
   const download = await dl
   const appName = await page.evaluate(() => (window as unknown as { __dlName?: string }).__dlName)
   const path = `${OUT}/merged.png`
@@ -155,10 +158,11 @@ const browser = await chromium.launch({ executablePath: EXECUTABLE })
   // PNG IHDR: 8바이트 시그니처 + 4(길이) + 4('IHDR') → width, height
   const w = png.readUInt32BE(16)
   const h = png.readUInt32BE(20)
+  const PNG_PAGES = PAGES + 1 // 표지 1장 + 본문 6장
   const expW = Math.round(794 * 1.5)
-  const expH = Math.round(1123 * 1.5) * PAGES + 10 * (PAGES - 1)
+  const expH = Math.round(1123 * 1.5) * PNG_PAGES + 10 * (PNG_PAGES - 1)
   Math.abs(w - expW) <= 4 ? pass(`이미지 폭 ${w}px`) : fail(`이미지 폭 ${w}px (기대 ${expW}±4)`)
-  Math.abs(h - expH) <= 14 ? pass(`이미지 높이 ${h}px (${PAGES}장 병합)`) : fail(`이미지 높이 ${h}px (기대 ${expH}±12)`)
+  Math.abs(h - expH) <= 14 ? pass(`이미지 높이 ${h}px (표지+${PAGES}장 병합)`) : fail(`이미지 높이 ${h}px (기대 ${expH}±14)`)
   w * h < 16_777_216
     ? pass(`총 ${(w * h / 1e6).toFixed(1)}M px — iOS 캔버스 한도(16.7M) 이내`)
     : fail(`총 ${(w * h / 1e6).toFixed(1)}M px — iOS 캔버스 한도 초과`)

@@ -16,6 +16,7 @@ import {
   type PeriodCaps,
 } from '../components/PeriodPicker'
 import { captureAllPages, printAll } from '../export/captureAll'
+import type { CoverGender } from '../components/CoverPage'
 import { exportPdf } from '../export/pdf'
 import { savePdf } from '../export/pdfSave'
 import {
@@ -91,6 +92,10 @@ export function Report({
   const [busyMode, setBusyMode] = useState<'print' | 'image' | 'pdf' | null>(null)
   const [showDismiss, setShowDismiss] = useState(false)
   const [showPrintChoice, setShowPrintChoice] = useState(false)
+  // 이미지로 저장(및 모바일 전체 인쇄) 전 남/여 표지 선택 팝업
+  const [showImageChoice, setShowImageChoice] = useState(false)
+  // 출력물 맨 앞에 붙는 표지 — 팝업에서 선택해야만 출력이 가능하다
+  const [coverGender, setCoverGender] = useState<CoverGender | null>(null)
   const [toast, setToast] = useState<string | null>(null)
   const [refreshing, setRefreshing] = useState(false)
 
@@ -123,11 +128,18 @@ export function Report({
     setTimeout(() => setToast(null), 5000)
   }, [])
 
-  const makeImage = useCallback(async () => {
+  /* setCoverGender 로 표지를 붙인 뒤 PrintRoot 가 실제로 다시 그려질 때까지
+     두 프레임 양보 — 캡처가 표지 없는 이전 DOM 을 찍지 않도록 한다 */
+  const nextPaint = () =>
+    new Promise<void>((r) => requestAnimationFrame(() => requestAnimationFrame(() => r())))
+
+  const makeImage = useCallback(async (gender: CoverGender) => {
     const id = startOp()
     setBusyMode('image')
-    setBusy(`0 / ${TOTAL_PAGES}`)
+    setBusy(`0 / ${TOTAL_PAGES + 1}`)
+    setCoverGender(gender)
     try {
+      await nextPaint()
       const blob = await captureAllPages((d, t) => {
         if (isCurrent(id)) setBusy(`${d} / ${t}`)
       })
@@ -151,6 +163,7 @@ export function Report({
       setToast(e instanceof Error ? e.message : '이미지를 만들지 못했습니다.')
       setTimeout(() => setToast(null), 5000)
     } finally {
+      setCoverGender(null)
       if (isCurrent(id)) {
         setBusy(null)
         setBusyMode(null)
@@ -158,15 +171,17 @@ export function Report({
     }
   }, [A])
 
-  const doPrintAll = useCallback(async () => {
+  const doPrintAll = useCallback(async (gender: CoverGender) => {
     if (mobile) {
-      await makeImage()
+      await makeImage(gender)
       return
     }
     const id = startOp()
     setBusyMode('print')
     setBusy('준비 중')
+    setCoverGender(gender)
     try {
+      await nextPaint()
       const fileStem = outputFileStem(A.profile.name, A.profile.code)
       await printAll(fileStem, () => {
         // 폰트 대기가 끝나 인쇄창을 여는 시점 — 자체 오버레이를 바로 닫는다.
@@ -182,6 +197,7 @@ export function Report({
         setTimeout(() => setToast(null), 5000)
       }
     } finally {
+      setCoverGender(null)
       if (isCurrent(id)) {
         setBusy(null)
         setBusyMode(null)
@@ -189,11 +205,13 @@ export function Report({
     }
   }, [mobile, makeImage, A])
 
-  const doExportPdf = useCallback(async () => {
+  const doExportPdf = useCallback(async (gender: CoverGender) => {
     const id = startOp()
     setBusyMode('pdf')
-    setBusy(`0 / ${TOTAL_PAGES}`)
+    setBusy(`0 / ${TOTAL_PAGES + 1}`)
+    setCoverGender(gender)
     try {
+      await nextPaint()
       const blob = await exportPdf((d, t) => {
         if (isCurrent(id)) setBusy(`${d} / ${t}`)
       })
@@ -209,6 +227,7 @@ export function Report({
       setToast(e instanceof Error ? e.message : 'PDF를 만들지 못했습니다.')
       setTimeout(() => setToast(null), 5000)
     } finally {
+      setCoverGender(null)
       if (isCurrent(id)) {
         setBusy(null)
         setBusyMode(null)
@@ -216,23 +235,39 @@ export function Report({
     }
   }, [A])
 
+  /* 팝업을 열 때마다 표지 선택을 초기화한다 — 매번 명시적으로 고르게 (요청 사항) */
   const openPrintChoice = useCallback(() => {
+    setCoverGender(null)
     if (mobile) {
-      void doPrintAll()
+      // 모바일 전체 인쇄 = 이미지 저장이므로 남/여 선택 팝업을 먼저 띄운다
+      setShowImageChoice(true)
       return
     }
     setShowPrintChoice(true)
-  }, [mobile, doPrintAll])
+  }, [mobile])
+
+  const openImageChoice = useCallback(() => {
+    setCoverGender(null)
+    setShowImageChoice(true)
+  }, [])
 
   const choosePrint = useCallback(() => {
+    if (!coverGender) return
     setShowPrintChoice(false)
-    void doPrintAll()
-  }, [doPrintAll])
+    void doPrintAll(coverGender)
+  }, [doPrintAll, coverGender])
 
   const choosePdf = useCallback(() => {
+    if (!coverGender) return
     setShowPrintChoice(false)
-    void doExportPdf()
-  }, [doExportPdf])
+    void doExportPdf(coverGender)
+  }, [doExportPdf, coverGender])
+
+  const chooseImage = useCallback(() => {
+    if (!coverGender) return
+    setShowImageChoice(false)
+    void makeImage(coverGender)
+  }, [makeImage, coverGender])
 
   return (
     <div className="app">
@@ -278,10 +313,10 @@ export function Report({
                   : `출력 중 ${busy}`
               : mobile
                 ? '전체 인쇄 (이미지 저장·공유)'
-                : `전체 인쇄 (A4 ${TOTAL_PAGES}장)`}
+                : `전체 인쇄 (표지+A4 ${TOTAL_PAGES}장)`}
           </button>
           {!mobile && (
-            <button className="btn" onClick={makeImage} disabled={!!busy || refreshing}>
+            <button className="btn" onClick={openImageChoice} disabled={!!busy || refreshing}>
               이미지로 저장
             </button>
           )}
@@ -340,17 +375,83 @@ export function Report({
         >
           <div className="choice-overlay__box" onClick={(e) => e.stopPropagation()}>
             <p className="choice-overlay__title">어떻게 출력할까요?</p>
+            <div className="choice-overlay__gender" role="radiogroup" aria-label="표지 선택">
+              <button
+                className={`btn gender-btn ${coverGender === 'M' ? 'is-active' : ''}`}
+                role="radio"
+                aria-checked={coverGender === 'M'}
+                onClick={() => setCoverGender('M')}
+              >
+                남자표지
+              </button>
+              <button
+                className={`btn gender-btn ${coverGender === 'F' ? 'is-active' : ''}`}
+                role="radio"
+                aria-checked={coverGender === 'F'}
+                onClick={() => setCoverGender('F')}
+              >
+                여자표지
+              </button>
+            </div>
+            {!coverGender && (
+              <p className="choice-overlay__note">표지를 선택해야 출력할 수 있습니다.</p>
+            )}
             <div className="choice-overlay__actions">
-              <button className="btn btn--primary" onClick={choosePrint}>
+              <button className="btn btn--primary" disabled={!coverGender} onClick={choosePrint}>
                 인쇄
               </button>
-              <button className="btn btn--primary" onClick={choosePdf}>
+              <button className="btn btn--primary" disabled={!coverGender} onClick={choosePdf}>
                 PDF로 저장
               </button>
             </div>
             <button
               className="btn choice-overlay__cancel"
               onClick={() => setShowPrintChoice(false)}
+            >
+              취소
+            </button>
+          </div>
+        </div>
+      )}
+
+      {showImageChoice && (
+        <div
+          className="choice-overlay"
+          role="dialog"
+          aria-modal="true"
+          onClick={() => setShowImageChoice(false)}
+        >
+          <div className="choice-overlay__box" onClick={(e) => e.stopPropagation()}>
+            <p className="choice-overlay__title">어떤 표지로 저장할까요?</p>
+            <div className="choice-overlay__gender" role="radiogroup" aria-label="표지 선택">
+              <button
+                className={`btn gender-btn ${coverGender === 'M' ? 'is-active' : ''}`}
+                role="radio"
+                aria-checked={coverGender === 'M'}
+                onClick={() => setCoverGender('M')}
+              >
+                남자표지
+              </button>
+              <button
+                className={`btn gender-btn ${coverGender === 'F' ? 'is-active' : ''}`}
+                role="radio"
+                aria-checked={coverGender === 'F'}
+                onClick={() => setCoverGender('F')}
+              >
+                여자표지
+              </button>
+            </div>
+            {!coverGender && (
+              <p className="choice-overlay__note">표지를 선택해야 저장할 수 있습니다.</p>
+            )}
+            <div className="choice-overlay__actions">
+              <button className="btn btn--primary" disabled={!coverGender} onClick={chooseImage}>
+                저장
+              </button>
+            </div>
+            <button
+              className="btn choice-overlay__cancel"
+              onClick={() => setShowImageChoice(false)}
             >
               취소
             </button>
@@ -372,7 +473,7 @@ export function Report({
               </p>
             ) : (
               <p>
-                A4 {TOTAL_PAGES}장을 이미지로 만드는 중입니다
+                표지+A4 {TOTAL_PAGES}장을 이미지로 만드는 중입니다
                 <br />
                 <b>{busy}</b>
               </p>
@@ -388,8 +489,8 @@ export function Report({
 
       {toast && <div className="toast">{toast}</div>}
 
-      {/* 인쇄/캡처 전용 — 화면 밖에 상시 마운트 */}
-      <PrintRoot A={A} caption={caption} />
+      {/* 인쇄/캡처 전용 — 화면 밖에 상시 마운트. cover 는 출력 팝업에서 고른 표지 */}
+      <PrintRoot A={A} caption={caption} cover={coverGender} />
 
       {mobile && !shareable && (
         <p className="hint">
