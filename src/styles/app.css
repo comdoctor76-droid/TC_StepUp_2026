@@ -642,8 +642,6 @@
 /* ── 요약 스트립 (레포트 탭) ──────────────────────────────────────── */
 .summary {
   display: grid;
-  grid-template-columns: 1fr auto;
-  gap: 18px;
   align-items: center;
   background: var(--surface);
   border-radius: 14px;
@@ -682,30 +680,6 @@
   margin-left: 3px;
   color: var(--ink-2);
 }
-.summary__cams {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-}
-.summary__scores {
-  list-style: none;
-  margin: 0;
-  padding: 0;
-  font-size: 15px;
-}
-.summary__scores li {
-  padding: 3px 0;
-}
-.summary__scores b {
-  display: inline-block;
-  width: 22px;
-  color: var(--hi-orange-deep);
-}
-.summary__scores--na {
-  color: var(--ink-3);
-  font-size: 13px;
-}
-
 .summary--dense {
   padding: 5px 7px;
   gap: 8px;
@@ -731,16 +705,6 @@
 .summary--dense .tile__value i {
   font-size: 14px;
 }
-.summary--dense .summary__scores {
-  font-size: 15px;
-}
-.summary--dense .summary__scores li {
-  padding: 0;
-}
-.summary--dense .summary__scores--na {
-  font-size: 13.5px;
-}
-
 /* ── 비교표 (원본 엑셀 가로 배치 — 본인·TC 를 같은 행에 좌우 열 그룹으로) ── */
 .cmp {
   display: flex;
@@ -904,9 +868,11 @@
   border: 1px solid var(--hi-orange-line);
 }
 .cmp--dense .cmp__sec {
-  width: 40px;
-  padding: 2px 1px;
-  font-size: 12.5px;
+  /* 40px 는 "고객분석" 류 4글자 라벨의 실제 렌더 폭(약 50px)보다 좁아 word-break:
+     keep-all 때문에 줄바꿈도 못 하고 옆 항목 칸으로 글자가 겹쳐 보였다 */
+  width: 52px;
+  padding: 2px 2px;
+  font-size: 12px;
   word-break: keep-all;
 }
 .cmp--dense .grp {
@@ -1506,11 +1472,6 @@
   .summary {
     grid-template-columns: 1fr;
   }
-  .summary__scores {
-    display: flex;
-    justify-content: center;
-    gap: 14px;
-  }
   .ptitle__h1 {
     font-size: 26px;
   }
@@ -1697,8 +1658,11 @@
   }
 }
 
-/* 인쇄 페이지 내부는 항상 데스크톱 밀도를 유지한다 */
-#print-root .cmp,
+/* 인쇄 페이지 내부는 항상 데스크톱 밀도를 유지한다.
+   (bare .cmp 는 원래 이 목록에 있었지만, 모바일 미디어쿼리 어디에도 .cmp 자체의
+   display 를 바꾸는 규칙이 없어 되돌릴 대상이 아니었다 — 오히려 revert 가
+   .cmp{display:flex}를 지워 버려 현황Ⅰ/Ⅱ가 인쇄에서 페이지 하단까지 늘어나도록
+   준 flex-grow 가 전혀 먹지 않는 원인이었다) */
 #print-root .cmp thead,
 #print-root .cmp tbody,
 #print-root .cmp tr,
@@ -1721,8 +1685,12 @@
 #print-root .cmp__sec {
   background: var(--hi-orange-soft);
   color: var(--hi-navy);
-  width: 46px !important;
-  padding: 2px 2px !important;
+  /* 46px 는 "고객분석" 류 4글자 라벨의 실제 렌더 폭(약 50px)보다 좁아 옆 항목
+     칸(grp__title)으로 글자가 겹쳐 보였다 — 이 규칙이 !important 라 위의
+     .cmp--dense .cmp__sec 쪽 폭 조정을 실제 캡처(PDF/PNG)에서는 덮어쓰고 있었다 */
+  width: 58px !important;
+  padding: 2px 3px !important;
+  font-size: 12px !important;
   word-break: keep-all;
 }
 #print-root .grp {
