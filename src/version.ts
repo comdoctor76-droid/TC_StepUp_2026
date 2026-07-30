@@ -5,7 +5,7 @@
    CHANGELOG 에 한 줄씩 남긴다.
    ══════════════════════════════════════════════════════════════════════ */
 
-export const APP_VERSION = '0.33'
+export const APP_VERSION = '0.34'
 
 export const CONTACT = {
   dept: '개인마케팅교육본부 / 영업교육운영파트',
@@ -35,6 +35,10 @@ export const DISCLAIMER =
 
 /** 수정 이력 (최신이 위) */
 export const CHANGELOG: { version: string; note: string }[] = [
+  {
+    version: '0.34',
+    note: '세로쓰기 구분 라벨("고객분석" 등) 칸 폭을 3px 넓힘(22→25px) — 실기기에서 캡처된 이미지/PDF로 볼 때 글자가 너무 빡빡해 보이던 것을 완화',
+  },
   {
     version: '0.33',
     note: '(수정) v0.32 세로쓰기 구분 라벨이 실제 데이터에서 항목이 한 줄뿐인 짧은 블록을 만나면 글자가 다 들어갈 높이가 안 나와 잘려 보이던 문제 수정 — 라벨 칸에 최소 높이를 줘서 어떤 경우에도 4글자가 전부 보이도록 함',
