@@ -870,10 +870,14 @@
 .cmp--dense .cmp__sec {
   /* "고객분석" 류 4글자를 가로로 쓰면 최소 50px 폭이 필요해 옆 항목 칸을
      그만큼 좁혔다 — 세로쓰기로 바꾸면 한 글자 폭(약 20px)이면 되고, 그렇게
-     비운 가로 공간을 행(.grp) 쪽에 돌려줘 표가 더 큼직하게 보이게 한다. */
+     비운 가로 공간을 행(.grp) 쪽에 돌려줘 표가 더 큼직하게 보이게 한다.
+     min-height 없이는 실제 데이터에서 그룹이 한 줄뿐인 짧은 블록의 경우
+     블록 높이가 세로 글자 4개가 필요한 높이(약 60px)보다 낮아져
+     .cmp__block 의 overflow:hidden 에 글자가 잘려 나갔다. */
   writing-mode: vertical-rl;
   text-orientation: upright;
   width: 22px;
+  min-height: 66px;
   padding: 3px 2px;
   font-size: 12px;
   letter-spacing: 1px;
@@ -1696,6 +1700,7 @@
   writing-mode: vertical-rl !important;
   text-orientation: upright !important;
   width: 22px !important;
+  min-height: 66px !important;
   padding: 3px 2px !important;
   font-size: 12px !important;
   letter-spacing: 1px !important;
