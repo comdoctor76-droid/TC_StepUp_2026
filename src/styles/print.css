@@ -37,12 +37,184 @@
   margin-top: 6mm; /* 화면 밖 미리보기에서만 의미 있음 */
 }
 
+/* ── 표지 (CoverPage.tsx) ──────────────────────────────────────────────
+   포스터 이미지 풀블리드 + 교육생 데이터 오버레이.
+   포스터에 박힌 샘플 텍스트를 같은 배경색 패치로 덮고 다시 그린다.
+   좌표는 모두 페이지 좌상단 기준 % — 이미지를 바꾸면 여기만 손본다. */
+.a4-cover {
+  padding: 0; /* .a4-page 의 여백을 끄고 포스터를 종이 끝까지 */
+}
+.a4-cover__bg {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+.a4-cover__patch,
+.a4-cover__bubble,
+.a4-cover__circle {
+  position: absolute;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  word-break: keep-all;
+  line-height: 1.25;
+}
+
+/* ── 여자표지 (실제 포스터 864×1232 기준 실측 좌표) ── */
+.cvf-name {
+  left: 5%;
+  top: 19.5%;
+  width: 90%;
+  height: 5.8%;
+  /* 포스터 이름줄 배경(사진 위 하늘) 실측 그라데이션 #a9c5dd → #b8d9ec */
+  background: linear-gradient(90deg, #a8c4dd, #b6d8eb);
+  border-radius: 6px;
+  align-items: flex-start;
+  text-align: left;
+  gap: 2px;
+  padding: 0 12px;
+}
+.cvf-name b {
+  font-size: 17px;
+  font-weight: 800;
+  color: #14213d;
+  white-space: nowrap;
+}
+.cvf-name span {
+  font-size: 13.5px;
+  font-weight: 700;
+  color: #0b3a70;
+}
+.a4-cover__bubble {
+  background: #fff;
+  border-radius: 12px;
+  box-shadow: 0 3px 10px rgba(20, 40, 80, 0.22);
+  font-size: 14px;
+  font-weight: 800;
+  color: #14213d;
+  gap: 1px;
+  padding: 4px 6px;
+}
+.a4-cover__bubble b {
+  font-size: 16px;
+  font-weight: 800;
+  color: #14213d;
+}
+.a4-cover__bubble em {
+  font-style: normal;
+  color: var(--hi-orange);
+}
+.cvf-total {
+  left: 3.5%;
+  top: 60.8%;
+  width: 22%;
+  height: 7.6%;
+}
+.cvf-new {
+  left: 53%;
+  top: 59.2%;
+  width: 26%;
+  height: 7.6%;
+}
+.cvf-cases {
+  left: 74.5%;
+  top: 50.2%;
+  width: 21%;
+  height: 7.8%;
+}
+
+/* ── 남자표지 (실제 포스터 1728×2464 기준 실측 좌표) ── */
+/* 상단 큰 이름 블록 — 박힌 샘플 이름(x 7.5~50.5%, y 31.4~39.1%)을 배경 그라데이션
+   패치로 덮고 교육생 이름으로 다시 그린다 (하늘 배경 실측색 근사) */
+.cvm-top {
+  left: 6.8%;
+  top: 30.9%;
+  width: 46%;
+  height: 8.8%;
+  background: linear-gradient(120deg, #f8ede3 0%, #fef4ea 55%, #fff2e2 100%);
+  border-radius: 10px;
+  align-items: flex-start;
+  text-align: left;
+  gap: 3px;
+  padding: 0 8px;
+}
+.cvm-top b {
+  font-size: 21px;
+  font-weight: 800;
+  color: #17223b;
+  white-space: nowrap;
+}
+.cvm-top b i {
+  font-style: normal;
+  font-size: 16px;
+  font-weight: 700;
+}
+.cvm-top span {
+  font-size: 17px;
+  font-weight: 700;
+  color: #17223b;
+  white-space: nowrap;
+}
+.cvm-name {
+  left: 8%;
+  top: 57.5%;
+  width: 84%;
+  height: 2.6%;
+  background: #d5e4f4; /* 연청색 밴드 실측색 — 밴드 안쪽만 덮어 이음새를 숨긴다 */
+}
+.cvm-name b {
+  font-size: 16px;
+  font-weight: 800;
+  color: #16233c;
+  white-space: nowrap;
+}
+.a4-cover__circle {
+  background: #fff;
+  font-size: 15px;
+  font-weight: 800;
+  color: #14213d;
+  gap: 1px;
+  border-radius: 16px;
+}
+.a4-cover__circle b {
+  font-size: 18px;
+  font-weight: 800;
+  color: var(--hi-orange);
+}
+.a4-cover__circle span b {
+  font-size: 17px;
+}
+.cvm-c1 {
+  left: 15%;
+  top: 79.4%;
+  width: 20%;
+  height: 7.6%;
+}
+.cvm-c2 {
+  left: 40.8%;
+  top: 80.6%;
+  width: 18.4%;
+  height: 5.8%;
+}
+.cvm-c3 {
+  left: 69%;
+  top: 79%;
+  width: 17%;
+  height: 7.8%;
+}
+
 .a4-body {
   flex: 1 1 auto;
   min-height: 0;
   display: flex;
   flex-direction: column;
-  gap: 1.6mm;
+  /* v0.38: 레포트 페이지에 실적현황 행이 늘어 1.6mm 로는 6px 넘침 —
+     여유가 있는 다른 페이지는 flex-grow 가 흡수하므로 전역으로 줄여도 안전 */
+  gap: 1.3mm;
 }
 
 /* flex 가 자식을 압축하면 표 내용이 잘린다. 절대 줄이지 않는다.

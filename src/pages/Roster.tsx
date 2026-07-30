@@ -30,6 +30,7 @@ import {
 import { runBulkExport, type BulkMode, type BulkProgress, type BulkTarget } from '../export/bulk'
 import { PrintRoot } from '../PrintRoot'
 import { CoachPrintRootForPerson } from '../tabs/coach/CoachPrintRootForPerson'
+import type { CoverGender } from '../components/CoverPage'
 import { analyze, type FullAnalysis } from '../calc'
 
 export type PickMode = 'tree' | 'paste'
@@ -54,12 +55,18 @@ export function Roster({
   const [vc, setVc] = useState('')
   const [branch, setBranch] = useState('')
   const [checked, setChecked] = useState<Map<string, RosterEntry>>(new Map())
+  // 사람별 표지 성별 — 지정 안 하면 'F'(여, 기본값). 표지는 report 일괄 인쇄에만 쓰인다.
+  const [genderMap, setGenderMap] = useState<Map<string, CoverGender>>(new Map())
   const [pasteText, setPasteText] = useState('')
 
   const [showChoice, setShowChoice] = useState(false)
   const [showConfirmPrint, setShowConfirmPrint] = useState(false)
   const [bulkTarget, setBulkTarget] = useState<BulkTarget>('report')
-  const [current, setCurrent] = useState<{ A: FullAnalysis; caption: string } | null>(null)
+  const [current, setCurrent] = useState<{
+    A: FullAnalysis
+    caption: string
+    cover?: CoverGender
+  } | null>(null)
   const [bulkBusy, setBulkBusy] = useState<string | null>(null)
   // ref 로 둔다 — 실행 중인 루프가 setState 클로저 caveat 없이 매 반복마다 최신 값을 읽는다
   const cancelRef = useRef(false)
@@ -130,6 +137,33 @@ export function Roster({
       return next
     })
   }
+
+  const genderOf = (code: string): CoverGender => genderMap.get(code) ?? 'F'
+  const setGender = (code: string, g: CoverGender) => {
+    setGenderMap((prev) => {
+      const next = new Map(prev)
+      next.set(code, g)
+      return next
+    })
+  }
+
+  /** 이름 뒤 남/여 미니 토글 — 명단 행과 선택됨 목록에서 같이 쓴다 */
+  const GenderMini = ({ code, name }: { code: string; name: string }) => (
+    <span className="gender-mini" role="radiogroup" aria-label={`${name} 표지 성별`}>
+      {(['M', 'F'] as const).map((g) => (
+        <button
+          key={g}
+          type="button"
+          role="radio"
+          aria-checked={genderOf(code) === g}
+          className={genderOf(code) === g ? 'is-active' : undefined}
+          onClick={() => setGender(code, g)}
+        >
+          {g === 'M' ? '남' : '여'}
+        </button>
+      ))}
+    </span>
+  )
 
   const allChecked = roster.length > 0 && roster.every((p) => checked.has(p.code))
   const toggleAll = () => {
@@ -208,9 +242,10 @@ export function Roster({
     setShowConfirmPrint(false)
     cancelRef.current = false
     const codes = selected.map((p) => p.code)
+    const people = selected.map((p) => ({ code: p.code, cover: genderOf(p.code) }))
     setBulkBusy(`0 / ${codes.length}`)
     const result = await runBulkExport(
-      codes,
+      people,
       mode,
       bulkTarget,
       setCurrent,
@@ -359,6 +394,7 @@ export function Roster({
                       <li className={`roster__list-head ${isStepupView ? 'roster__list--stepup' : ''}`}>
                         <input type="checkbox" checked={allChecked} onChange={toggleAll} aria-label="전체선택" />
                         <span>이름</span>
+                        <span className="roster__gender-head">표지</span>
                         <span>사번</span>
                         {isStepupView && <span />}
                       </li>
@@ -371,6 +407,7 @@ export function Roster({
                             aria-label={`${p.name} 선택`}
                           />
                           <span>{p.name}</span>
+                          <GenderMini code={p.code} name={p.name} />
                           <button
                             type="button"
                             className="roster__code-link num"
@@ -405,6 +442,7 @@ export function Roster({
                       <span>
                         {p.name} ({p.code})
                       </span>
+                      <GenderMini code={p.code} name={p.name} />
                       <button type="button" onClick={() => toggle(p)} aria-label={`${p.name} 선택 해제`}>
                         ✕
                       </button>
@@ -587,7 +625,7 @@ export function Roster({
         (bulkTarget === 'coach' ? (
           <CoachPrintRootForPerson A={current.A} caption={current.caption} />
         ) : (
-          <PrintRoot A={current.A} caption={current.caption} />
+          <PrintRoot A={current.A} caption={current.caption} cover={current.cover} />
         ))}
     </div>
   )

@@ -5,7 +5,7 @@
    CHANGELOG 에 한 줄씩 남긴다.
    ══════════════════════════════════════════════════════════════════════ */
 
-export const APP_VERSION = '0.37'
+export const APP_VERSION = '0.38'
 
 export const CONTACT = {
   dept: '개인마케팅교육본부 / 영업교육운영파트',
@@ -35,6 +35,10 @@ export const DISCLAIMER =
 
 /** 수정 이력 (최신이 위) */
 export const CHANGELOG: { version: string; note: string }[] = [
+  {
+    version: '0.38',
+    note: '인쇄물 맨 앞에 남/여 표지 1장 추가 — 표지의 이름·소속·총고객·월신규 등이 교육생 데이터로 자동 반영. 명단 일괄 인쇄는 사람별 남/여 선택(기본 여), 개별 레포트는 출력 팝업에서 남자표지/여자표지를 골라야 출력 가능(이미지 저장도 선택 팝업). 모든 팝업 버튼 글자 중앙 정렬',
+  },
   {
     version: '0.37',
     note: '현황Ⅱ "실적현황" 항목명 변경 — 인실적 → 인보험실적',

@@ -6,6 +6,7 @@
  */
 import { createPortal } from 'react-dom'
 import { A4Page } from './components/A4Page'
+import { CoverPage, type CoverGender } from './components/CoverPage'
 import { ReportTab } from './tabs/ReportTab'
 import { CustomerTab } from './tabs/CustomerTab'
 import { ActionTab } from './tabs/ActionTab'
@@ -15,7 +16,16 @@ import { ActionPlanTab } from './tabs/ActionPlanTab'
 import type { FullAnalysis } from './calc'
 import { REPORT_TITLE } from './version'
 
-export function PrintRoot({ A, caption }: { A: FullAnalysis; caption?: string }) {
+export function PrintRoot({
+  A,
+  caption,
+  cover,
+}: {
+  A: FullAnalysis
+  caption?: string
+  /** 남/여 표지 — 지정하면 6장 앞에 표지 1장이 붙는다 (캡처/인쇄가 .a4-page 를 순회하므로 자동 포함) */
+  cover?: CoverGender | null
+}) {
   const months = A.ctx.months
   const p = A.profile
   const common = { profile: p, months, caption }
@@ -24,6 +34,8 @@ export function PrintRoot({ A, caption }: { A: FullAnalysis; caption?: string })
   // (body > *:not(#print-root){display:none}) 가 함께 숨겨 버려 5장이 나오지 않는다.
   return createPortal(
     <div id="print-root" aria-hidden="true">
+      {cover && <CoverPage A={A} gender={cover} />}
+
       <A4Page {...common} id="report" title={REPORT_TITLE} page={1}>
         <ReportTab A={A} dense />
       </A4Page>
