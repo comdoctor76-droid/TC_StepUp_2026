@@ -160,58 +160,80 @@ export function PieShare({
     ? Math.min((h ?? 110) * 0.33, 44) * (leaderLines ? 0.86 : 1)
     : 78 * (leaderLines ? 0.8 : 1)
 
+  // 화면(screen)에서는 범례를 recharts <Legend> 가 아니라 실제 문서 흐름 안의
+  // HTML로 그린다. recharts 의 Legend 는 절대위치 + 고정 height 라, 한글 6개
+  // 항목이 카드 폭에 따라 2~3줄로 줄바꿈되면(실제 데이터일수록 잦다) 그 고정
+  // 높이를 넘겨 카드 박스 밖으로 그대로 삐져나왔다 — 데모 데이터로는 최대 2줄
+  // 까지만 재현돼 v0.25 의 height 조정으로는 잡히지 않았다. 실제 흐름에 두면
+  // 몇 줄이 되든 카드가 그만큼 자동으로 늘어나 넘칠 수가 없다.
+  // 인쇄(dense)는 224×162 고정 지오메트리로 이미 검증돼 있어 그대로 recharts
+  // Legend 를 쓴다.
+  const screenLegend = !dense && showLegend
+
   return (
-    <ChartFrame w={w} h={h}>
-      <PieChart
-        margin={
-          leaderLines
-            ? { top: 2, right: dense ? 22 : 34, bottom: 2, left: dense ? 22 : 34 }
-            : { top: 2, right: 2, bottom: 2, left: 2 }
-        }
-      >
-        <Pie
-          data={rows}
-          dataKey="value"
-          nameKey="name"
-          cx="50%"
-          cy={showLegend ? '40%' : '50%'}
-          outerRadius={outer}
-          startAngle={90}
-          endAngle={-270}
-          isAnimationActive={false}
-          stroke="#fff"
-          strokeWidth={dense ? 0.6 : 1.5}
-          label={
+    <>
+      <ChartFrame w={w} h={h}>
+        <PieChart
+          margin={
             leaderLines
-              ? leaderLabel(
-                  dense ? 11 : 10.5,
-                  rows.map((r) => ({ ...r, fill: colorOf.get(r.name) })),
-                )
-              : dense
-                ? false
-                : ({ name, value }: { name?: string; value?: number }) =>
-                    (value ?? 0) >= 0.06 ? `${name} ${((value ?? 0) * 100).toFixed(0)}%` : ''
+              ? { top: 2, right: dense ? 22 : 34, bottom: 2, left: dense ? 22 : 34 }
+              : { top: 2, right: 2, bottom: 2, left: 2 }
           }
-          labelLine={false}
         >
-          {rows.map((r, i) => (
-            <Cell key={i} fill={colorOf.get(r.name)} />
+          <Pie
+            data={rows}
+            dataKey="value"
+            nameKey="name"
+            cx="50%"
+            cy={showLegend && dense ? '40%' : '50%'}
+            outerRadius={outer}
+            startAngle={90}
+            endAngle={-270}
+            isAnimationActive={false}
+            stroke="#fff"
+            strokeWidth={dense ? 0.6 : 1.5}
+            label={
+              leaderLines
+                ? leaderLabel(
+                    dense ? 11 : 10.5,
+                    rows.map((r) => ({ ...r, fill: colorOf.get(r.name) })),
+                  )
+                : dense
+                  ? false
+                  : ({ name, value }: { name?: string; value?: number }) =>
+                      (value ?? 0) >= 0.06 ? `${name} ${((value ?? 0) * 100).toFixed(0)}%` : ''
+            }
+            labelLine={false}
+          >
+            {rows.map((r, i) => (
+              <Cell key={i} fill={colorOf.get(r.name)} />
+            ))}
+          </Pie>
+          {!dense && <Tooltip formatter={(v) => `${(Number(v) * 100).toFixed(1)}%`} />}
+          {showLegend && dense && (
+            <Legend
+              verticalAlign="bottom"
+              height={34}
+              iconSize={6}
+              wrapperStyle={{ fontSize: legendFs, lineHeight: 1.2 }}
+              formatter={(value, entry) => {
+                const v = (entry?.payload as { value?: number } | undefined)?.value ?? 0
+                return `${value} ${(v * 100).toFixed(0)}%`
+              }}
+            />
+          )}
+        </PieChart>
+      </ChartFrame>
+      {screenLegend && (
+        <div className="pieshare-legend" style={{ fontSize: legendFs }}>
+          {rows.map((r) => (
+            <span key={r.name} className="pieshare-legend__item">
+              <i style={{ background: colorOf.get(r.name) }} />
+              {r.name} {((r.value / total) * 100).toFixed(0)}%
+            </span>
           ))}
-        </Pie>
-        {!dense && <Tooltip formatter={(v) => `${(Number(v) * 100).toFixed(1)}%`} />}
-        {showLegend && (
-          <Legend
-            verticalAlign="bottom"
-            height={dense ? 34 : 44}
-            iconSize={dense ? 6 : 8}
-            wrapperStyle={{ fontSize: legendFs, lineHeight: 1.2 }}
-            formatter={(value, entry) => {
-              const v = (entry?.payload as { value?: number } | undefined)?.value ?? 0
-              return `${value} ${(v * 100).toFixed(0)}%`
-            }}
-          />
-        )}
-      </PieChart>
-    </ChartFrame>
+        </div>
+      )}
+    </>
   )
 }

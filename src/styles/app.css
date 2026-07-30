@@ -1070,6 +1070,29 @@
 .recharts-surface {
   overflow: visible;
 }
+/* PieShare 화면용 범례 — recharts <Legend> 대신 실제 문서 흐름에 그린다.
+   절대위치 + 고정 높이가 아니라서 몇 줄로 줄바꿈되든 카드가 그만큼 자동으로
+   늘어나 박스 밖으로 넘칠 수 없다. */
+.pieshare-legend {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 4px 12px;
+  padding: 6px 4px 2px;
+  color: var(--ink-2);
+}
+.pieshare-legend__item {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  white-space: nowrap;
+}
+.pieshare-legend__item i {
+  width: 8px;
+  height: 8px;
+  border-radius: 2px;
+  flex: none;
+}
 .chart-card__title {
   margin: 0 0 6px;
   font-size: 16px;
