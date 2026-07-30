@@ -84,16 +84,29 @@ export function MarketTab({
         <ChartCard title={`TC 표준그룹 · 총 ${dec1(m.silson.tcTotal)}건`}>
           <PieShare {...S.gen} dense={dense} data={m.silson.tc} colors={GEN_COLORS} leaderLines />
         </ChartCard>
-        <SimpleTable
-          dense={dense}
-          wrap
-          caption="실손 세대별 비중 (5세대 포함)"
-          head={['구분', '1세대', '2세대', '3세대', '4세대', '5세대']}
-          rows={[
-            ['본인', ...m.silsonAll.self.map((x) => pct(x.share))],
-            ['TC', ...m.silsonAll.tc.map((x) => pct(x.share))],
-          ]}
-        />
+        {/* 6열(구분+1~5세대)을 한 줄에 다 넣으면 좁은 3번째 칸에서 글자가 너무
+            작아져 가독성이 떨어진다 — 1·2세대와 3·4·5세대 두 줄로 나눠 표시 */}
+        <div className="silson-gen-tables">
+          <SimpleTable
+            dense={dense}
+            wrap
+            caption="실손 세대별 비중 (5세대 포함)"
+            head={['구분', '1세대', '2세대']}
+            rows={[
+              ['본인', ...m.silsonAll.self.slice(0, 2).map((x) => pct(x.share))],
+              ['TC', ...m.silsonAll.tc.slice(0, 2).map((x) => pct(x.share))],
+            ]}
+          />
+          <SimpleTable
+            dense={dense}
+            wrap
+            head={['구분', '3세대', '4세대', '5세대']}
+            rows={[
+              ['본인', ...m.silsonAll.self.slice(2, 5).map((x) => pct(x.share))],
+              ['TC', ...m.silsonAll.tc.slice(2, 5).map((x) => pct(x.share))],
+            ]}
+          />
+        </div>
       </div>
     </>
   )

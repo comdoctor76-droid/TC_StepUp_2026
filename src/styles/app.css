@@ -1034,6 +1034,14 @@
   padding: 1px 2px;
 }
 
+/* 실손 세대별 비중 — 1·2세대 표 바로 아래 3·4·5세대 표를 붙여 하나처럼 보이게 */
+.silson-gen-tables .simple-wrap + .simple-wrap {
+  margin-top: 4px;
+}
+.silson-gen-tables .simple-wrap--dense + .simple-wrap--dense {
+  margin-top: 2px;
+}
+
 .simple-wrap--dense {
   /* A4 는 폭이 고정이라 스크롤이 필요 없다.
      overflow-x:auto 는 세로 클리핑도 유발해 표 행을 잘라먹는다. */

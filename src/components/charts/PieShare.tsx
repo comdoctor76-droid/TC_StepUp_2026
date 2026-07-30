@@ -130,7 +130,10 @@ export function PieShare({
   leaderLines?: boolean
 }) {
   const fs = dense ? 14.5 : 12
-  const legendFs = dense ? 14.5 : 10.5
+  // 인쇄(dense) 범례는 224px 고정 폭 카드에서 6개 항목이 실제 데이터(퍼센트 자릿수가
+  // 늘면)로는 3줄까지 줄바꿈돼 recharts Legend 의 고정 높이(34px)를 넘겨 다음 섹션과
+  // 겹쳐 보였다 — 3px 낮춰 2줄 안에 들어오게 한다.
+  const legendFs = dense ? 11.5 : 10.5
 
   // 카테고리 이름 기준 색 — 값 기준 정렬 후에도 같은 항목은 항상 같은 색을 유지한다
   const colorOf = new Map(data.map((d, i) => [d.label, colors[i % colors.length]]))
@@ -213,7 +216,7 @@ export function PieShare({
           {showLegend && dense && (
             <Legend
               verticalAlign="bottom"
-              height={34}
+              height={44}
               iconSize={6}
               wrapperStyle={{ fontSize: legendFs, lineHeight: 1.2 }}
               formatter={(value, entry) => {
