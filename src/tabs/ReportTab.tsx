@@ -88,7 +88,7 @@ export function ReportTab({
       section: '실적현황',
       title: '월평균 인,환산실적',
       cells: [
-        { label: '인실적', self: won(perf.person.self), tc: won(perf.person.tc), sign: sign(perf.person.self, perf.person.tc) },
+        { label: '인보험실적', self: won(perf.person.self), tc: won(perf.person.tc), sign: sign(perf.person.self, perf.person.tc) },
         { label: '환산실적', self: won(perf.converted.self), tc: won(perf.converted.tc), sign: sign(perf.converted.self, perf.converted.tc) },
       ],
     },
