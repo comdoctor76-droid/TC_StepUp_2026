@@ -40,6 +40,8 @@ export interface ReportSummary {
 
   /** ■ 현황Ⅱ (6개월) */
   recent: {
+    /** 실적현황: 월평균 인/환산실적 — 레포트!D26:M27 */
+    perf: { person: Pair; converted: Pair }
     /** 활동분석 — 레포트!D25 / J25 */
     casesPerCustomer: Pair
     /** 신규/기존 고객·건수 (월평균) — 레포트!D28:O28 */
@@ -79,6 +81,15 @@ export function buildReport(
 
   const cs = c.blocks.self
   const ctc = c.blocks.tc
+
+  // ── 실적현황 : 레포트!D26:M27 = 월평균 인/환산실적
+  //   본인 = IF(경력위촉차월>5, 누계/6, 누계/경력위촉차월), TC = C분석!DK30·DL30 / 6 (항상 6으로 나눔)
+  const selfMonths = ctx.f('months')
+  const selfDivisor = selfMonths > 5 ? 6 : selfMonths
+  const perf = {
+    person: P(div(ctx.f('perfPerson'), selfDivisor), div(xround(ctx.tc('perfPerson'), 0), 6)),
+    converted: P(div(ctx.f('perfConverted'), selfDivisor), div(xround(ctx.tc('perfConverted'), 0), 6)),
+  }
 
   // ── 활동분석(전체) : 레포트!D14 = 장기이관제외건수 ÷ 장기이관제외고객
   const casesPerCustAll = P(
@@ -164,6 +175,7 @@ export function buildReport(
     },
 
     recent: {
+      perf,
       casesPerCustomer: P(a.perCustomer6m[0].perCust, a.perCustomer6m[2].perCust),
       newOld: {
         cust: { self: nc(a.newOldCust[0]), tc: nc(a.newOldCust[2]) },

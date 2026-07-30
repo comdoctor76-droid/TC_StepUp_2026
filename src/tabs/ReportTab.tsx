@@ -18,6 +18,7 @@ export function ReportTab({
   period?: Period
 }) {
   const { overall: o, recent: r } = A.report
+  const { perf } = r
   const p = A.profile
 
   // 유지고객은 재고 — 선택 구간의 '종료월 시점' 값. 인쇄물은 항상 원본 기준(마지막 달).
@@ -83,6 +84,14 @@ export function ReportTab({
 
   // ── ■ 현황Ⅱ (6개월) ───────────────────────────────────────────────
   const groupsII: Group[] = [
+    {
+      section: '실적현황',
+      title: '월평균 인,환산실적',
+      cells: [
+        { label: '인실적', self: won(perf.person.self), tc: won(perf.person.tc), sign: sign(perf.person.self, perf.person.tc) },
+        { label: '환산실적', self: won(perf.converted.self), tc: won(perf.converted.tc), sign: sign(perf.converted.self, perf.converted.tc) },
+      ],
+    },
     {
       section: '활동분석',
       title: '(장기)고객당 건수',

@@ -115,6 +115,9 @@ export const FIELDS = {
   longCust6m: 86, // CI  6개월총장기고객수
   longMaxPrem6m: 87, // CJ  6개월장기최고보험료
   longCntNet: 88, // CK  장기이관제외건수
+
+  perfPerson: 89, // CL  월평균 인실적(누계)
+  perfConverted: 90, // CM  월평균 환산실적(누계)
 } as const
 
 export type FieldKey = keyof typeof FIELDS
@@ -235,6 +238,10 @@ export const BENCH_FIELDS = {
   custLongM1: 95, // CS
   custLongM: 96, // CT  장기고객수_M
   longCntNet: 97, // CU  장기이관제외건수
+
+  // 실적현황(레포트!B26) — C분석!DK30/DL30 이 VLOOKUP 하는 위치 (소득별Data!CV/CW)
+  perfPerson: 98, // 인실적(누계)
+  perfConverted: 99, // 환산실적(누계)
 } as const
 
 export type BenchFieldKey = keyof typeof BENCH_FIELDS
