@@ -143,3 +143,16 @@
   flex: 1 1 auto;
   min-height: 0;
 }
+
+/* 레포트 탭 현황Ⅰ/Ⅱ(CompareTable, .cmp)도 같은 이유로 페이지 하단에 빈 여백을
+   남긴다 — 늘어난 만큼 구분 블록·행에 나눠 줘서 표 전체가 꽉 차 보이게 한다. */
+.a4-body > .cmp {
+  flex: 1 1 auto;
+  min-height: 0;
+}
+.cmp--dense .cmp__block {
+  flex: 1 1 auto;
+}
+.cmp--dense .grp {
+  flex: 1 1 auto;
+}

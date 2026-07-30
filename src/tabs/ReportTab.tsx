@@ -17,7 +17,7 @@ export function ReportTab({
   dense?: boolean
   period?: Period
 }) {
-  const { overall: o, recent: r, cams } = A.report
+  const { overall: o, recent: r } = A.report
   const p = A.profile
 
   // 유지고객은 재고 — 선택 구간의 '종료월 시점' 값. 인쇄물은 항상 원본 기준(마지막 달).
@@ -176,20 +176,6 @@ export function ReportTab({
           <Tile label="월 신규고객" value={dec2(o.customers.monthlyNew.self)} unit="명" />
           <Tile label="고객당 건수" value={dec2(o.casesPerCustomer.self)} unit="건" />
         </div>
-        <ul className="summary__scores">
-          <li>
-            <b>C</b> {dec2(cams.C)}
-          </li>
-          <li>
-            <b>A</b> {dec2(cams.A)}
-          </li>
-          <li>
-            <b>M</b> {dec2(cams.M)}
-          </li>
-          <li className="summary__scores--na">
-            <b>S</b> 산식 미확정
-          </li>
-        </ul>
       </section>
 
       {pctText && <p className="lede">{pctText}</p>}
