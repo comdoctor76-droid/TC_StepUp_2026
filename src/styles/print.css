@@ -130,10 +130,12 @@
 }
 /* 오른쪽 여백의 세로 영문(ILSAN VISION CENTER'S BEST!) 가리기 — 흰 여백 위 패치 */
 .cvf-side {
-  left: 749px;
-  top: 124px;
-  width: 35px;
-  height: 887px;
+  /* 실측(원본 864×1232, x780~849·y520~1180)으로 조정 — 기존 값은 상단
+     "현대해상" 로고/워드마크(원본 y64~166)까지 침범했다 */
+  left: 712px;
+  top: 468px;
+  width: 74px;
+  height: 617px;
   background: #fff;
 }
 
@@ -213,9 +215,10 @@
   font-size: 17px;
 }
 .cvm-c1 {
-  left: 89px;
+  /* 좌우 3px씩 안쪽으로(폭 -6px) — 링 침범 재신고 반영 */
+  left: 92px;
   top: 889px;
-  width: 181px;
+  width: 175px;
   height: 91px;
 }
 .cvm-c1::before {
@@ -226,9 +229,9 @@
    포스터의 샘플 글자는 원 중심보다 왼쪽에 박혀 있어, 원판을 링 안쪽에
    정확히 맞추면 자연히 몇 px 오른쪽으로 이동해 링 간섭이 사라진다 (사용자 요청) */
 .cvm-c2 {
-  left: 323px;
+  left: 326px;
   top: 894px;
-  width: 188px;
+  width: 182px;
   height: 74px;
 }
 .cvm-c2::before {
@@ -236,9 +239,9 @@
   height: 188px;
 }
 .cvm-c3 {
-  left: 521px;
+  left: 524px;
   top: 884px;
-  width: 188px;
+  width: 182px;
   height: 88px;
 }
 .cvm-c3::before {

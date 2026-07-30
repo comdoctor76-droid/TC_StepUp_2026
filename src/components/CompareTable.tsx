@@ -59,7 +59,11 @@ export function CompareTable({
       </div>
       {blocks.map((b, bi) => (
         <section className="cmp__block" key={bi}>
-          <div className="cmp__sec">{b.section}</div>
+          <div className="cmp__sec">
+            <div className="cmp__sec-tbl">
+              <span className="cmp__sec-t">{b.section}</span>
+            </div>
+          </div>
           <div className="cmp__groups">
             {b.groups.map((g, gi) => (
               <div className="grp" key={gi}>
