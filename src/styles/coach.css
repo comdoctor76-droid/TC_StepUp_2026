@@ -1923,9 +1923,11 @@
 /* ── TC스텝업 하이라이트 (강의용 PDF 뷰어, v0.46) ────────────────────
    화면 전용이다 — 인쇄·캡처 대상에는 렌더되지 않으므로 조밀 모드 규칙이
    필요 없고, 아래 body.printing-coach/capturing-coach 에서 통째로 숨긴다. */
+/* 폭을 210mm 로 묶으면 안 된다 — 안쪽 페이지가 부모를 넘을 수 없어 100% 이상
+   확대가 먹지 않았다(v0.49). 화면 폭을 다 쓰고, 넘치는 만큼은 .hl-scroll 에서
+   가로로 스크롤한다. */
 .hl {
-  max-width: 210mm;
-  margin: 8px auto 40px;
+  margin: 8px 0 40px;
 }
 .hl-bar {
   display: flex;
@@ -1992,6 +1994,11 @@
   padding: 40px 0;
 }
 /* 확대하면 폭이 화면을 넘어간다 — 가로 스크롤은 이 안에서만 생기게 한다 */
+.hl-scroll {
+  overflow-x: auto;
+  overflow-y: hidden;
+  padding-bottom: 10px;
+}
 .hl-pages {
   margin: 0 auto;
   display: flex;
