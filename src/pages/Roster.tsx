@@ -80,7 +80,7 @@ export function Roster({
   const [current, setCurrent] = useState<{
     A: FullAnalysis
     caption: string
-    kind: 'report' | 'coach'
+    kind: BulkTarget
     cover?: CoverGender
     guide?: boolean
   } | null>(null)
@@ -132,6 +132,25 @@ export function Roster({
     [isStepupView, stepupRoster, branchNode],
   )
   const selected = useMemo(() => [...checked.values()], [checked])
+  // 코칭·가이드는 왼쪽 선택 체크와 무관하게 그 행의 체크만으로 인쇄 대상이 된다.
+  // (사용자 요청: "행의 코칭/가이드 체크만으로 바로 인쇄")
+  const coachEntries = useMemo(
+    () => sortedPlanners(matchPastedCodes(codeIndex, [...coachSet]).matched),
+    [codeIndex, coachSet],
+  )
+  const guideEntries = useMemo(
+    () => sortedPlanners(matchPastedCodes(codeIndex, [...guideSet]).matched),
+    [codeIndex, guideSet],
+  )
+  /** 지금 누른 버튼이 대상으로 삼는 사람들 */
+  const bulkEntries =
+    bulkTarget === 'coach' ? coachEntries : bulkTarget === 'guide' ? guideEntries : selected
+  const targetLabel =
+    bulkTarget === 'coach'
+      ? '의 성장코칭 리포트를'
+      : bulkTarget === 'guide'
+        ? '의 강사용 가이드를'
+        : '의 스텝업 레포트를'
   const { matched: pasteMatched, missing: pasteMissing } = useMemo(
     () => matchPastedCodes(codeIndex, parsePastedCodes(pasteText)),
     [codeIndex, pasteText],
@@ -299,10 +318,9 @@ export function Roster({
     setShowChoice(false)
     setShowConfirmPrint(false)
     cancelRef.current = false
-    const people = selected.map((p) => ({
+    const people = bulkEntries.map((p) => ({
       code: p.code,
       cover: genderOf(p.code),
-      coach: coachSet.has(p.code),
       guide: guideSet.has(p.code),
     }))
     setBulkBusy(`0 / ${people.length}`)
@@ -329,7 +347,7 @@ export function Roster({
     // 저장할지 물어본다(이미 전부 저장돼 있으면 — 즉 TC스텝업 목록을 그대로 재인쇄한
     // 경우 — 다시 묻지 않는다).
     const okCodes = new Set(result.ok.map((o) => o.code))
-    const okEntries = selected.filter((p) => okCodes.has(p.code))
+    const okEntries = bulkEntries.filter((p) => okCodes.has(p.code))
     const groups = groupByHq(okEntries).filter((g) =>
       g.entries.some((p) => !(stepupMap[g.hq] ?? []).includes(p.code)),
     )
@@ -492,7 +510,8 @@ export function Roster({
                             aria-label="강사용 가이드 포함 전체 선택"
                           />
                         </label>
-                        {isStepupView && <span />}
+                        {/* 마지막 1fr 여백 트랙 자리 (스텝업 뷰에서는 행의 "빼기"가 여기 온다) */}
+                        <span />
                       </li>
                       {roster.map((p) => (
                         <li key={p.code} className={isStepupView ? 'roster__list--stepup' : undefined}>
@@ -580,6 +599,9 @@ export function Roster({
                   ))}
                 </ul>
               )}
+              {/* 버튼 3개가 서로 다른 대상을 본다 — 레포트는 왼쪽 선택 체크,
+                  코칭·가이드는 그 행의 코칭/가이드 체크만으로 바로 인쇄된다.
+                  (서로 이어붙이지 않으므로 같은 문서가 두 번 나오지 않는다) */}
               <button
                 type="button"
                 className="btn btn--primary btn--block"
@@ -594,13 +616,24 @@ export function Roster({
               <button
                 type="button"
                 className="btn btn--block roster__coach-print"
-                disabled={selected.length === 0 || busy}
+                disabled={coachEntries.length === 0 || busy}
                 onClick={() => {
                   setBulkTarget('coach')
                   setShowChoice(true)
                 }}
               >
-                성장코칭 인쇄하기
+                성장코칭 인쇄 ({coachEntries.length}명)
+              </button>
+              <button
+                type="button"
+                className="btn btn--block roster__coach-print"
+                disabled={guideEntries.length === 0 || busy}
+                onClick={() => {
+                  setBulkTarget('guide')
+                  setShowChoice(true)
+                }}
+              >
+                강사용 가이드만 인쇄 ({guideEntries.length}명)
               </button>
             </div>
           </>
@@ -616,8 +649,7 @@ export function Roster({
         >
           <div className="choice-overlay__box" onClick={(e) => e.stopPropagation()}>
             <p className="choice-overlay__title">
-              선택한 {selected.length}명{bulkTarget === 'coach' ? '의 성장코칭 리포트를' : ''} 어떻게
-              출력할까요?
+              {bulkEntries.length}명{targetLabel} 어떻게 출력할까요?
             </p>
             <div className="choice-overlay__actions">
               <button className="btn btn--primary" onClick={() => setShowConfirmPrint(true)}>
@@ -643,8 +675,7 @@ export function Roster({
         >
           <div className="choice-overlay__box" onClick={(e) => e.stopPropagation()}>
             <p className="choice-overlay__title">
-              {selected.length}명{bulkTarget === 'coach' ? '의 성장코칭 리포트를' : ''} 한 번에 인쇄
-              하겠습니다.
+              {bulkEntries.length}명{targetLabel} 한 번에 인쇄하겠습니다.
             </p>
             <p className="choice-overlay__note">
               사람마다 인쇄창이 뜹니다 — 창을 닫아야 다음 사람으로 넘어갑니다.
@@ -754,14 +785,15 @@ export function Roster({
           어떤 종류를 마운트할지는 루프가 단계별로 정한다(kind) — 레포트+성장코칭을
           이어서 출력하는 사람은 같은 사람이 두 번(kind 만 바꿔) 마운트된다. */}
       {current &&
-        (current.kind === 'coach' ? (
+        (current.kind === 'report' ? (
+          <PrintRoot A={current.A} caption={current.caption} cover={current.cover} />
+        ) : (
           <CoachPrintRootForPerson
             A={current.A}
             caption={current.caption}
             includeGuide={current.guide}
+            guideOnly={current.kind === 'guide'}
           />
-        ) : (
-          <PrintRoot A={current.A} caption={current.caption} cover={current.cover} />
         ))}
     </div>
   )

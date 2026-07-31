@@ -16,16 +16,18 @@ import { exportPdf } from './pdf'
 import { download, outputFileName, outputFileStem } from './share'
 
 export type BulkMode = 'print' | 'pdf'
-/** 'report' = 기존 6페이지 자가진단 레포트, 'coach' = 성장코칭 리포트 */
-export type BulkTarget = 'report' | 'coach'
+/** 'report' = 표지+6페이지 자가진단 레포트, 'coach' = 성장코칭 리포트,
+ *  'guide' = 강사용 가이드 2장만.
+ *  세 가지는 명단 화면의 서로 다른 버튼이며 **절대 서로 이어붙이지 않는다** —
+ *  예전에는 report 인쇄에 코칭이 자동으로 딸려 나와, 코칭 버튼까지 누르면
+ *  같은 문서가 두 번 출력됐다. */
+export type BulkTarget = 'report' | 'coach' | 'guide'
 
-/** 일괄 처리 대상 1명 — cover 는 report 출력 맨 앞에 붙는 남/여 표지 (coach 는 무시).
- *  coach 를 켜면 report 일괄 인쇄에서 그 사람의 성장코칭 리포트도 이어서 출력하고,
- *  guide 는 성장코칭에 강사용 가이드 2장을 포함할지 여부다. */
+/** 일괄 처리 대상 1명 — cover 는 report 출력 맨 앞에 붙는 남/여 표지,
+ *  guide 는 성장코칭 출력에 강사용 가이드 2장을 덧붙일지 여부다. */
 export interface BulkPerson {
   code: string
   cover?: CoverGender
-  coach?: boolean
   guide?: boolean
 }
 
@@ -70,7 +72,7 @@ export async function runBulkExport(
     v: {
       A: FullAnalysis
       caption: string
-      kind: 'report' | 'coach'
+      kind: BulkTarget
       cover?: CoverGender
       guide?: boolean
     } | null,
@@ -84,7 +86,7 @@ export async function runBulkExport(
 
   for (let i = 0; i < people.length; i++) {
     if (cancelled()) break
-    const { code, cover, coach, guide } = people[i]
+    const { code, cover, guide } = people[i]
     const base = { index: i + 1, total: people.length, code }
     try {
       onProgress({ ...base, phase: 'loading' })
@@ -93,43 +95,38 @@ export async function runBulkExport(
       const A = analyze(code, planner, ref.benchmarks, ref.incomeMap, ref.dataset.months)
       const name = A.profile.name
 
-      // 사람마다 출력할 문서 목록 — '일괄 인쇄' 는 레포트(+코칭 체크 시 성장코칭도),
-      // '성장코칭 인쇄하기' 는 성장코칭만.
-      const kinds: ('report' | 'coach')[] =
-        target === 'coach' ? ['coach'] : coach ? ['report', 'coach'] : ['report']
+      // 버튼 하나 = 문서 한 종류. 이어붙이지 않는다(같은 문서 두 번 출력 방지).
+      const kind = target
+      const isCoachSide = kind === 'coach' || kind === 'guide'
 
       const stem = outputFileStem(name, A.profile.code)
-      for (const kind of kinds) {
-        if (cancelled()) break
-        onProgress({ ...base, name, phase: 'rendering' })
-        setCurrent({
-          A,
-          caption: ref.dataset.caption,
-          kind,
-          cover: kind === 'report' ? cover : undefined,
-          guide: kind === 'coach' ? guide : undefined,
-        })
-        await nextPaint()
-        if (cancelled()) break
+      onProgress({ ...base, name, phase: 'rendering' })
+      setCurrent({
+        A,
+        caption: ref.dataset.caption,
+        kind,
+        cover: kind === 'report' ? cover : undefined,
+        guide: kind === 'coach' ? guide : undefined,
+      })
+      await nextPaint()
+      if (cancelled()) break
 
-        if (mode === 'pdf') {
-          onProgress({ ...base, name, phase: 'capturing' })
-          const blob = await exportPdf(
-            (d, t) => onProgress({ ...base, name, phase: 'capturing', page: d, pageTotal: t }),
-            kind === 'coach' ? COACH_CAPTURE_OPTS : undefined,
-          )
-          download(
-            blob,
-            kind === 'coach' ? `${stem}_성장코칭.pdf` : outputFileName(name, A.profile.code, 'pdf'),
-          )
-        } else {
-          onProgress({ ...base, name, phase: 'printing' })
-          await printAll(
-            kind === 'coach' ? `${stem}_성장코칭` : stem,
-            undefined,
-            kind === 'coach' ? 'printing-coach' : undefined,
-          )
-        }
+      const fileStem =
+        kind === 'guide' ? `${stem}_강사용가이드` : kind === 'coach' ? `${stem}_성장코칭` : stem
+
+      if (mode === 'pdf') {
+        onProgress({ ...base, name, phase: 'capturing' })
+        const blob = await exportPdf(
+          (d, t) => onProgress({ ...base, name, phase: 'capturing', page: d, pageTotal: t }),
+          isCoachSide ? COACH_CAPTURE_OPTS : undefined,
+        )
+        download(blob, isCoachSide ? `${fileStem}.pdf` : outputFileName(name, A.profile.code, 'pdf'))
+      } else {
+        onProgress({ ...base, name, phase: 'printing' })
+        await printAll(fileStem, undefined, isCoachSide ? 'printing-coach' : undefined)
+        // 인쇄 대화상자가 비동기인 브라우저에서, 다음 사람으로 DOM 을 갈아 끼우기 전에
+        // 한 프레임 쉰다 — 두 사람 내용이 한 미리보기에 섞이는 것을 막는다.
+        await nextPaint()
       }
       if (cancelled()) break
       ok.push({ code, name })

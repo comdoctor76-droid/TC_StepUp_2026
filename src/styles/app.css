@@ -259,9 +259,12 @@
   border-radius: 10px;
 }
 .roster__list li {
-  /* [체크] [이름·사번] [남/여] [코칭] [가이드] — 스텝업 뷰는 [빼기] 열 추가 */
+  /* [체크] [이름·사번] [남/여] [코칭] [가이드] [여백] — 스텝업 뷰는 뒤에 [빼기].
+     각 li 가 독립 grid 라 auto 트랙은 행마다 폭이 달라져 머리글과 어긋난다 —
+     고정 px 트랙으로 묶어 머리글·본문이 같은 열에 오도록 하고, 마지막 1fr
+     스페이서로 전부 왼쪽에 몰아 빼기만 오른쪽 끝에 남긴다. */
   display: grid;
-  grid-template-columns: 24px 1fr auto auto auto;
+  grid-template-columns: 24px 128px 58px 40px 46px 1fr;
   align-items: center;
   gap: 10px;
   padding: 8px 12px;
@@ -284,8 +287,10 @@
   width: 17px;
   height: 17px;
 }
-.roster__list li.roster__list--stepup {
-  grid-template-columns: 24px 1fr auto auto auto auto;
+/* 스텝업 뷰의 "빼기"는 마지막 1fr 스페이서 트랙 안에서 오른쪽 끝에 붙인다 —
+   트랙을 따로 늘리지 않아 앞의 다섯 열은 일반 뷰와 완전히 같은 자리에 온다. */
+.roster__list li.roster__list--stepup .roster__stepup-remove {
+  justify-self: end;
 }
 
 /* 이름 뒤 남/여 표지 성별 미니 토글 (기본 여) */
@@ -298,20 +303,25 @@
   white-space: nowrap;
   overflow: hidden;
 }
-/* 행의 코칭/가이드 체크박스 */
+/* 행의 코칭/가이드 체크박스 — 자기 열 가운데에 놓아 머리글과 세로로 맞춘다 */
 .roster__opt {
   width: 15px !important;
   height: 15px !important;
+  justify-self: center;
 }
-/* 머리글의 "코칭/가이드 전체 선택" 라벨+체크박스 */
+/* 머리글의 "코칭/가이드 전체 선택" — 라벨을 위, 체크박스를 아래로 쌓아
+   체크박스가 아래 행들의 체크박스와 같은 x 에 오도록 한다 */
 .roster__opt-head {
   display: inline-flex;
+  flex-direction: column;
   align-items: center;
-  gap: 4px;
+  justify-self: center;
+  gap: 2px;
   font-size: 12px;
   font-weight: 700;
   color: var(--ink-2);
   cursor: pointer;
+  line-height: 1.1;
 }
 .roster__opt-head input[type='checkbox'] {
   width: 14px;

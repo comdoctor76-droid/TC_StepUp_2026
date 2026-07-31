@@ -20,6 +20,8 @@ export function buildCoachPageProps(
   edits: CoachEdits,
   onCommit: (id: string, html: string) => void,
   showCoachGuide: boolean,
+  /** 강사용 가이드 2장만 뽑을 때 (앞 9장 생략) */
+  guideOnly = false,
 ): CoachPageProps {
   const d = buildCoachData(A, caption)
   const r = analyzeCoach(d)
@@ -165,7 +167,7 @@ export function buildCoachPageProps(
   return {
     b, d, r, F, M, name, sub1, BASE_ALL, BASE_6, dgBand,
     insKpi, insVs, insFlow, insBottle, premDrop, premPerK, trendMsg,
-    bflyPattern, carWorst, heroIds, howto, edits, onCommit, showCoachGuide,
+    bflyPattern, carWorst, heroIds, howto, edits, onCommit, showCoachGuide, guideOnly,
     camsFacts, hypoBank, coachQs, dataNotes, heroRefs, gName, gEx,
   }
 }

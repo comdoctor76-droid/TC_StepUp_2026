@@ -1828,6 +1828,11 @@ body.capturing-coach .coach-report .sheets {
     padding: 10mm 13mm 12mm;
     page-break-after: always;
     break-after: page;
+    /* 인쇄 가능 영역이 297mm 보다 조금이라도 짧으면(프린터 여백 설정·브라우저
+       반올림) 한 장이 물리 페이지 2장으로 쪼개져 같은 페이지가 한 번 더 나온다.
+       쪼개기 자체를 금지한다. */
+    break-inside: avoid;
+    page-break-inside: avoid;
     overflow: hidden;
   }
   body.printing-coach .coach-report .sheet:last-of-type {

@@ -31,6 +31,8 @@ export interface CoachPageProps {
   edits: CoachEdits
   onCommit: (id: string, html: string) => void
   showCoachGuide: boolean
+  /** 켜면 앞의 9장을 건너뛰고 강사용 가이드 2장만 그린다 (명단의 "가이드 인쇄") */
+  guideOnly?: boolean
   camsFacts: string[]
   hypoBank: string[]
   coachQs: string[]

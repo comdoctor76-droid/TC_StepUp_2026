@@ -293,10 +293,15 @@ export function GrowthCoachTab({ A, caption }: { A: FullAnalysis; caption: strin
 /* 화면과 인쇄(CoachPrintRoot)가 정확히 같은 마크업을 그리도록 페이지 전체를
    별도 컴포넌트로 뺐다 — 두 곳에서 동일한 props 로 그대로 재사용한다. */
 export function CoachPages(props: CoachPageProps) {
-  const { b, d, r, F, M, name, sub1, BASE_ALL, BASE_6, dgBand, insKpi, insVs, insFlow, insBottle, premDrop, premPerK, trendMsg, bflyPattern, carWorst, heroIds, howto, edits, onCommit, showCoachGuide, camsFacts, hypoBank, coachQs, dataNotes, heroRefs, gName, gEx } = props
+  const { b, d, r, F, M, name, sub1, BASE_ALL, BASE_6, dgBand, insKpi, insVs, insFlow, insBottle, premDrop, premPerK, trendMsg, bflyPattern, carWorst, heroIds, howto, edits, onCommit, showCoachGuide, guideOnly, camsFacts, hypoBank, coachQs, dataNotes, heroRefs, gName, gEx } = props
 
   return (
     <div className="sheets">
+      {/* guideOnly 는 강사용 가이드 2장만 뽑는 모드 — 앞의 9장을 통째로 건너뛴다.
+          가이드 장은 아래쪽에 독립 fragment 로 붙어 있고 페이지 번호도 C-1/C-2 로
+          고정이라 앞 장을 빼도 그대로 성립한다. */}
+      {!guideOnly && (
+        <>
       {/* P1 진단 개요 + CAMS */}
       <article className="sheet">
         <PageHead title={<>하이플래너 <span className="accent">성장 코칭</span></>} sub={sub1} tag="TC STEP-UP" />
@@ -513,9 +518,11 @@ export function CoachPages(props: CoachPageProps) {
         </div>
         <PageFoot n="9" t="나의 선택" name={name} />
       </article>
+        </>
+      )}
 
-      {/* 강사용 (토글) */}
-      {showCoachGuide && (
+      {/* 강사용 (토글) — guideOnly 면 이 블록만 남는다 */}
+      {(showCoachGuide || guideOnly) && (
         <>
           <article className="sheet coach">
             <div className="coach-band">
