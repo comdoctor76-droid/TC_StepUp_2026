@@ -456,6 +456,16 @@
   background: var(--cr-surface3);
   color: var(--cr-text2);
 }
+/* 유형이 놓인 축 — 배지 옆의 작은 라벨 (v20) */
+.coach-report .type-axis {
+  display: inline-block;
+  margin-left: 8px;
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--cr-text3);
+  letter-spacing: -0.01em;
+  vertical-align: 1px;
+}
 .coach-report .type-name {
   font-size: 19px;
   font-weight: 800;

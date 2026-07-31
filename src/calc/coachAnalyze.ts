@@ -99,6 +99,8 @@ export interface CoachGoal {
 export interface CoachTypeInfo {
   name: string
   desc: string
+  /** 유형이 놓인 축 (예: '성과중심활동 · 신규고객') — 유형 배지 옆에 작게 붙는다 */
+  axis?: string
 }
 
 /** 진짜 이야기 페이지의 대비 수치 한 칸 (값/이름/부연) */
@@ -402,7 +404,8 @@ export function analyzeCoach(d: CoachData): CoachAnalysis {
   const types: CoachTypeInfo[] = []
   if (metrics.newCust.cls === 'strategic' && isNum(F.newCust.me) && isNum(F.newCust.tc) && F.newCust.me >= F.newCust.tc * 1.4) {
     types.push({
-      name: '고객발굴 강점형',
+      name: '신규고객 확장형',
+      axis: '성과중심활동 · 신규고객',
       desc:
         `신규고객 유입(월 ${f2(F.newCust.me)}명)이 동일그룹·TC그룹을 압도합니다.` +
         (F.transferLong.me === 0 ? ` 이관 없이 자력으로 만든 발굴 기반이라 접점이 마르지 않는 유형입니다.` : ''),
@@ -410,48 +413,59 @@ export function analyzeCoach(d: CoachData): CoachAnalysis {
   }
   if (isNum(M.simpleCntPct.me) && isNum(M.simpleCntPct.tc) && M.simpleCntPct.me - M.simpleCntPct.tc > 0.15) {
     types.push({
-      name: '상품편중형(주력상품 중심)',
-      desc: `신계약의 건수 ${pctFmt(M.simpleCntPct.me)}·보험료 ${pctFmt(M.simplePremPct.me)}가 간편에 집중되어 있습니다. 잘 팔리는 상품을 못 팔게 할 이유는 없습니다 — 간편을 입구상품으로 쓰고, 그 뒤의 보장확장과 자동차 연계로 이어가면 소득 구조가 달라지는 유형입니다.`,
+      name: '첫 계약 개척형',
+      axis: '성과중심활동 · 신규고객',
+      desc: `간편으로 첫 계약을 만드는 힘이 뛰어난 유형입니다(건수 ${pctFmt(M.simpleCntPct.me)}·보험료 ${pctFmt(M.simplePremPct.me)}). 이미 잘 열고 있는 문 안쪽에서 보장확장과 자동차 연계로 이어가면, 같은 활동으로 소득 구조가 달라집니다.`,
     })
   }
   if (metrics.perCust.cls === 'bottleneck' && isNum(F.custLong.me) && isNum(F.custLong.dg) && F.custLong.me >= F.custLong.dg) {
     types.push({
-      name: '관계심화 필요형',
-      desc: `고객은 충분한데 고객당 계약 깊이(${f2(F.perCust.me)}건)가 얕습니다. 만난 고객과의 두 번째·세 번째 계약이 성장 열쇠입니다.`,
+      name: '기존고객 성장형',
+      axis: '성장중심활동 · 기존고객',
+      desc: `고객 기반은 이미 충분히 쌓여 있습니다. 이제 만난 고객과의 두 번째·세 번째 계약(현재 고객당 ${f2(F.perCust.me)}건)을 더해 가는 것이 성장 열쇠입니다.`,
     })
   }
   if (metrics.linkRate.cls === 'bottleneck' && isNum(F.longSoloRate.me) && F.longSoloRate.me > 0.85) {
     types.push({
-      name: '장기 집중형',
+      name: '장기고객 전문형',
+      axis: '성장중심활동 · 기존고객',
       desc: `장기영업이 강한 유형입니다(장기 단독 ${pctFmt(F.longSoloRate.me)}). 현재의 장기 접점을 자동차 만기정보와 가족계약으로 연결하면 소득 확장 가능성이 큽니다.`,
     })
   }
   if (metrics.moLong.cls !== 'bottleneck' && metrics.perCust.cls === 'bottleneck') {
     types.push({
-      name: '활동대비 저전환형',
-      desc: `활동량은 TC급인데 전환(고객당 건수·단가)이 약합니다. 활동을 늘리기보다 활동이 성과로 이어지는 과정을 손봐야 하는 유형입니다.`,
+      name: '활동 에너지형',
+      axis: '성장중심활동 · 전환 만들기',
+      desc: `활동의 힘은 이미 TC급으로 살아 있습니다. 그 에너지가 성과로 이어지는 전환 과정(고객당 건수·단가)을 다듬으면 가장 빠르게 반응하는 유형입니다.`,
     })
   }
   if (metrics.premPer.cls === 'bottleneck' && metrics.perCust.cls !== 'bottleneck') {
     types.push({
-      name: '보장심화형',
-      desc: `계약 수는 따라가지만 보장의 깊이(인당·건당 보험료)가 약합니다. 보장분석과 설계 깊이가 성장 열쇠입니다.`,
+      name: '고객가치 심화형',
+      axis: '성장중심활동 · 기존고객',
+      desc: `계약을 만드는 힘은 이미 궤도에 올라 있습니다. 여기에 보장분석과 설계의 깊이(인당·건당 보험료)를 더하면 고객가치와 소득이 함께 커지는 유형입니다.`,
     })
   }
   if (metrics.premPer.cls === 'strategic' && metrics.cancerRate.cls === 'strategic') {
     types.push({
-      name: '고보장 설계형',
+      name: '고객신뢰 설계형',
+      axis: '성장중심활동 · 소개 확장',
       desc: `계약 한 건의 보장 깊이(인당 ${wonK(F.premPer.me)}, 암 부보율 ${pctFmt(M.cancerRate.me)})가 상위권이에요. 이 설계력이 소개와 신규 유입으로 이어지도록 접점을 넓히는 것이 다음 단계예요.`,
     })
   }
   if (metrics.moLong.cls === 'bottleneck' && metrics.newCust.cls === 'bottleneck' && metrics.perCust.cls !== 'bottleneck') {
     types.push({
-      name: '활동리듬 회복형',
+      name: '활동리듬 만들기형',
+      axis: '성장중심활동 · 리듬 회복',
       desc: `상담의 질과 전환력은 이미 검증되어 있어요. 활동의 양과 리듬을 회복하면 성과가 가장 빠르게 반응하는 유형이에요.`,
     })
   }
   if (types.length === 0) {
-    types.push({ name: '균형성장형', desc: '뚜렷한 편중 없이 고르게 성장 중입니다. 가장 격차가 큰 한 지표에 집중하면 TC 진입이 앞당겨집니다.' })
+    types.push({
+      name: '균형성장형',
+      axis: '성과·성장 균형',
+      desc: '어느 한쪽에 치우침 없이 고르게 균형 잡힌 성장 중입니다. 가장 간격이 큰 한 지표에 집중하면 TC 진입이 앞당겨집니다.',
+    })
   }
   const type = { main: types[0], sub: types[1] ?? null }
 
@@ -482,7 +496,7 @@ export function analyzeCoach(d: CoachData): CoachAnalysis {
         from: `${f2(F.perCust.me)}건`,
         to: `${f2(isNum(F.perCust.me) ? Math.round((F.perCust.me + 0.3) * 100) / 100 : null)}건`,
       },
-      why: `500만원 진입에 필요한 것은 더 많은 고객이 아니라 <b>고객당 소득</b>입니다. 고객 기반과 활동량이 이미 상위권이므로, 고객당 건수 격차가 좁혀지는 만큼 소득이 가장 빠르게 반응하는 구조입니다. 주력상품 고객의 치료과정 보장 공백 점검은 고객가치 관점에서도 우선입니다.`,
+      why: `500만원 진입에 필요한 것은 더 많은 고객이 아니라, <b>고객 한 분과 만드는 소득의 깊이</b>입니다. 고객 기반과 활동량이 이미 상위권이므로, 고객당 건수의 간격이 좁혀지는 만큼 소득이 가장 빠르게 반응하는 구조입니다. 주력상품 고객의 치료과정 보장 공백 점검은 고객가치 관점에서도 우선입니다.`,
       hero: 'depth',
     })
   }
@@ -826,6 +840,23 @@ export function analyzeCoach(d: CoachData): CoachAnalysis {
             html: `지금의 구조를 90일 더 <b>같은 리듬으로 반복하는 것</b> 자체가 성장 전략이에요. 흔들리지 않는 반복이 상위권의 무기예요.`,
           }
     }
+    // 여러 지표가 고르게 뒤처져 있으면 "모순 없음"보다 "기본기의 크기"로 말한다 (v20)
+    const weakN = Object.values(metrics).filter((mt) => mt && mt.cls === 'bottleneck').length
+    if (weakN >= 4) {
+      return {
+        id: 'R6',
+        head: '모순을 찾기 전에, 기본기의 크기를 키울 때예요',
+        sL: null,
+        sR: null,
+        shadow: `서로 어긋나서 발목을 잡는 지표는 없어요. 다만 여러 지표가 TC까지 고르게 간격을 두고 있어요 — 방향이 틀린 게 아니라, <b>지금 하고 있는 것의 양과 반복</b>이 커질 차례라는 뜻이에요.${convLine}`,
+        opp: r6opp,
+        one: '가장 간격이 큰 <b>지표 하나</b>에 90일 집중',
+        qa: [
+          `"여러 지표 중 딱 하나만 90일 안에 TC 수준으로 만든다면, 어떤 걸 고르시겠어요?"<span class="qwhy">왜 묻나요 — 넓은 간격 앞에서 막막함 대신 선택과 집중으로 시선을 옮기는 질문이에요.</span>`,
+          null,
+        ],
+      }
+    }
     return {
       id: 'R6',
       head: '찌를 모순이 없다는 것 — 그게 이 데이터의 결론이에요',
@@ -865,7 +896,7 @@ export function analyzeCoach(d: CoachData): CoachAnalysis {
         ? Math.round((M.perfConv.me / M.perfConv.tc) * 100)
         : null
     const L = (now: string, str: string, next: string): CoachLesson => ({ now, str, next })
-    if (tn === '고객발굴 강점형')
+    if (tn === '신규고객 확장형')
       return L(
         nc && ncTc
           ? `매달 새 고객 <b>${nc}명</b>을 만나요. TC그룹(${ncTc}명)을 크게 앞서는, 흔치 않은 발굴력이에요.`
@@ -874,10 +905,10 @@ export function analyzeCoach(d: CoachData): CoachAnalysis {
           ? `새로운 고객과 인연을 맺는 힘은 이미 증명됐어요 — 지금까지 함께해 온 고객 <b>${custT}분</b>이 그 증거예요.`
           : `새로운 고객과 인연을 맺는 힘은 이미 충분히 증명됐어요.`,
         custT
-          ? `이번 90일은 새로운 만남을 잠시 줄이고, <b>이미 인연을 맺은 ${custT}분과의 두 번째 계약을 만들어 갑니다.</b>`
-          : `이번 90일은 새 고객 찾기를 잠시 줄이고, <b>이미 만난 고객과의 두 번째 계약을 만들어 갑니다.</b>`,
+          ? `이번 90일은 그 발굴력 위에, <b>이미 인연을 맺은 ${custT}분과의 두 번째 계약을 더해 갑니다.</b>`
+          : `이번 90일은 그 발굴력 위에, <b>이미 만난 고객과의 두 번째 계약을 더해 갑니다.</b>`,
       )
-    if (tn.startsWith('상품편중형'))
+    if (tn.startsWith('첫 계약 개척형'))
       return L(
         isNum(M.simpleCntPct.me)
           ? `계약 10건 중 <b>${f0(M.simpleCntPct.me * 10)}건</b>이 간편보험이에요. 문을 여는 상품으로는 최고의 무기예요.`
@@ -887,7 +918,7 @@ export function analyzeCoach(d: CoachData): CoachAnalysis {
           : `간편으로 첫 계약을 만드는 속도는 TC그룹보다 빨라요.`,
         `간편으로 연 문 안쪽에서, <b>다음 상담엔 보장 이야기를 한 가지만 더 얹어봅니다.</b>`,
       )
-    if (tn === '관계심화 필요형')
+    if (tn === '기존고객 성장형')
       return L(
         per
           ? `고객 한 분당 계약이 <b>${per}건</b>이에요. 만난 분들과의 '두 번째 계약'이 아직 적다는 뜻이에요.`
@@ -899,7 +930,7 @@ export function analyzeCoach(d: CoachData): CoachAnalysis {
           ? `새 고객 찾기보다, <b>이미 알고 지내는 ${custT}분을 다시 만나는 90일을 시작합니다.</b>`
           : `새 고객 찾기보다, <b>이미 알고 지내는 고객을 다시 만나는 90일을 시작합니다.</b>`,
       )
-    if (tn === '장기 집중형')
+    if (tn === '장기고객 전문형')
       return L(
         solo && link
           ? `계약의 <b>${solo}%</b>가 장기 단독이에요. 자동차와 연결된 고객은 ${link}%뿐이고요.`
@@ -909,7 +940,7 @@ export function analyzeCoach(d: CoachData): CoachAnalysis {
           ? `장기 고객 <b>${cust}분</b>께 <b>"자동차 만기 언제세요?" 한마디를 건네봅니다</b> — 1년에 한 번씩 다시 만날 약속이 생겨요.`
           : `장기 고객분들께 <b>"자동차 만기 언제세요?" 한마디를 건네봅니다</b> — 1년에 한 번씩 다시 만날 약속이 생겨요.`,
       )
-    if (tn === '활동대비 저전환형')
+    if (tn === '활동 에너지형')
       return L(
         mo && per
           ? `계약은 월 <b>${mo}건</b>으로 활발한데, 고객당으로는 ${per}건 — 넓게 만나고 얕게 맺고 있어요.`
@@ -917,7 +948,7 @@ export function analyzeCoach(d: CoachData): CoachAnalysis {
         `움직이는 힘은 이미 충분해요. 지금 필요한 건 '더 많이'가 아니라 '한 번 더'예요.`,
         `활동을 늘리지 말고, <b>계약한 고객에게 2주 안에 한 번 더 연락하는 규칙을 만듭니다.</b>`,
       )
-    if (tn === '보장심화형')
+    if (tn === '고객가치 심화형')
       return L(
         prem && premTc
           ? `고객이 맡겨주신 월 보험료가 <b>${prem}만원</b>이에요. TC그룹(${premTc}만원)과의 차이는 '단가'에 있어요.`
@@ -927,7 +958,7 @@ export function analyzeCoach(d: CoachData): CoachAnalysis {
           : `계약 건수와 고객 관리는 이미 궤도에 올라 있어요.`,
         `다음 상담부터 <b>암·심뇌 보장 한 가지를 반드시 견적에 담아 보여드립니다.</b>`,
       )
-    if (tn === '고보장 설계형')
+    if (tn === '고객신뢰 설계형')
       return L(
         prem && cancer
           ? `인당 보험료 <b>${prem}만원</b>, 암 부보율 <b>${cancer}%</b> — 두 지표 모두 TC그룹을 넘었어요.`
@@ -935,7 +966,7 @@ export function analyzeCoach(d: CoachData): CoachAnalysis {
         `'제대로 된 보장'을 설계하는 힘이 최상급이라는 뜻이에요.`,
         `이 설계력을 <b>소개로 연결합니다</b> — 만족 고객 3분께 "저 같은 설계가 필요한 분"을 여쭤봅니다.`,
       )
-    if (tn === '활동리듬 회복형')
+    if (tn === '활동리듬 만들기형')
       return L(
         nc6 && mo
           ? `최근 6개월, 새 고객(월 <b>${nc6}명</b>)과 계약(월 ${mo}건)의 리듬이 함께 느려졌어요.`
