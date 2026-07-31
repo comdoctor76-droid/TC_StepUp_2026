@@ -11,7 +11,7 @@
 import { analyze, type FullAnalysis } from '../calc'
 import type { CoverGender } from '../components/CoverPage'
 import { loadPlanner, loadReference } from '../data/repository'
-import { printAll, type CaptureOptions } from './captureAll'
+import { nextPaint, printAll, type CaptureOptions } from './captureAll'
 import { exportPdf } from './pdf'
 import { download, outputFileName, outputFileStem } from './share'
 
@@ -54,11 +54,6 @@ export interface BulkResult {
   failed: { code: string; error: string }[]
 }
 
-/** 두 프레임 양보 — setA() 로 바뀐 PrintRoot 내용이 실제로 페인트될 시간을 준다 */
-function nextPaint(): Promise<void> {
-  return new Promise((r) => requestAnimationFrame(() => requestAnimationFrame(() => r())))
-}
-
 /**
  * people 을 순서대로 처리한다. setCurrent 는 캡처 대상 PrintRoot 를 그 사람으로
  * 갈아 끼우는 콜백(호출부가 상태로 들고 있다가 <PrintRoot A={...} cover={...}/> 를 렌더한다).
@@ -84,6 +79,14 @@ export async function runBulkExport(
   const failed: BulkResult['failed'] = []
   const ref = await loadReference()
 
+  /* 인쇄 모드에서는 body.printing-coach 를 사람마다 붙였다 떼지 않고 **실행 내내
+     한 번만** 유지한다. 이 클래스가 빠지는 순간 인쇄 대상 문서 자체가 바뀌므로
+     (print.css 의 #coach-print-root / #print-root 스위치), 앞사람 인쇄가 아직
+     래스터화 중일 때 클래스가 토글되면 출력물이 섞인다. */
+  const holdClass = mode === 'print' && (target === 'coach' || target === 'guide')
+  if (holdClass) document.body.classList.add('printing-coach')
+
+  try {
   for (let i = 0; i < people.length; i++) {
     if (cancelled()) break
     const { code, cover, guide } = people[i]
@@ -123,9 +126,10 @@ export async function runBulkExport(
         download(blob, isCoachSide ? `${fileStem}.pdf` : outputFileName(name, A.profile.code, 'pdf'))
       } else {
         onProgress({ ...base, name, phase: 'printing' })
-        await printAll(fileStem, undefined, isCoachSide ? 'printing-coach' : undefined)
-        // 인쇄 대화상자가 비동기인 브라우저에서, 다음 사람으로 DOM 을 갈아 끼우기 전에
-        // 한 프레임 쉰다 — 두 사람 내용이 한 미리보기에 섞이는 것을 막는다.
+        // 클래스는 위에서 실행 내내 잡아 두므로 printAll 에는 넘기지 않는다
+        // (printAll 이 afterprint 까지 기다린 뒤에야 반환한다).
+        await printAll(fileStem, undefined, holdClass ? undefined : isCoachSide ? 'printing-coach' : undefined)
+        // 다음 사람으로 DOM 을 갈아 끼우기 전에 한 프레임 쉰다.
         await nextPaint()
       }
       if (cancelled()) break
@@ -133,6 +137,9 @@ export async function runBulkExport(
     } catch (e) {
       failed.push({ code, error: e instanceof Error ? e.message : String(e) })
     }
+  }
+  } finally {
+    if (holdClass) document.body.classList.remove('printing-coach')
   }
 
   setCurrent(null)

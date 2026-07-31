@@ -360,10 +360,6 @@
     margin: 0 !important;
     page-break-after: always;
     break-after: page;
-    /* 한 장이 물리 페이지 2장으로 쪼개져 같은 페이지가 한 번 더 나오는 것을 막는다
-       (인쇄 여백 설정·브라우저 반올림으로 인쇄 영역이 297mm 보다 짧을 때) */
-    break-inside: avoid;
-    page-break-inside: avoid;
     box-shadow: none !important;
   }
 
