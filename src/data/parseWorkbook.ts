@@ -6,6 +6,7 @@
    ══════════════════════════════════════════════════════════════════════ */
 
 import * as XLSX from 'xlsx'
+import { computeCohortStats, type CohortStats } from '../calc/cohort'
 import {
   BENCH_FIELDS,
   BENCH_LABELS,
@@ -24,6 +25,8 @@ export interface ParsedWorkbook {
   planners: Record<string, PlannerRow> // key = 정규화된 사번
   benchmarks: Record<string, BenchRow> // key = 소득 라벨 (BENCH_LABELS)
   incomeMap: IncomeMap
+  /** 차월 코호트 밴드별 통계 (성장코칭 "내 연차의 기준" 페이지) — 산출 불가 시 null */
+  cohortStats: CohortStats | null
   rowCount: number
   warnings: string[]
 }
@@ -170,10 +173,17 @@ export function parseWorkbook(data: ArrayBuffer | Uint8Array): ParsedWorkbook {
     warnings.push(`'${TC_GROUP}' 행(소득별Data 47행)이 없습니다. 비교군 표시가 비게 됩니다.`)
   }
 
+  // ── 차월 코호트 통계 (성장코칭) ─────────────────────────────────────
+  const cohortStats = computeCohortStats(planners)
+  if (!cohortStats) {
+    warnings.push('코호트 통계를 만들 수 없습니다(Q6 시계열 없음) — 성장코칭의 "내 연차의 기준" 페이지가 숨겨집니다.')
+  }
+
   return {
     planners,
     benchmarks,
     incomeMap: { groupOf, nextLevel, percentile, headcount },
+    cohortStats,
     rowCount: Object.keys(planners).length,
     warnings,
   }

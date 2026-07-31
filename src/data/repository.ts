@@ -6,6 +6,7 @@
    ══════════════════════════════════════════════════════════════════════ */
 
 import { arrayRemove, arrayUnion, collection, doc, getDoc, getDocs, setDoc } from 'firebase/firestore'
+import { setActiveCohortStats, type CohortStats } from '../calc/cohort'
 import { db } from '../firebase'
 import type { BenchRow, DatasetMeta, IncomeMap, PlannerRow } from './schema'
 import { s } from './schema'
@@ -22,6 +23,7 @@ export const DOC = {
   benchmarksAll: 'all',
   incomeMap: 'incomeMap',
   dataset: 'dataset',
+  cohort: 'cohort',
   auth: 'auth',
   uploadProgress: 'uploadProgress',
 } as const
@@ -30,6 +32,8 @@ export interface ReferenceData {
   benchmarks: Record<string, BenchRow>
   incomeMap: IncomeMap
   dataset: DatasetMeta
+  /** 차월 코호트 통계 — 새 임포터로 재업로드하기 전에는 문서가 없어 null */
+  cohortStats: CohortStats | null
 }
 
 let refCache: ReferenceData | null = null
@@ -39,10 +43,11 @@ const shardCache = new Map<string, Record<string, PlannerRow>>()
 export async function loadReference(force = false): Promise<ReferenceData> {
   if (refCache && !force) return refCache
 
-  const [bSnap, iSnap, dSnap] = await Promise.all([
+  const [bSnap, iSnap, dSnap, cSnap] = await Promise.all([
     getDoc(doc(db, COL.benchmarks, DOC.benchmarksAll)),
     getDoc(doc(db, COL.meta, DOC.incomeMap)),
     getDoc(doc(db, COL.meta, DOC.dataset)),
+    getDoc(doc(db, COL.meta, DOC.cohort)),
   ])
 
   if (!bSnap.exists() || !iSnap.exists()) {
@@ -63,7 +68,10 @@ export async function loadReference(force = false): Promise<ReferenceData> {
           sourceFileName: '',
           caption: '',
         }) as DatasetMeta,
+    cohortStats: cSnap.exists() ? (cSnap.data() as CohortStats) : null,
   }
+  // 성장코칭의 "내 연차의 기준" 페이지가 buildCoachData 에서 꺼내 쓴다
+  setActiveCohortStats(refCache.cohortStats)
   return refCache
 }
 

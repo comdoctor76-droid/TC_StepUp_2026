@@ -14,6 +14,7 @@
    ══════════════════════════════════════════════════════════════════════ */
 
 import type { FullAnalysis } from './index'
+import { getActiveCohortStats, lookupCohort, type CoachCohort } from './cohort'
 import { ym } from './format'
 
 export interface CoachMetric {
@@ -50,9 +51,13 @@ export interface CoachData {
   full: Record<string, CoachMetric>
   m6: Record<string, CoachMetric>
   monthly: CoachMonthlyPoint[]
+  /** 차월 코호트 벤치마크 ("내 연차의 기준") — 통계 문서가 없으면 null → 페이지 숨김 */
+  cohort: CoachCohort | null
 }
 
 const m = (me: number | null, dg: number | null, tc: number | null): CoachMetric => ({ me, dg, tc })
+const pos = (v: number | null | undefined): number | null =>
+  typeof v === 'number' && isFinite(v) && v > 0 ? v : null
 const shareOf = (arr: { label: string; share: number }[], label: string) =>
   arr.find((x) => x.label === label)?.share ?? null
 
@@ -128,6 +133,11 @@ export function buildCoachData(A: FullAnalysis, caption: string): CoachData {
     premMax6: m(r.premium.max.self, A.skill.amount6m[1].max, r.premium.max.tc),
     cancerRate: m(r.critical.cancer.rate.self, A.skill.critical[1].cancerRate, r.critical.cancer.rate.tc),
     brainRate: m(r.critical.heart.rate.self, A.skill.critical[1].heartRate, r.critical.heart.rate.tc),
+    // 레포트!D30/G30/J30/M30 상당 — 월평균 인·환산실적 (최근 6개월, 동일그룹 없음).
+    // 구버전 엑셀 데이터에는 열이 없어 0 으로 계산되는데, 0 을 그대로 쓰면
+    // "TC의 NaN%" 같은 파생 문구가 깨진다 — 0 이하는 미제공(null)으로 취급한다.
+    perfIn: m(pos(r.perf.person.self), null, pos(r.perf.person.tc)),
+    perfConv: m(pos(r.perf.converted.self), null, pos(r.perf.converted.tc)),
   }
 
   const monthly: CoachMonthlyPoint[] = A.action.trend.map((t) => ({
@@ -137,5 +147,11 @@ export function buildCoachData(A: FullAnalysis, caption: string): CoachData {
     tc: t.건수TC,
   }))
 
-  return { basic, full, m6, monthly }
+  const cohort = lookupCohort(
+    getActiveCohortStats(),
+    basic.months,
+    typeof full.custLong.me === 'number' ? full.custLong.me : null,
+  )
+
+  return { basic, full, m6, monthly, cohort }
 }

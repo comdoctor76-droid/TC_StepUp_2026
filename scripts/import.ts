@@ -140,6 +140,13 @@ await db.collection('meta').doc('dataset').set({
 })
 console.log('  ✓ meta/dataset')
 
+if (parsed.cohortStats) {
+  await db.collection('meta').doc('cohort').set(parsed.cohortStats)
+  console.log('  ✓ meta/cohort (차월 코호트 통계)')
+} else {
+  console.log('  ⚠ 코호트 통계 산출 불가 — meta/cohort 를 쓰지 않았습니다')
+}
+
 if (viewerPassword) {
   const hash = createHash('sha256').update(viewerPassword).digest('hex')
   await db.collection('meta').doc('auth').set({ viewerHash: hash }, { merge: true })

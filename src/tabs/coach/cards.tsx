@@ -128,13 +128,15 @@ export function VsCard({
           </div>
           <span className="vs-val num">{fmt(o.me)}</span>
         </div>
-        <div className="vs-row dg">
-          <span className="vs-who">동일그룹</span>
-          <div className="vs-track">
-            <div className="vs-fill" style={{ width: `${w(o.dg)}%` }} />
+        {isNum(o.dg) && (
+          <div className="vs-row dg">
+            <span className="vs-who">동일그룹</span>
+            <div className="vs-track">
+              <div className="vs-fill" style={{ width: `${w(o.dg)}%` }} />
+            </div>
+            <span className="vs-val num">{fmt(o.dg)}</span>
           </div>
-          <span className="vs-val num">{fmt(o.dg)}</span>
-        </div>
+        )}
         <div className="vs-row tc">
           <span className="vs-who">TC그룹</span>
           <div className="vs-track">
@@ -181,7 +183,7 @@ export function RingCard({
         <div className="ring-name">{name}</div>
         <Editable id={descId} html={desc} edits={edits} onCommit={onCommit} className="ring-desc" />
         <div className="ring-chips">
-          <span className="chip neutral num">동일그룹 {pctFmt(o.dg)}</span>
+          {isNum(o.dg) && <span className="chip neutral num">동일그룹 {pctFmt(o.dg)}</span>}
           <span className="chip gap num">TC 목표 {pctFmt(o.tc)}</span>
           {behind && <span className="chip warn num">TC까지 {ppTxt(isNum(o.me) && isNum(o.tc) ? o.me - o.tc : null)}</span>}
         </div>
