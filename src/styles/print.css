@@ -66,10 +66,18 @@
 
 /* ── 여자표지 (실제 포스터 864×1232 기준 실측 좌표) ── */
 .cvf-name {
-  left: 5%;
-  top: 19.5%;
-  width: 90%;
-  height: 5.8%;
+  /* 실측: 하늘색 밴드 page x 37.7~755.4, 밴드에 박힌 샘플 텍스트는 page x 59.7~533,
+     밴드 위를 지나가는 화살표 그래픽은 page x≈697 부터.
+     밴드 전체를 덮으면(이전 width:90%) 화살표·TC표준그룹까지 지워지므로,
+     "우리 텍스트 길이에 맞추되(max-content) 박힌 샘플 글자는 반드시 덮고
+     (min-width) 화살표에는 닿지 않는(max-width)" 크기로 잡는다. */
+  left: 40px;
+  top: 219px;
+  height: 65px;
+  width: max-content;
+  min-width: 505px;
+  max-width: 640px;
+  overflow: hidden;
   /* 포스터 이름줄 배경(사진 위 하늘) 실측 그라데이션 #a9c5dd → #b8d9ec */
   background: linear-gradient(90deg, #a8c4dd, #b6d8eb);
   border-radius: 6px;
@@ -130,12 +138,14 @@
 }
 /* 오른쪽 여백의 세로 영문(ILSAN VISION CENTER'S BEST!) 가리기 — 흰 여백 위 패치 */
 .cvf-side {
-  /* 실측(원본 864×1232, x780~849·y520~1180)으로 조정 — 기존 값은 상단
-     "현대해상" 로고/워드마크(원본 y64~166)까지 침범했다 */
-  left: 712px;
-  top: 468px;
-  width: 74px;
-  height: 617px;
+  /* 원본 픽셀 실측: 사진 패널 우측 경계 img x≈823(page 756.3), 흰 여백 안 세로
+     영문은 img x 833~851 · y 519~747(page x 765.5~782.1 · y 472.4~681.9).
+     사진 경계 바로 오른쪽에서 시작해 페이지 우측 끝(794)까지만 덮는다 —
+     이전 값(left 712)은 사진 안쪽 44px 까지 침범했다. */
+  left: 758px;
+  top: 466px;
+  width: 36px;
+  height: 226px;
   background: #fff;
 }
 
@@ -214,11 +224,14 @@
 .a4-cover__circle span b {
   font-size: 17px;
 }
+/* 링 안쪽 원의 실측 지름은 셋 다 194px, 중심 x 는 각각 194 / 405 / 615 (page 좌표).
+   흰 원판(::before)은 부모 폭을 그대로 따르므로(left:0/width:100%) 부모를 링 중심에
+   맞춰 놓고 폭만 좁히면 좌우 여백이 대칭으로 생긴다 — v0.40 까지는 c1 이 14px 왼쪽,
+   c2 가 12px 오른쪽으로 치우쳐 있어 반대쪽에 박힌 글자 조각이 비어져 나왔다. */
 .cvm-c1 {
-  /* 좌우 3px씩 안쪽으로(폭 -6px) — 링 침범 재신고 반영 */
-  left: 92px;
+  left: 113px; /* 중심 194 − 161/2 */
   top: 889px;
-  width: 175px;
+  width: 161px;
   height: 91px;
 }
 .cvm-c1::before {
@@ -229,9 +242,9 @@
    포스터의 샘플 글자는 원 중심보다 왼쪽에 박혀 있어, 원판을 링 안쪽에
    정확히 맞추면 자연히 몇 px 오른쪽으로 이동해 링 간섭이 사라진다 (사용자 요청) */
 .cvm-c2 {
-  left: 326px;
+  left: 321px; /* 중심 405 − 168/2 */
   top: 894px;
-  width: 182px;
+  width: 168px;
   height: 74px;
 }
 .cvm-c2::before {
@@ -239,9 +252,9 @@
   height: 188px;
 }
 .cvm-c3 {
-  left: 524px;
+  left: 531px;
   top: 884px;
-  width: 182px;
+  width: 168px;
   height: 88px;
 }
 .cvm-c3::before {
