@@ -344,12 +344,14 @@ export function CoachPages(props: CoachPageProps) {
           <div className="type-row">
             <div className="type-card main">
               <span className="type-badge">메인유형</span>
+              {r.type.main.axis && <span className="type-axis">{r.type.main.axis}</span>}
               <Editable id="type-main-name" html={r.type.main.name} edits={edits} onCommit={onCommit} className="type-name" />
               <Editable id="type-main-desc" html={r.type.main.desc} edits={edits} onCommit={onCommit} className="type-desc" />
             </div>
             {r.type.sub && (
               <div className="type-card sub">
                 <span className="type-badge">서브유형</span>
+                {r.type.sub.axis && <span className="type-axis">{r.type.sub.axis}</span>}
                 <Editable id="type-sub-name" html={r.type.sub.name} edits={edits} onCommit={onCommit} className="type-name" />
                 <Editable id="type-sub-desc" html={r.type.sub.desc} edits={edits} onCommit={onCommit} className="type-desc" />
               </div>
@@ -478,8 +480,11 @@ export function CoachPages(props: CoachPageProps) {
           <SecHead n="7" title="그룹 비교" />
           <VsCard name="월평균 신규고객" sub="명 · 전체" o={F.newCust} fmt={fmtMyeong}
             msg={vsMsgs[0]} msgId="vs-newCust" edits={edits} onCommit={onCommit} base={BASE_ALL} callout={vsCallouts[0]} />
-          <VsCard name="장기계약 건수" sub="이관 제외 · 전체" o={F.cntLong} fmt={fmtGun1}
-            msg={vsMsgs[1]} msgId="vs-cntLong" edits={edits} onCommit={onCommit} base={BASE_ALL} callout={vsCallouts[1]} />
+          {/* 장기계약 건수는 원자료가 없으면(값 결측) 카드를 통째로 뺀다 — v20 */}
+          {isNum(F.cntLong.me) && isNum(F.cntLong.tc) && (
+            <VsCard name="장기계약 건수" sub="이관 제외 · 전체" o={F.cntLong} fmt={fmtGun1}
+              msg={vsMsgs[1]} msgId="vs-cntLong" edits={edits} onCommit={onCommit} base={BASE_ALL} callout={vsCallouts[1]} />
+          )}
         </div>
         {pf('그룹 비교 ①')}
       </article>
