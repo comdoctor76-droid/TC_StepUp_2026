@@ -149,6 +149,51 @@ export async function captureAllPages(onProgress?: CaptureProgress, opts: Captur
   return blob
 }
 
+/** 두 프레임 양보 — 바뀐 DOM/스타일이 실제로 페인트될 시간을 준다 */
+export function nextPaint(): Promise<void> {
+  return new Promise((r) => requestAnimationFrame(() => requestAnimationFrame(() => r())))
+}
+
+/* afterprint 를 못 쏘는 환경 대비 안전판 — 이 시간이 지나면 그냥 끝난 것으로 본다. */
+const PRINT_END_FALLBACK_MS = 8000
+
+/**
+ * window.print() 를 부르고 **인쇄가 실제로 끝날 때까지** 기다린다.
+ *
+ * 예전에는 print() 바로 다음 줄에서 body 클래스와 document.title 을 되돌렸다.
+ * "print() 가 대화상자가 떠 있는 동안 JS 를 멈춘다"는 전제였는데, 최신 크롬은
+ * 미리보기를 넘긴 시점에 곧바로 반환하고 실제 래스터화는 그 뒤에 계속된다.
+ * 그래서 래스터화 도중 body.printing-coach 가 떨어져 나가면
+ *   - #coach-print-root 가 display:none 이 되고 (#print-root 가 대신 나타남)
+ *   - .sheet 가 height:297mm · page-break-after 를 잃어 페이지가 다시 나뉘고
+ *   - 화면용 툴바가 인쇄 흐름에 끼어든다
+ * 크롬은 이미 뽑아 둔 몇 장을 내보낸 뒤 바뀐 문서로 페이지네이션을 다시 시작해,
+ * "1~3장 + 1~9장" 처럼 앞부분이 중복된 출력물이 나왔다(미리보기는 정상, PDF 는
+ * print() 를 안 쓰므로 무관 — 실제 신고 증상과 정확히 일치).
+ */
+function printAndWait(): Promise<void> {
+  return new Promise((resolve) => {
+    let settled = false
+    let timer: ReturnType<typeof setTimeout> | undefined
+    const done = () => {
+      if (settled) return
+      settled = true
+      window.removeEventListener('afterprint', done)
+      if (timer) clearTimeout(timer)
+      resolve()
+    }
+    // print() 보다 먼저 걸어 둔다 — 동기적으로 막는 브라우저는 print() 안에서 발화한다
+    window.addEventListener('afterprint', done)
+    try {
+      window.print()
+    } catch {
+      done()
+      return
+    }
+    if (!settled) timer = setTimeout(done, PRINT_END_FALLBACK_MS)
+  })
+}
+
 /**
  * 브라우저 인쇄 대화상자 (A4 6장).
  *
@@ -159,8 +204,8 @@ export async function captureAllPages(onProgress?: CaptureProgress, opts: Captur
  *
  * fileStem 은 인쇄 대화상자에서 "PDF로 저장"을 고를 때 브라우저가 제안하는 파일명이
  * document.title 을 그대로 쓰기 때문에 필요하다 — 인쇄 직전에만 잠깐 바꿨다가 복원한다.
- * window.print() 가 대화상자가 떠 있는 동안 JS 를 멈추므로, 복원 코드는 항상 대화상자가
- * 닫힌 뒤에만 실행된다.
+ * 복원은 반드시 **인쇄가 끝난 뒤**(printAndWait) 여야 한다 — 래스터화 도중 문서를
+ * 건드리면 앞부분이 중복 출력된다(printAndWait 주석 참고).
  *
  * bodyClass 를 주면(예: 'printing-coach') 인쇄 직전에 <body> 에 붙였다가 끝나면 뗀다 —
  * #print-root 가 아닌 다른 인쇄 대상(#coach-print-root 등)으로 print.css 가 분기하게
@@ -171,8 +216,14 @@ export async function printAll(fileStem: string, onReady?: () => void, bodyClass
   const originalTitle = document.title
   document.title = fileStem
   if (bodyClass) document.body.classList.add(bodyClass)
+  // 인쇄용 스타일이 실제로 적용된 뒤에 인쇄를 시작한다
+  await nextPaint()
   onReady?.()
-  window.print()
+
+  await printAndWait()
+
+  // 인쇄가 끝난 뒤에만 되돌린다 — 이유는 printAndWait() 주석 참고
   document.title = originalTitle
   if (bodyClass) document.body.classList.remove(bodyClass)
+  await nextPaint()
 }
