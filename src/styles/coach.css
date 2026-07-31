@@ -1742,6 +1742,32 @@
   color: #c0261c;
 }
 
+/* ── 1장(진단 개요 + 영업유형 + 성장 신호등) 통합 페이지 (v0.45) ──────
+   원래 2장이던 내용을 한 장에 담기 위해 이 장에서만 섹션 간격·카드 안쪽
+   여백·신호등 행 높이를 좁힌다. 글자 크기는 건드리지 않아 가독성은 그대로.
+   다른 장(.sheet)에는 영향이 없다. */
+.coach-report .sheet--intro .sec {
+  margin-bottom: 15px;
+}
+.coach-report .sheet--intro .oneliner {
+  padding: 20px 26px;
+}
+.coach-report .sheet--intro .ol-row {
+  padding: 8px 0;
+}
+.coach-report .sheet--intro .ol-k {
+  margin-bottom: 7px;
+}
+.coach-report .sheet--intro .type-card {
+  padding: 15px 20px;
+}
+.coach-report .sheet--intro .cg {
+  padding: 11px 0;
+}
+.coach-report .sheet--intro .person {
+  margin-bottom: 14px;
+}
+
 /* ── 내 연차의 기준 (차월 코호트, v18) ── */
 .coach-report .cohort {
   background: var(--cr-surface);
@@ -2203,6 +2229,32 @@ body.capturing-coach .hypo {
 body.printing-coach .cfact .cread,
 body.capturing-coach .cfact .cread {
   font-size: 11.5px;
+}
+/* 통합 1장(진단 개요 + 영업유형 + 신호등) — 인쇄·캡처에서 A4 안에 담기도록
+   화면보다 한 단계 더 좁힌다 (v0.45) */
+body.printing-coach .sheet--intro .sec,
+body.capturing-coach .sheet--intro .sec {
+  margin-bottom: 12px;
+}
+body.printing-coach .sheet--intro .oneliner,
+body.capturing-coach .sheet--intro .oneliner {
+  padding: 18px 24px;
+}
+body.printing-coach .sheet--intro .ol-row,
+body.capturing-coach .sheet--intro .ol-row {
+  padding: 7px 0;
+}
+body.printing-coach .sheet--intro .type-card,
+body.capturing-coach .sheet--intro .type-card {
+  padding: 13px 18px;
+}
+body.printing-coach .sheet--intro .cg,
+body.capturing-coach .sheet--intro .cg {
+  padding: 10px 0;
+}
+body.printing-coach .sheet--intro .cams-legend,
+body.capturing-coach .sheet--intro .cams-legend {
+  margin-top: 8px;
 }
 
 /* ── PDF/PNG 캡처 전용 ────────────────────────────────────────────────

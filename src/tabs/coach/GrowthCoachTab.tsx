@@ -314,8 +314,8 @@ export function CoachPages(props: CoachPageProps) {
           고정이라 앞 장을 빼도 그대로 성립한다. */}
       {!guideOnly && (
         <>
-      {/* P1 진단 개요 */}
-      <article className="sheet">
+      {/* P1 진단 개요 + 성장 신호등 (v0.45 — 여백을 좁혀 한 장에 통합) */}
+      <article className="sheet sheet--intro">
         <PageHead title={<>하이플래너 <span className="accent">성장 코칭</span></>} sub={sub1} tag="TC 스텝업" />
         {/* 사번은 성명과 같은 칩에 붙인다 — 따로 두면 칩 5개가 한 줄(210mm 기준 688px)에
             안 들어가 사번만 둘째 줄로 밀려 한 줄치 높이를 통째로 낭비했다. */}
@@ -351,17 +351,11 @@ export function CoachPages(props: CoachPageProps) {
             )}
           </div>
         </div>
-        {pf('진단 개요')}
-      </article>
-
-      {/* P2 성장 신호등 */}
-      <article className="sheet">
-        <PageHead title={<>C·A·M·S <span className="accent">성장 신호등</span></>} sub="한눈에 보는 나의 현재" tag="SIGNAL" />
         <div className="sec">
-          <SecHead n="3" title="영역별 진단" />
+          <SecHead n="3" title="C·A·M·S 성장 신호등" note="한눈에 보는 나의 현재" />
           <CamsMap analysis={r} m6={M} dgBand={dgBand} />
         </div>
-        {pf('성장 신호등')}
+        {pf('진단 개요 · 성장 신호등')}
       </article>
 
       {/* P3 데이터가 본 진짜 이야기 */}
