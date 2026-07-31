@@ -107,7 +107,7 @@ export async function uploadParsed(
 
   const pending = ids.filter((id) => !doneIds.has(id))
   const skipped = ids.length - pending.length
-  const total = ids.length + 4 // 샤드 + benchmarks + incomeMap + dataset + auth
+  const total = ids.length + 5 // 샤드 + benchmarks + incomeMap + dataset + cohort + auth
   let done = skipped
 
   const writeProgressDoc = () =>
@@ -166,7 +166,13 @@ export async function uploadParsed(
   )
   onProgress?.(++done, total, '메타데이터')
 
-  // ── 5. 접속 비밀번호 (지정한 경우에만) ───────────────────────────────
+  // ── 5. 차월 코호트 통계 (성장코칭 "내 연차의 기준") ──────────────────
+  if (parsed.cohortStats) {
+    await setDocWithRetry([COL.meta, DOC.cohort], parsed.cohortStats, '코호트 통계')
+  }
+  onProgress?.(++done, total, '코호트 통계')
+
+  // ── 6. 접속 비밀번호 (지정한 경우에만) ───────────────────────────────
   if (opts.viewerPasswordHash) {
     await setDoc(
       doc(db, COL.meta, DOC.auth),
