@@ -14,6 +14,7 @@ import { KpiCard, VsCard, RingCard, TrendCard, ButterflyCard, HeroCard, Strength
 import { CamsMap } from './CamsMap'
 import { GoalCard } from './GoalCard'
 import { CoachPrintRoot } from './CoachPrintRoot'
+import { HighlightDeck } from './HighlightDeck'
 import { buildCoachPageProps, incomeBand } from './buildCoachPageProps'
 import type { CoachPageProps } from './types'
 import { printAll, captureAllPages } from '../../export/captureAll'
@@ -229,6 +230,10 @@ export function GrowthCoachTab({ A, caption }: { A: FullAnalysis; caption: strin
       </p>
 
       <CoachPages {...pageProps} />
+      {/* 하이라이트는 화면 전용이다 — 인쇄/캡처 대상(CoachPrintRoot)에는 넣지 않아
+          성장코칭 인쇄물의 장수(13장 · 가이드 포함 16장)가 그대로 유지된다.
+          강의 자료는 위쪽 "다운로드" 버튼으로 원본 PDF 를 받아 쓰는 게 더 선명하다. */}
+      <HighlightDeck />
       <CoachPrintRoot {...pageProps} />
 
       {showPrintChoice && (

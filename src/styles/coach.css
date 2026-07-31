@@ -1910,6 +1910,111 @@
   line-height: 1.6;
 }
 
+/* ── TC스텝업 하이라이트 (강의용 PDF 뷰어, v0.46) ────────────────────
+   화면 전용이다 — 인쇄·캡처 대상에는 렌더되지 않으므로 조밀 모드 규칙이
+   필요 없고, 아래 body.printing-coach/capturing-coach 에서 통째로 숨긴다. */
+.hl {
+  max-width: 210mm;
+  margin: 8px auto 40px;
+}
+.hl-bar {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  flex-wrap: wrap;
+  background: var(--cr-surface);
+  border: 0.5px solid var(--cr-border);
+  border-radius: var(--cr-radius-md);
+  box-shadow: var(--cr-shadow);
+  padding: 12px 18px;
+  margin-bottom: 16px;
+  position: sticky;
+  top: 8px;
+  z-index: 20;
+}
+.hl-title {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  margin-right: auto;
+  min-width: 0;
+}
+.hl-title b {
+  font-size: 15px;
+  font-weight: 800;
+  color: var(--cr-text);
+  letter-spacing: -0.02em;
+}
+.hl-sub {
+  font-size: 11.5px;
+  color: var(--cr-text2);
+  word-break: break-all;
+}
+.hl-zoom {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.hl-zoom .btn {
+  min-width: 38px;
+  padding: 7px 10px;
+  font-size: 14px;
+}
+.hl-pct {
+  min-width: 52px;
+  text-align: center;
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--cr-text2);
+}
+.hl-acts {
+  display: flex;
+  gap: 8px;
+}
+.hl-acts .btn {
+  padding: 8px 16px;
+  font-size: 13.5px;
+}
+.hl-msg {
+  text-align: center;
+  color: var(--cr-text2);
+  font-size: 14px;
+  padding: 40px 0;
+}
+/* 확대하면 폭이 화면을 넘어간다 — 가로 스크롤은 이 안에서만 생기게 한다 */
+.hl-pages {
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+.hl-page {
+  margin: 0;
+  position: relative;
+  background: #fff;
+  border-radius: 6px;
+  box-shadow: var(--cr-shadow-md);
+  overflow: hidden;
+  line-height: 0;
+}
+.hl-canvas {
+  display: block;
+  width: 100%;
+  height: auto;
+  background: #fff;
+}
+.hl-num {
+  position: absolute;
+  right: 10px;
+  bottom: 8px;
+  font-size: 11px;
+  color: var(--cr-text3);
+  background: rgba(255, 255, 255, 0.9);
+  border-radius: 6px;
+  padding: 2px 8px;
+  line-height: 1.6;
+}
+
 /* ══ 인쇄 · 캡처 공통 (조밀 모드) ═════════════════════════════════════
    네이티브 인쇄(body.printing-coach)와 PDF/PNG 캡처(body.capturing-coach)가
    똑같은 조밀 타이포그래피를 쓴다.
@@ -1926,8 +2031,10 @@ body.capturing-coach .coach-report {
 }
 body.printing-coach .coach-toolbar,
 body.printing-coach .edit-hint,
+body.printing-coach .hl,
 body.capturing-coach .coach-toolbar,
-body.capturing-coach .edit-hint {
+body.capturing-coach .edit-hint,
+body.capturing-coach .hl {
   display: none !important;
 }
 body.printing-coach .insight,
