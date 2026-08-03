@@ -12,6 +12,7 @@ import {
   groupByOrg,
   matchPastedCodes,
   parsePastedCodes,
+  searchByName,
 } from '../src/data/roster'
 import type { RosterEntry } from '../src/data/repository'
 
@@ -106,5 +107,30 @@ describe('groupByHq — TC스텝업 저장 프롬프트용 지역단별 묶기',
       entry({ code: 'B001', hq: '서울' }),
     ])
     expect(groups.map((g) => g.hq)).toEqual(['서울', '호남'])
+  })
+})
+
+describe('searchByName — 사번·성명 통합검색의 성명 폴백', () => {
+  const planners = [
+    entry({ code: 'A001', name: '홍길동' }),
+    entry({ code: 'A002', name: '홍길순' }),
+    entry({ code: 'B001', name: '김철수' }),
+  ]
+
+  it('부분일치하는 이름을 모두 찾아 이름순으로 반환한다', () => {
+    const result = searchByName(planners, '홍길')
+    expect(result.map((p) => p.code)).toEqual(['A001', 'A002'])
+  })
+
+  it('일치하는 이름이 없으면 빈 배열을 반환한다', () => {
+    expect(searchByName(planners, '없는이름')).toEqual([])
+  })
+
+  it('빈 검색어는 빈 배열을 반환한다 (오검색 방지)', () => {
+    expect(searchByName(planners, '   ')).toEqual([])
+  })
+
+  it('앞뒤 공백은 무시하고 검색한다', () => {
+    expect(searchByName(planners, ' 김철수 ').map((p) => p.code)).toEqual(['B001'])
   })
 })

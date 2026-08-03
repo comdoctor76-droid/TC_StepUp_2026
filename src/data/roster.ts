@@ -59,6 +59,13 @@ export function sortedPlanners(planners: RosterEntry[]): RosterEntry[] {
   return [...planners].sort((a, b) => a.name.localeCompare(b.name, 'ko'))
 }
 
+/** 성명에 검색어가 포함된 사람을 이름순으로 — 사번 매칭은 호출부에서 loadPlanner 로 먼저 시도한다 */
+export function searchByName(planners: RosterEntry[], query: string): RosterEntry[] {
+  const q = query.trim()
+  if (!q) return []
+  return sortedPlanners(planners.filter((p) => p.name.includes(q)))
+}
+
 /* ── 사번 텍스트 붙여넣기로 선택 ──────────────────────────────────────
    드릴다운 대신 사번 목록을 통째로 붙여넣어 고르는 방법. 헤더 없이
    사번만(줄바꿈·쉼표·공백 구분) 있다고 가정한다. */
