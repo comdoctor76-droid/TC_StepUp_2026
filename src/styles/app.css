@@ -246,6 +246,10 @@
   font-size: 14.5px;
   font-weight: 700;
   color: var(--ink-3);
+  /* 탭이 4개로 늘어 폭이 좁아지면 "지역단별 조회" 같은 라벨이 한 줄에 못 들어간다 —
+     기본값은 한글 음절 아무 데서나 줄바꿈해 "…조 / 회"처럼 단어 중간이 끊기므로,
+     띄어쓰기(단어 경계)에서만 줄바꿈하도록 고정한다 */
+  word-break: keep-all;
 }
 .gate__mode-btn.is-on {
   background: var(--surface);
