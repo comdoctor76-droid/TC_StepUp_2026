@@ -114,12 +114,13 @@ export function Roster({
   const hqOptions = tree ? sortedKeys(tree) : []
   const vcNode = tree && hq ? tree[hq] : null
   const stepupCodes = hq ? (stepupMap[hq] ?? []) : []
-  // 지역단별 조회(browse)는 대량 인쇄용 TC스텝업 가상 비전센터를 보여주지 않는다 —
-  // 조회 전용 화면이라 그 관리(빼기 등) 기능과 엮이지 않도록 실제 조직만 나열한다.
+  // 지역단별 조회(browse)에서도 저장된 TC스텝업 명단을 보여준다 — 명단 렌더링은
+  // pickMode 별로 이미 분리돼 있어(browse 는 이름+사번만, 체크박스·빼기 없음)
+  // 여기서 걸러낼 필요가 없다.
   const vcOptions = useMemo(() => {
     const real = vcNode ? sortedKeys(vcNode.visionCenters) : []
-    return pickMode !== 'browse' && stepupCodes.length > 0 ? [STEPUP_VISION_CENTER, ...real] : real
-  }, [vcNode, stepupCodes, pickMode])
+    return stepupCodes.length > 0 ? [STEPUP_VISION_CENTER, ...real] : real
+  }, [vcNode, stepupCodes])
   const isStepupView = vc === STEPUP_VISION_CENTER
   const brNode = !isStepupView && vcNode && vc ? vcNode.visionCenters[vc] : null
   const brOptions = brNode ? sortedKeys(brNode.branches) : []
