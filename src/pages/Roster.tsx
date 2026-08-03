@@ -9,8 +9,6 @@ import { useEffect, useMemo, useRef, useState, type Dispatch, type SetStateActio
 import {
   addStepupTargets,
   loadAllPlanners,
-  loadPlanner,
-  loadReference,
   loadStepupTargets,
   removeStepupTarget,
   type RosterEntry,
@@ -31,9 +29,10 @@ import { runBulkExport, type BulkMode, type BulkProgress, type BulkTarget } from
 import { PrintRoot } from '../PrintRoot'
 import { CoachPrintRootForPerson } from '../tabs/coach/CoachPrintRootForPerson'
 import type { CoverGender } from '../components/CoverPage'
-import { analyze, type FullAnalysis } from '../calc'
+import { usePersonPreview, PersonPreviewDialog } from '../components/PersonPreviewDialog'
+import { type FullAnalysis } from '../calc'
 
-export type PickMode = 'tree' | 'paste'
+export type PickMode = 'tree' | 'paste' | 'browse'
 
 /** 남/여 표지 선택값을 기기에 기억하는 localStorage 키 */
 const GENDER_STORE_KEY = 'tcstepup.coverGender'
@@ -95,8 +94,10 @@ export function Roster({
   const [savingStepup, setSavingStepup] = useState(false)
 
   // 명단 행의 사번을 클릭해 그 사람 레포트를 미리 볼 때
-  const [previewTarget, setPreviewTarget] = useState<RosterEntry | null>(null)
-  const [previewBusy, setPreviewBusy] = useState(false)
+  const preview = usePersonPreview(onView, (message) => {
+    setToast(message)
+    setTimeout(() => setToast(null), 5000)
+  })
 
   useEffect(() => {
     loadAllPlanners((done, total) => setLoadProgress(`${done} / ${total}`))
@@ -113,10 +114,12 @@ export function Roster({
   const hqOptions = tree ? sortedKeys(tree) : []
   const vcNode = tree && hq ? tree[hq] : null
   const stepupCodes = hq ? (stepupMap[hq] ?? []) : []
+  // 지역단별 조회(browse)는 대량 인쇄용 TC스텝업 가상 비전센터를 보여주지 않는다 —
+  // 조회 전용 화면이라 그 관리(빼기 등) 기능과 엮이지 않도록 실제 조직만 나열한다.
   const vcOptions = useMemo(() => {
     const real = vcNode ? sortedKeys(vcNode.visionCenters) : []
-    return stepupCodes.length > 0 ? [STEPUP_VISION_CENTER, ...real] : real
-  }, [vcNode, stepupCodes])
+    return pickMode !== 'browse' && stepupCodes.length > 0 ? [STEPUP_VISION_CENTER, ...real] : real
+  }, [vcNode, stepupCodes, pickMode])
   const isStepupView = vc === STEPUP_VISION_CENTER
   const brNode = !isStepupView && vcNode && vc ? vcNode.visionCenters[vc] : null
   const brOptions = brNode ? sortedKeys(brNode.branches) : []
@@ -272,24 +275,6 @@ export function Roster({
     }
   }
 
-  const confirmPreview = async () => {
-    if (!previewTarget) return
-    setPreviewBusy(true)
-    try {
-      const ref = await loadReference()
-      const planner = await loadPlanner(previewTarget.code)
-      if (!planner) throw new Error(`사번 '${previewTarget.code}' 데이터를 찾지 못했습니다.`)
-      const A = analyze(previewTarget.code, planner, ref.benchmarks, ref.incomeMap, ref.dataset.months)
-      onView(A, ref.dataset.caption)
-    } catch (e) {
-      setToast(e instanceof Error ? e.message : '레포트를 불러오지 못했습니다.')
-      setTimeout(() => setToast(null), 5000)
-    } finally {
-      setPreviewBusy(false)
-      setPreviewTarget(null)
-    }
-  }
-
   const confirmSaveStepup = async () => {
     if (!saveStepupPrompt) return
     setSavingStepup(true)
@@ -361,7 +346,9 @@ export function Roster({
         <button type="button" className="roster__back" onClick={onBack}>
           ← 사번으로 조회
         </button>
-        <h1 className="gate__title">{pickMode === 'paste' ? '사번 붙여넣기' : '명단에서 선택'}</h1>
+        <h1 className="gate__title">
+          {pickMode === 'paste' ? '사번 붙여넣기' : pickMode === 'browse' ? '지역단별 조회' : '명단에서 선택'}
+        </h1>
 
         {err && <p className="field__err">{err}</p>}
         {!tree && !err && <p className="gate__sub">명단을 불러오는 중… {loadProgress}</p>}
@@ -404,7 +391,7 @@ export function Roster({
               </div>
             )}
 
-            {pickMode === 'tree' && (
+            {(pickMode === 'tree' || pickMode === 'browse') && (
               <>
                 <div className="roster__drill">
                   <label className="field">
@@ -470,172 +457,191 @@ export function Roster({
                         ? `${hq} · TC스텝업 — 총 ${stepupRoster.length.toLocaleString('ko-KR')}명`
                         : `${hq} · ${vc} · ${branch} — 총 ${branchNode!.count.toLocaleString('ko-KR')}명`}
                     </p>
-                    <ul className="roster__list">
-                      {/* 머리글의 표지/코칭/가이드 컨트롤은 "한번에 선택" — 보이는 명단 전체에 적용 */}
-                      <li className={`roster__list-head ${isStepupView ? 'roster__list--stepup' : ''}`}>
-                        <input type="checkbox" checked={allChecked} onChange={toggleAll} aria-label="전체선택" />
-                        <span>이름 · 사번</span>
-                        <span className="gender-mini" role="group" aria-label="표지 성별 전체 적용">
-                          {(['M', 'F'] as const).map((g) => (
-                            <button
-                              key={g}
-                              type="button"
-                              className={
-                                roster.length > 0 && roster.every((p) => genderOf(p.code) === g)
-                                  ? 'is-active'
-                                  : undefined
-                              }
-                              onClick={() => setGenderAll(g)}
-                              title={`전체 ${g === 'M' ? '남자' : '여자'}표지로`}
-                            >
-                              {g === 'M' ? '남' : '여'}
-                            </button>
-                          ))}
-                        </span>
-                        <label className="roster__opt-head" title="성장코칭 인쇄 전체 선택">
-                          코칭
-                          <input
-                            type="checkbox"
-                            checked={roster.length > 0 && roster.every((p) => coachSet.has(p.code))}
-                            onChange={() => toggleAllInSet(setCoachSet)}
-                            aria-label="성장코칭 인쇄 전체 선택"
-                          />
-                        </label>
-                        <label className="roster__opt-head" title="강사용 가이드 포함 전체 선택">
-                          가이드
-                          <input
-                            type="checkbox"
-                            checked={roster.length > 0 && roster.every((p) => guideSet.has(p.code))}
-                            onChange={() => toggleAllInSet(setGuideSet)}
-                            aria-label="강사용 가이드 포함 전체 선택"
-                          />
-                        </label>
-                        {/* 마지막 1fr 여백 트랙 자리 (스텝업 뷰에서는 행의 "빼기"가 여기 온다) */}
-                        <span />
-                      </li>
-                      {roster.map((p) => (
-                        <li key={p.code} className={isStepupView ? 'roster__list--stepup' : undefined}>
-                          <input
-                            type="checkbox"
-                            checked={checked.has(p.code)}
-                            onChange={() => toggle(p)}
-                            aria-label={`${p.name} 선택`}
-                          />
-                          <span className="roster__who">
-                            {p.name}
+                    {pickMode === 'browse' ? (
+                      <ul className="roster__browse-list">
+                        {roster.map((p) => (
+                          <li key={p.code}>
+                            <span className="roster__browse-name">{p.name}</span>
                             <button
                               type="button"
                               className="roster__code-link num"
-                              onClick={() => setPreviewTarget(p)}
+                              onClick={() => preview.setTarget(p)}
                             >
                               {p.code}
                             </button>
+                          </li>
+                        ))}
+                      </ul>
+                    ) : (
+                      <ul className="roster__list">
+                        {/* 머리글의 표지/코칭/가이드 컨트롤은 "한번에 선택" — 보이는 명단 전체에 적용 */}
+                        <li className={`roster__list-head ${isStepupView ? 'roster__list--stepup' : ''}`}>
+                          <input type="checkbox" checked={allChecked} onChange={toggleAll} aria-label="전체선택" />
+                          <span>이름 · 사번</span>
+                          <span className="gender-mini" role="group" aria-label="표지 성별 전체 적용">
+                            {(['M', 'F'] as const).map((g) => (
+                              <button
+                                key={g}
+                                type="button"
+                                className={
+                                  roster.length > 0 && roster.every((p) => genderOf(p.code) === g)
+                                    ? 'is-active'
+                                    : undefined
+                                }
+                                onClick={() => setGenderAll(g)}
+                                title={`전체 ${g === 'M' ? '남자' : '여자'}표지로`}
+                              >
+                                {g === 'M' ? '남' : '여'}
+                              </button>
+                            ))}
                           </span>
-                          <GenderMini code={p.code} name={p.name} />
-                          <input
-                            type="checkbox"
-                            className="roster__opt"
-                            checked={coachSet.has(p.code)}
-                            onChange={() => toggleCoach(p.code)}
-                            aria-label={`${p.name} 성장코칭 인쇄`}
-                          />
-                          <input
-                            type="checkbox"
-                            className="roster__opt"
-                            checked={guideSet.has(p.code)}
-                            onChange={() => toggleGuide(p.code)}
-                            aria-label={`${p.name} 강사용 가이드 포함`}
-                          />
-                          {isStepupView && (
-                            <button
-                              type="button"
-                              className="roster__stepup-remove"
-                              onClick={() => void removeFromStepup(hq, p.code)}
-                              aria-label={`${p.name} TC스텝업 명단에서 빼기`}
-                            >
-                              빼기
-                            </button>
-                          )}
+                          <label className="roster__opt-head" title="성장코칭 인쇄 전체 선택">
+                            코칭
+                            <input
+                              type="checkbox"
+                              checked={roster.length > 0 && roster.every((p) => coachSet.has(p.code))}
+                              onChange={() => toggleAllInSet(setCoachSet)}
+                              aria-label="성장코칭 인쇄 전체 선택"
+                            />
+                          </label>
+                          <label className="roster__opt-head" title="강사용 가이드 포함 전체 선택">
+                            가이드
+                            <input
+                              type="checkbox"
+                              checked={roster.length > 0 && roster.every((p) => guideSet.has(p.code))}
+                              onChange={() => toggleAllInSet(setGuideSet)}
+                              aria-label="강사용 가이드 포함 전체 선택"
+                            />
+                          </label>
+                          {/* 마지막 1fr 여백 트랙 자리 (스텝업 뷰에서는 행의 "빼기"가 여기 온다) */}
+                          <span />
                         </li>
-                      ))}
-                    </ul>
+                        {roster.map((p) => (
+                          <li key={p.code} className={isStepupView ? 'roster__list--stepup' : undefined}>
+                            <input
+                              type="checkbox"
+                              checked={checked.has(p.code)}
+                              onChange={() => toggle(p)}
+                              aria-label={`${p.name} 선택`}
+                            />
+                            <span className="roster__who">
+                              {p.name}
+                              <button
+                                type="button"
+                                className="roster__code-link num"
+                                onClick={() => preview.setTarget(p)}
+                              >
+                                {p.code}
+                              </button>
+                            </span>
+                            <GenderMini code={p.code} name={p.name} />
+                            <input
+                              type="checkbox"
+                              className="roster__opt"
+                              checked={coachSet.has(p.code)}
+                              onChange={() => toggleCoach(p.code)}
+                              aria-label={`${p.name} 성장코칭 인쇄`}
+                            />
+                            <input
+                              type="checkbox"
+                              className="roster__opt"
+                              checked={guideSet.has(p.code)}
+                              onChange={() => toggleGuide(p.code)}
+                              aria-label={`${p.name} 강사용 가이드 포함`}
+                            />
+                            {isStepupView && (
+                              <button
+                                type="button"
+                                className="roster__stepup-remove"
+                                onClick={() => void removeFromStepup(hq, p.code)}
+                                aria-label={`${p.name} TC스텝업 명단에서 빼기`}
+                              >
+                                빼기
+                              </button>
+                            )}
+                          </li>
+                        ))}
+                      </ul>
+                    )}
                   </>
                 )}
               </>
             )}
 
-            <div className="roster__picked">
-              <p className="roster__picked-title">선택됨 ({selected.length}명)</p>
-              {selected.length > 0 && (
-                <ul className="roster__picked-list">
-                  {selected.map((p) => (
-                    <li key={p.code}>
-                      <span>
-                        {p.name} ({p.code})
-                      </span>
-                      <GenderMini code={p.code} name={p.name} />
-                      <label className="roster__picked-opt">
-                        코칭
-                        <input
-                          type="checkbox"
-                          checked={coachSet.has(p.code)}
-                          onChange={() => toggleCoach(p.code)}
-                          aria-label={`${p.name} 성장코칭 인쇄`}
-                        />
-                      </label>
-                      <label className="roster__picked-opt">
-                        가이드
-                        <input
-                          type="checkbox"
-                          checked={guideSet.has(p.code)}
-                          onChange={() => toggleGuide(p.code)}
-                          aria-label={`${p.name} 강사용 가이드 포함`}
-                        />
-                      </label>
-                      <button type="button" onClick={() => toggle(p)} aria-label={`${p.name} 선택 해제`}>
-                        ✕
-                      </button>
-                    </li>
-                  ))}
-                </ul>
-              )}
-              {/* 버튼 3개가 서로 다른 대상을 본다 — 레포트는 왼쪽 선택 체크,
-                  코칭·가이드는 그 행의 코칭/가이드 체크만으로 바로 인쇄된다.
-                  (서로 이어붙이지 않으므로 같은 문서가 두 번 나오지 않는다) */}
-              <button
-                type="button"
-                className="btn btn--primary btn--block"
-                disabled={selected.length === 0 || busy}
-                onClick={() => {
-                  setBulkTarget('report')
-                  setShowChoice(true)
-                }}
-              >
-                선택한 {selected.length}명 일괄 인쇄
-              </button>
-              <button
-                type="button"
-                className="btn btn--block roster__coach-print"
-                disabled={coachEntries.length === 0 || busy}
-                onClick={() => {
-                  setBulkTarget('coach')
-                  setShowChoice(true)
-                }}
-              >
-                성장코칭 인쇄 ({coachEntries.length}명)
-              </button>
-              <button
-                type="button"
-                className="btn btn--block roster__coach-print"
-                disabled={guideEntries.length === 0 || busy}
-                onClick={() => {
-                  setBulkTarget('guide')
-                  setShowChoice(true)
-                }}
-              >
-                강사용 가이드만 인쇄 ({guideEntries.length}명)
-              </button>
-            </div>
+            {pickMode !== 'browse' && (
+              <div className="roster__picked">
+                <p className="roster__picked-title">선택됨 ({selected.length}명)</p>
+                {selected.length > 0 && (
+                  <ul className="roster__picked-list">
+                    {selected.map((p) => (
+                      <li key={p.code}>
+                        <span>
+                          {p.name} ({p.code})
+                        </span>
+                        <GenderMini code={p.code} name={p.name} />
+                        <label className="roster__picked-opt">
+                          코칭
+                          <input
+                            type="checkbox"
+                            checked={coachSet.has(p.code)}
+                            onChange={() => toggleCoach(p.code)}
+                            aria-label={`${p.name} 성장코칭 인쇄`}
+                          />
+                        </label>
+                        <label className="roster__picked-opt">
+                          가이드
+                          <input
+                            type="checkbox"
+                            checked={guideSet.has(p.code)}
+                            onChange={() => toggleGuide(p.code)}
+                            aria-label={`${p.name} 강사용 가이드 포함`}
+                          />
+                        </label>
+                        <button type="button" onClick={() => toggle(p)} aria-label={`${p.name} 선택 해제`}>
+                          ✕
+                        </button>
+                      </li>
+                    ))}
+                  </ul>
+                )}
+                {/* 버튼 3개가 서로 다른 대상을 본다 — 레포트는 왼쪽 선택 체크,
+                    코칭·가이드는 그 행의 코칭/가이드 체크만으로 바로 인쇄된다.
+                    (서로 이어붙이지 않으므로 같은 문서가 두 번 나오지 않는다) */}
+                <button
+                  type="button"
+                  className="btn btn--primary btn--block"
+                  disabled={selected.length === 0 || busy}
+                  onClick={() => {
+                    setBulkTarget('report')
+                    setShowChoice(true)
+                  }}
+                >
+                  선택한 {selected.length}명 일괄 인쇄
+                </button>
+                <button
+                  type="button"
+                  className="btn btn--block roster__coach-print"
+                  disabled={coachEntries.length === 0 || busy}
+                  onClick={() => {
+                    setBulkTarget('coach')
+                    setShowChoice(true)
+                  }}
+                >
+                  성장코칭 인쇄 ({coachEntries.length}명)
+                </button>
+                <button
+                  type="button"
+                  className="btn btn--block roster__coach-print"
+                  disabled={guideEntries.length === 0 || busy}
+                  onClick={() => {
+                    setBulkTarget('guide')
+                    setShowChoice(true)
+                  }}
+                >
+                  강사용 가이드만 인쇄 ({guideEntries.length}명)
+                </button>
+              </div>
+            )}
           </>
         )}
       </div>
@@ -708,31 +714,13 @@ export function Roster({
         </div>
       )}
 
-      {previewTarget && (
-        <div
-          className="choice-overlay"
-          role="dialog"
-          aria-modal="true"
-          onClick={() => !previewBusy && setPreviewTarget(null)}
-        >
-          <div className="choice-overlay__box" onClick={(e) => e.stopPropagation()}>
-            <p className="choice-overlay__title">
-              {previewTarget.name}({previewTarget.code})님의 자가진단 레포트를 확인하시겠습니까?
-            </p>
-            <div className="choice-overlay__actions">
-              <button className="btn btn--primary" disabled={previewBusy} onClick={() => void confirmPreview()}>
-                {previewBusy ? '불러오는 중…' : '예'}
-              </button>
-            </div>
-            <button
-              className="btn choice-overlay__cancel"
-              disabled={previewBusy}
-              onClick={() => setPreviewTarget(null)}
-            >
-              아니오
-            </button>
-          </div>
-        </div>
+      {preview.target && (
+        <PersonPreviewDialog
+          target={preview.target}
+          busy={preview.busy}
+          onConfirm={() => void preview.confirm()}
+          onCancel={() => preview.setTarget(null)}
+        />
       )}
 
       {saveStepupPrompt && (
