@@ -180,9 +180,52 @@ export function Report({
     }
   }, [A])
 
+  /* 모바일은 window.print() 가 안정적이지 않아 "전체 인쇄" 버튼이 바로 PDF 를
+     만들어 OS 공유 시트로 넘긴다(카카오톡 등으로 바로 전송 가능) — 예전에는
+     PNG 로 캡처해 이어붙였는데, PDF 는 원본 그대로 전달되어(메신저의 사진
+     압축을 타지 않음) 더 선명하다. 데스크톱 전용 "이미지로 저장" 버튼은
+     그대로 makeImage 를 쓴다. */
+  const makePdfMobile = useCallback(async (gender: CoverGender) => {
+    const id = startOp()
+    setBusyMode('pdf')
+    setBusy(`0 / ${TOTAL_PAGES + 1}`)
+    setCoverGender(gender)
+    try {
+      await nextPaint()
+      const blob = await exportPdf((d, t) => {
+        if (isCurrent(id)) setBusy(`${d} / ${t}`)
+      })
+      const fileName = outputFileName(A.profile.name, A.profile.code, 'pdf')
+      const result = await shareOrDownloadMany(
+        [blob],
+        [fileName],
+        `${A.profile.name} 플래너 ${REPORT_TITLE_SHORT}`,
+      )
+      if (!isCurrent(id)) return
+      setToast(
+        result === 'shared'
+          ? '공유했습니다.'
+          : result === 'downloaded'
+            ? `PDF를 저장했습니다 — ${fileName}`
+            : '공유를 취소했습니다.',
+      )
+      setTimeout(() => setToast(null), 5000)
+    } catch (e) {
+      if (!isCurrent(id)) return
+      setToast(e instanceof Error ? e.message : 'PDF를 만들지 못했습니다.')
+      setTimeout(() => setToast(null), 5000)
+    } finally {
+      setCoverGender(null)
+      if (isCurrent(id)) {
+        setBusy(null)
+        setBusyMode(null)
+      }
+    }
+  }, [A])
+
   const doPrintAll = useCallback(async (gender: CoverGender) => {
     if (mobile) {
-      await makeImage(gender)
+      await makePdfMobile(gender)
       return
     }
     const id = startOp()
@@ -212,7 +255,7 @@ export function Report({
         setBusyMode(null)
       }
     }
-  }, [mobile, makeImage, A])
+  }, [mobile, makePdfMobile, A])
 
   const doExportPdf = useCallback(async (gender: CoverGender) => {
     const id = startOp()
@@ -248,7 +291,8 @@ export function Report({
   const openPrintChoice = useCallback(() => {
     setCoverGender(null)
     if (mobile) {
-      // 모바일 전체 인쇄 = 이미지 저장이므로 남/여 선택 팝업을 먼저 띄운다
+      // 모바일 전체 인쇄 = PDF 저장·공유이므로 남/여 선택 팝업을 먼저 띄운다
+      // (같은 팝업을 데스크톱의 "이미지로 저장" 버튼도 쓴다 — chooseImage 가 mobile 로 갈라 쓴다)
       setShowImageChoice(true)
       return
     }
@@ -272,11 +316,15 @@ export function Report({
     void doExportPdf(coverGender)
   }, [doExportPdf, coverGender])
 
+  /* 이 팝업은 두 자리에서 연다 — 모바일의 "전체 인쇄"(PDF 저장·공유를 원함)와
+     데스크톱 전용 "이미지로 저장" 버튼(항상 이미지를 원함). openImageChoice 는
+     mobile 이 아닐 때만 눌리는 버튼이므로, mobile 여부만으로 어느 쪽인지 갈린다. */
   const chooseImage = useCallback(() => {
     if (!coverGender) return
     setShowImageChoice(false)
-    void makeImage(coverGender)
-  }, [makeImage, coverGender])
+    if (mobile) void makePdfMobile(coverGender)
+    else void makeImage(coverGender)
+  }, [mobile, makePdfMobile, makeImage, coverGender])
 
   return (
     <div className="app">
@@ -321,7 +369,7 @@ export function Report({
                   ? `PDF 저장 중 ${busy}`
                   : `출력 중 ${busy}`
               : mobile
-                ? '전체 인쇄 (이미지 저장·공유)'
+                ? '전체 인쇄 (PDF 저장·공유)'
                 : `전체 인쇄 (표지+A4 ${TOTAL_PAGES}장)`}
           </button>
           {!mobile && (
@@ -504,7 +552,7 @@ export function Report({
 
       {mobile && !shareable && (
         <p className="hint">
-          이 브라우저는 파일 공유를 지원하지 않아 이미지가 <b>다운로드</b>됩니다. 저장된 파일을
+          이 브라우저는 파일 공유를 지원하지 않아 PDF가 <b>다운로드</b>됩니다. 저장된 파일을
           카카오톡에서 직접 첨부해 주세요.
         </p>
       )}

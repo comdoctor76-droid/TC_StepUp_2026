@@ -16,17 +16,10 @@ import { GoalCard } from './GoalCard'
 import { CoachPrintRoot } from './CoachPrintRoot'
 import { buildCoachPageProps, incomeBand } from './buildCoachPageProps'
 import type { CoachPageProps } from './types'
-import { printAll, captureAllPagesChunked } from '../../export/captureAll'
+import { printAll } from '../../export/captureAll'
 import { exportPdf } from '../../export/pdf'
 import { savePdf } from '../../export/pdfSave'
-import {
-  canShareFiles,
-  isMobile,
-  outputFileName,
-  outputFileStem,
-  outputImageFileNames,
-  shareOrDownloadMany,
-} from '../../export/share'
+import { canShareFiles, isMobile, outputFileName, outputFileStem, shareOrDownloadMany } from '../../export/share'
 
 /* bodyClass: 캡처하는 동안 인쇄와 같은 조밀 스타일 + A4 고정 높이를 적용한다
    (coach.css 의 body.capturing-coach 규칙 참고) */
@@ -94,7 +87,7 @@ export function GrowthCoachTab({ A, caption }: { A: FullAnalysis; caption: strin
   const [edits, setEdits] = useState<CoachEdits>({})
   const [showCoachGuide, setShowCoachGuide] = useState(false)
   const [busy, setBusy] = useState<string | null>(null)
-  const [busyMode, setBusyMode] = useState<'print' | 'pdf' | 'image' | null>(null)
+  const [busyMode, setBusyMode] = useState<'print' | 'pdf' | null>(null)
   const [showPrintChoice, setShowPrintChoice] = useState(false)
   const [toast, setToast] = useState<string | null>(null)
 
@@ -137,32 +130,33 @@ export function GrowthCoachTab({ A, caption }: { A: FullAnalysis; caption: strin
     }
   }, [A])
 
-  const doImageCoach = useCallback(async () => {
+  /* 모바일은 window.print() 가 안정적이지 않아 "인쇄·PDF 저장" 버튼이 바로
+     PDF 를 만들어 OS 공유 시트로 넘긴다(카카오톡 등으로 바로 전송 가능) —
+     예전에는 PNG 로 캡처해 이어붙였는데, 장수가 많으면 캔버스 픽셀 한도를
+     넘겨 흐리게 나올 수 있었다(v0.53). PDF 는 페이지를 합치지 않아 그 문제가
+     없고 원본 그대로 전달되어(메신저의 사진 압축을 타지 않음) 더 선명하다. */
+  const doPdfCoachMobile = useCallback(async () => {
     const id = startOp()
-    setBusyMode('image')
+    setBusyMode('pdf')
     setBusy('0')
     try {
-      // 성장코칭은 최대 16장까지 나와 한 캔버스로 다 합치면 캔버스 픽셀 한도를
-      // 넘기므로 여러 장의 PNG로 자동 분할된다 — 공유 시트는 한 번만 뜬다.
-      const blobs = await captureAllPagesChunked((done, total) => {
+      const blob = await exportPdf((done, total) => {
         if (isCurrentOp(id)) setBusy(`${done} / ${total}`)
       }, COACH_CAPTURE_OPTS)
-      const fileNames = outputImageFileNames(A.profile.name, A.profile.code, blobs.length)
-      const result = await shareOrDownloadMany(blobs, fileNames, `${A.profile.name} 플래너 성장코칭`)
+      const fileName = `${outputFileStem(A.profile.name, A.profile.code)}_성장코칭.pdf`
+      const result = await shareOrDownloadMany([blob], [fileName], `${A.profile.name} 플래너 성장코칭`)
       if (!isCurrentOp(id)) return
       setToast(
         result === 'shared'
           ? '공유했습니다.'
           : result === 'downloaded'
-            ? blobs.length > 1
-              ? `이미지 ${blobs.length}장을 저장했습니다`
-              : `이미지를 저장했습니다 — ${fileNames[0]}`
+            ? `PDF를 저장했습니다 — ${fileName}`
             : '공유를 취소했습니다.',
       )
       setTimeout(() => setToast(null), 5000)
     } catch (e) {
       if (!isCurrentOp(id)) return
-      setToast(e instanceof Error ? e.message : '이미지를 만들지 못했습니다.')
+      setToast(e instanceof Error ? e.message : 'PDF를 만들지 못했습니다.')
       setTimeout(() => setToast(null), 5000)
     } finally {
       if (isCurrentOp(id)) {
@@ -199,11 +193,11 @@ export function GrowthCoachTab({ A, caption }: { A: FullAnalysis; caption: strin
 
   const openPrintChoice = useCallback(() => {
     if (mobile) {
-      void doImageCoach()
+      void doPdfCoachMobile()
       return
     }
     setShowPrintChoice(true)
-  }, [mobile, doImageCoach])
+  }, [mobile, doPdfCoachMobile])
 
   const choosePrint = useCallback(() => {
     setShowPrintChoice(false)
@@ -227,11 +221,9 @@ export function GrowthCoachTab({ A, caption }: { A: FullAnalysis; caption: strin
           {busy
             ? busyMode === 'print'
               ? '인쇄 준비 중'
-              : busyMode === 'pdf'
-                ? `PDF 저장 중 ${busy}`
-                : `출력 중 ${busy}`
+              : `PDF 저장 중 ${busy}`
             : mobile
-              ? '인쇄·PDF 저장 (이미지 저장·공유)'
+              ? '인쇄·PDF 저장 (PDF 저장·공유)'
               : '인쇄·PDF 저장'}
         </button>
       </div>
@@ -278,15 +270,9 @@ export function GrowthCoachTab({ A, caption }: { A: FullAnalysis; caption: strin
             <div className="overlay__spin" />
             {busyMode === 'print' ? (
               <p>인쇄 준비 중입니다</p>
-            ) : busyMode === 'pdf' ? (
-              <p>
-                PDF를 만드는 중입니다
-                <br />
-                <b>{busy}</b>
-              </p>
             ) : (
               <p>
-                이미지를 만드는 중입니다
+                PDF를 만드는 중입니다
                 <br />
                 <b>{busy}</b>
               </p>
@@ -299,7 +285,7 @@ export function GrowthCoachTab({ A, caption }: { A: FullAnalysis; caption: strin
 
       {mobile && !canShareFiles() && (
         <p className="hint">
-          이 브라우저는 파일 공유를 지원하지 않아 이미지가 <b>다운로드</b>됩니다.
+          이 브라우저는 파일 공유를 지원하지 않아 PDF가 <b>다운로드</b>됩니다.
         </p>
       )}
     </div>
