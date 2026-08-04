@@ -16,7 +16,7 @@ import {
   type Period,
   type PeriodCaps,
 } from '../components/PeriodPicker'
-import { captureAllPages, printAll } from '../export/captureAll'
+import { captureAllPagesChunked, printAll } from '../export/captureAll'
 import type { CoverGender } from '../components/CoverPage'
 import { exportPdf } from '../export/pdf'
 import { savePdf } from '../export/pdfSave'
@@ -25,7 +25,8 @@ import {
   isMobile,
   outputFileName,
   outputFileStem,
-  shareOrDownload,
+  outputImageFileNames,
+  shareOrDownloadMany,
 } from '../export/share'
 import type { FullAnalysis } from '../calc'
 import {
@@ -145,13 +146,14 @@ export function Report({
     setCoverGender(gender)
     try {
       await nextPaint()
-      const blob = await captureAllPages((d, t) => {
+      const blobs = await captureAllPagesChunked((d, t) => {
         if (isCurrent(id)) setBusy(`${d} / ${t}`)
       })
-      const fileName = outputFileName(A.profile.name, A.profile.code)
-      const result = await shareOrDownload(
-        blob,
-        fileName,
+      // 캔버스 픽셀 한도 때문에 여러 장으로 나뉠 수 있다 — 공유 시트는 한 번만 뜬다.
+      const fileNames = outputImageFileNames(A.profile.name, A.profile.code, blobs.length)
+      const result = await shareOrDownloadMany(
+        blobs,
+        fileNames,
         `${A.profile.name} 플래너 ${REPORT_TITLE_SHORT}`,
       )
       if (!isCurrent(id)) return
@@ -159,7 +161,9 @@ export function Report({
         result === 'shared'
           ? '공유했습니다.'
           : result === 'downloaded'
-            ? `이미지를 저장했습니다 — ${fileName}`
+            ? blobs.length > 1
+              ? `이미지 ${blobs.length}장을 저장했습니다`
+              : `이미지를 저장했습니다 — ${fileNames[0]}`
             : '공유를 취소했습니다.',
       )
       setTimeout(() => setToast(null), 5000)
