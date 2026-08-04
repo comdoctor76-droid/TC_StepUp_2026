@@ -1,15 +1,28 @@
 /* ══════════════════════════════════════════════════════════════════════
-   A4 5장 → 세로로 이어붙인 PNG 1장
+   A4 페이지들을 캡처해 PNG(들)로 — 모바일 "이미지로 저장"과 PDF 저장이 공유한다.
 
-   pixelRatio 1.5 고정:
-     장당 794×1123 CSS px → 1191×1685 px, 5장 = 1191×8425 = 10.0M px
-     iOS Safari 의 캔버스 총 픽셀 한도(16,777,216)보다 작아야 하므로
-     2.0(17.8M)은 쓸 수 없다.
+   장당 해상도(pixelRatio)와 "한 캔버스에 몇 장을 이어붙일지"는 서로 다른 문제다.
+   이어붙인 캔버스의 총 픽셀이 iOS Safari 의 캔버스 픽셀 한도(4096×4096 =
+   16,777,216)를 넘으면 브라우저가 조용히 축소·클리핑해 흐리거나 깨진 이미지가
+   나온다 — 예전에는 이 한도를 "레포트 6장을 전부 한 장으로 이어붙인다"는
+   전제로 pixelRatio 1.5 하나로 맞춰 뒀는데, 성장코칭은 최대 16장까지 나와
+   그 전제가 이미 깨져 있었다(16장 × 1.5배 ≈ 32M px, 한도의 거의 2배).
+
+   그래서 이제 장수와 무관하게 항상 안전하도록, 합쳤을 때 총 픽셀이 한도 아래
+   여유(MAX_MERGE_PIXELS)를 넘지 않는 만큼씩만 묶어 여러 장의 PNG로 나눈다 —
+   장수가 늘어나면 이미지 장수가 늘 뿐 장당 해상도(IMAGE_PIXEL_RATIO)는 항상
+   그대로 유지된다. PDF 는 페이지를 하나로 합치지 않고 각각 독립된 이미지로
+   끼워 넣으므로 이 한도와 무관해 훨씬 높은 배율(PDF_PIXEL_RATIO)을 쓸 수 있다.
    ══════════════════════════════════════════════════════════════════════ */
 
 import { toCanvas } from 'html-to-image'
 
-export const PIXEL_RATIO = 1.5
+/** 이미지로 저장할 때 장당 캡처 배율 (예전 1.5 → 2.0, 실면적 78% 증가) */
+export const IMAGE_PIXEL_RATIO = 2
+/** PDF 는 페이지를 합치지 않으니 훨씬 높여도 안전하다 */
+export const PDF_PIXEL_RATIO = 3
+/** 캔버스 하나에 합쳐도 되는 총 픽셀 상한 — iOS 한도(16,777,216)보다 여유를 둔다 */
+const MAX_MERGE_PIXELS = 15_000_000
 const GAP = 10 // 페이지 사이 구분선 두께(px, 스케일 적용 후)
 
 // 폰트 정착은 실측상 1초 이내. 못 끝나도 무한정 기다리지 않고 그대로 진행한다.
@@ -38,6 +51,8 @@ export interface CaptureOptions {
    * 기존 6페이지 리포트(.a4-page)는 이미 height 가 297mm 로 못박혀 있어 필요 없다.
    */
   bodyClass?: string
+  /** 장당 캡처 배율. 기본 IMAGE_PIXEL_RATIO — PDF 저장은 더 높은 PDF_PIXEL_RATIO 를 넘긴다. */
+  pixelRatio?: number
 }
 
 /** p 가 ms 안에 끝나지 않으면 onTimeout() 이 만든 에러로 대신 거부한다 (p 자체를 취소하진 않는다). */
@@ -78,7 +93,7 @@ export async function capturePageCanvases(
   onProgress?: CaptureProgress,
   opts: CaptureOptions = {},
 ): Promise<HTMLCanvasElement[]> {
-  const { rootId = 'print-root', pageSelector = '.a4-page', bodyClass } = opts
+  const { rootId = 'print-root', pageSelector = '.a4-page', bodyClass, pixelRatio = IMAGE_PIXEL_RATIO } = opts
   const root = document.getElementById(rootId)
   if (!root) throw new Error('인쇄 영역을 찾을 수 없습니다.')
 
@@ -96,7 +111,7 @@ export async function capturePageCanvases(
       const el = pages[i]
       const c = await withTimeout(
         toCanvas(el, {
-          pixelRatio: PIXEL_RATIO,
+          pixelRatio,
           backgroundColor: '#ffffff',
           cacheBust: false,
           // 화면 밖에 있는 요소이므로 실제 크기를 명시한다
@@ -116,10 +131,8 @@ export async function capturePageCanvases(
   }
 }
 
-/** rootId 안의 pageSelector 들을 순서대로 캡처해 하나의 PNG blob 으로 */
-export async function captureAllPages(onProgress?: CaptureProgress, opts: CaptureOptions = {}): Promise<Blob> {
-  const canvases = await capturePageCanvases(onProgress, opts)
-
+/** 캔버스 여러 장을 세로로 이어붙여 PNG blob 하나로 */
+function stitchCanvases(canvases: HTMLCanvasElement[]): Promise<Blob> {
   const width = Math.max(...canvases.map((c) => c.width))
   const height =
     canvases.reduce((a, c) => a + c.height, 0) + GAP * Math.max(0, canvases.length - 1)
@@ -144,9 +157,44 @@ export async function captureAllPages(onProgress?: CaptureProgress, opts: Captur
     }
   })
 
-  const blob = await new Promise<Blob | null>((res) => out.toBlob(res, 'image/png'))
-  if (!blob) throw new Error('이미지를 만들지 못했습니다.')
-  return blob
+  return new Promise<Blob>((resolve, reject) =>
+    out.toBlob((b) => (b ? resolve(b) : reject(new Error('이미지를 만들지 못했습니다.'))), 'image/png'),
+  )
+}
+
+/** 이어붙였을 때 MAX_MERGE_PIXELS 를 넘지 않도록 캔버스들을 순서대로 묶는다 */
+function groupByPixelBudget(canvases: HTMLCanvasElement[]): HTMLCanvasElement[][] {
+  const groups: HTMLCanvasElement[][] = []
+  let current: HTMLCanvasElement[] = []
+  let currentPixels = 0
+  for (const c of canvases) {
+    const px = c.width * c.height
+    if (current.length > 0 && currentPixels + px > MAX_MERGE_PIXELS) {
+      groups.push(current)
+      current = []
+      currentPixels = 0
+    }
+    current.push(c)
+    currentPixels += px
+  }
+  if (current.length > 0) groups.push(current)
+  return groups
+}
+
+/**
+ * rootId 안의 pageSelector 들을 순서대로 캡처해 PNG blob(들)로 이어붙인다.
+ *
+ * 장수가 많아 한 캔버스로 합치면 캔버스 픽셀 한도를 넘길 상황이면 여러 장의
+ * PNG 로 자동으로 나눈다(위 MAX_MERGE_PIXELS 참고) — 장당 해상도는 항상
+ * IMAGE_PIXEL_RATIO 그대로 유지되고, 대신 결과 이미지 장수가 늘어난다.
+ */
+export async function captureAllPagesChunked(
+  onProgress?: CaptureProgress,
+  opts: CaptureOptions = {},
+): Promise<Blob[]> {
+  const canvases = await capturePageCanvases(onProgress, opts)
+  const groups = groupByPixelBudget(canvases)
+  return Promise.all(groups.map(stitchCanvases))
 }
 
 /** 두 프레임 양보 — 바뀐 DOM/스타일이 실제로 페인트될 시간을 준다 */

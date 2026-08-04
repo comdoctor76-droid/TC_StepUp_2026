@@ -37,24 +37,42 @@ export function outputFileName(name: string, code: string, ext = 'png', d = new 
   return `${outputFileStem(name, code, d)}.${ext}`
 }
 
+/**
+ * 이미지가 여러 장으로 나뉠 때(캔버스 픽셀 한도 때문에 — captureAllPagesChunked
+ * 참고) 파일명에 순번을 붙인다. 1장이면 기존과 같은 이름 그대로.
+ * 예: 염도경(1B4503)_20260727_1530_1of3.png
+ */
+export function outputImageFileNames(name: string, code: string, count: number, d = new Date()): string[] {
+  if (count <= 1) return [outputFileName(name, code, 'png', d)]
+  const stem = outputFileStem(name, code, d)
+  return Array.from({ length: count }, (_, i) => `${stem}_${i + 1}of${count}.png`)
+}
+
 export type ShareOutcome = 'shared' | 'downloaded' | 'cancelled'
 
-/** 파일 공유 → 실패/미지원 시 다운로드 폴백 */
-export async function shareOrDownload(
-  blob: Blob,
-  fileName: string,
+/**
+ * 파일(들) 공유 → 실패/미지원 시 다운로드 폴백.
+ *
+ * Web Share API Level 2 는 files 배열에 여러 파일을 한 번에 담을 수 있다 —
+ * 캔버스 픽셀 한도로 이미지가 여러 장으로 나뉘어도 공유 시트는 한 번만 뜬다.
+ * 다운로드 폴백은 여러 장을 순서대로 내려받되, 브라우저가 연속 다운로드를
+ * 팝업 차단하지 않도록 짧게 텀을 둔다.
+ */
+export async function shareOrDownloadMany(
+  blobs: Blob[],
+  fileNames: string[],
   title: string,
 ): Promise<ShareOutcome> {
-  const file = new File([blob], fileName, { type: blob.type || 'image/png' })
+  const files = blobs.map((b, i) => new File([b], fileNames[i], { type: b.type || 'image/png' }))
 
   const nav = navigator as Navigator & {
     canShare?: (d: ShareData) => boolean
     share?: (d: ShareData) => Promise<void>
   }
 
-  if (nav.share && nav.canShare?.({ files: [file] })) {
+  if (nav.share && nav.canShare?.({ files })) {
     try {
-      await nav.share({ files: [file], title, text: title })
+      await nav.share({ files, title, text: title })
       return 'shared'
     } catch (err) {
       // 사용자가 공유 시트를 닫은 경우는 실패가 아니다
@@ -63,8 +81,16 @@ export async function shareOrDownload(
     }
   }
 
-  download(blob, fileName)
+  for (let i = 0; i < blobs.length; i++) {
+    download(blobs[i], fileNames[i])
+    if (i < blobs.length - 1) await new Promise((r) => setTimeout(r, 300))
+  }
   return 'downloaded'
+}
+
+/** 파일 하나 공유 → 실패/미지원 시 다운로드 폴백 (shareOrDownloadMany 의 1장짜리 버전) */
+export function shareOrDownload(blob: Blob, fileName: string, title: string): Promise<ShareOutcome> {
+  return shareOrDownloadMany([blob], [fileName], title)
 }
 
 export function download(blob: Blob, fileName: string) {

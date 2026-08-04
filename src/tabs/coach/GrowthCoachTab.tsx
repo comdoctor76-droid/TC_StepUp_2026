@@ -16,10 +16,17 @@ import { GoalCard } from './GoalCard'
 import { CoachPrintRoot } from './CoachPrintRoot'
 import { buildCoachPageProps, incomeBand } from './buildCoachPageProps'
 import type { CoachPageProps } from './types'
-import { printAll, captureAllPages } from '../../export/captureAll'
+import { printAll, captureAllPagesChunked } from '../../export/captureAll'
 import { exportPdf } from '../../export/pdf'
 import { savePdf } from '../../export/pdfSave'
-import { canShareFiles, isMobile, outputFileName, outputFileStem, shareOrDownload } from '../../export/share'
+import {
+  canShareFiles,
+  isMobile,
+  outputFileName,
+  outputFileStem,
+  outputImageFileNames,
+  shareOrDownloadMany,
+} from '../../export/share'
 
 /* bodyClass: 캡처하는 동안 인쇄와 같은 조밀 스타일 + A4 고정 높이를 적용한다
    (coach.css 의 body.capturing-coach 규칙 참고) */
@@ -135,17 +142,21 @@ export function GrowthCoachTab({ A, caption }: { A: FullAnalysis; caption: strin
     setBusyMode('image')
     setBusy('0')
     try {
-      const blob = await captureAllPages((done, total) => {
+      // 성장코칭은 최대 16장까지 나와 한 캔버스로 다 합치면 캔버스 픽셀 한도를
+      // 넘기므로 여러 장의 PNG로 자동 분할된다 — 공유 시트는 한 번만 뜬다.
+      const blobs = await captureAllPagesChunked((done, total) => {
         if (isCurrentOp(id)) setBusy(`${done} / ${total}`)
       }, COACH_CAPTURE_OPTS)
-      const fileName = outputFileName(A.profile.name, A.profile.code)
-      const result = await shareOrDownload(blob, fileName, `${A.profile.name} 플래너 성장코칭`)
+      const fileNames = outputImageFileNames(A.profile.name, A.profile.code, blobs.length)
+      const result = await shareOrDownloadMany(blobs, fileNames, `${A.profile.name} 플래너 성장코칭`)
       if (!isCurrentOp(id)) return
       setToast(
         result === 'shared'
           ? '공유했습니다.'
           : result === 'downloaded'
-            ? `이미지를 저장했습니다 — ${fileName}`
+            ? blobs.length > 1
+              ? `이미지 ${blobs.length}장을 저장했습니다`
+              : `이미지를 저장했습니다 — ${fileNames[0]}`
             : '공유를 취소했습니다.',
       )
       setTimeout(() => setToast(null), 5000)
