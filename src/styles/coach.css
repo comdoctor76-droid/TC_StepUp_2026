@@ -1941,8 +1941,18 @@
   padding: 12px 18px;
   margin-bottom: 16px;
   position: sticky;
-  top: 8px;
-  z-index: 20;
+  /* top:8px 만 두면(뷰포트 최상단 기준) 위에 이미 고정돼 있는 .appbar(63px)
+     +.tabbar(53px)와 스크롤 중 겹친다 — 그 아래(111px)에 8px 여백을 두고
+     붙는다. z-index 도 탭바(19)보다 낮춰, 오차가 나도 앱 상단바가 이긴다. */
+  top: 119px;
+  z-index: 15;
+}
+/* app.css 의 .tabbar 모바일 오프셋(top:106px, 같은 820px 기준)과 짝을 맞춘다 —
+   이 폭 아래에서는 앱바의 액션 버튼이 줄바꿈해 113px 로 늘어난다. */
+@media (max-width: 820px) {
+  .hl-bar {
+    top: 167px;
+  }
 }
 .hl-title {
   display: flex;

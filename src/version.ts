@@ -5,7 +5,7 @@
    CHANGELOG 에 한 줄씩 남긴다.
    ══════════════════════════════════════════════════════════════════════ */
 
-export const APP_VERSION = '0.56'
+export const APP_VERSION = '0.57'
 
 export const CONTACT = {
   dept: '개인마케팅교육본부 / 영업교육운영파트',
@@ -35,6 +35,10 @@ export const DISCLAIMER =
 
 /** 수정 이력 (최신이 위) */
 export const CHANGELOG: { version: string; note: string }[] = [
+  {
+    version: '0.57',
+    note: '하이라이트 화면에서 <b>스크롤을 올리면 상단 제목·버튼이 화면 헤더와 겹치던 문제</b> 수정 — 하이라이트 안의 확대·다운로드 바가 뷰포트 맨 위(8px)를 기준으로 고정돼, 항상 그 위에 떠 있는 앱 상단바·탭줄과 스크롤 중 겹쳐 보였다. 이제 상단바·탭줄 아래로 내려 붙는다',
+  },
   {
     version: '0.56',
     note: '모바일 PDF/이미지 공유 시 <b>파일과 함께 blob 링크가 텍스트로 같이 전송되던 문제</b> 수정 — 공유 대화상자를 열 때 files 와 함께 title/text 를 같이 넘기면 iOS Safari 가 파일의 임시 주소(blob: URL)를 별도 링크로 만들어 카카오톡 등에 파일과 나란히 보내곤 했다. 이제 파일만 단독으로 넘겨 카카오톡 등에는 파일 하나만 전송된다',
