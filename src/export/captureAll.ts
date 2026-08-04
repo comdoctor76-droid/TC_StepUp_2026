@@ -88,6 +88,34 @@ async function waitForFonts(timeoutMs = FONT_WAIT_TIMEOUT_MS) {
   await Promise.race([ready, new Promise((r) => setTimeout(r, timeoutMs))])
 }
 
+/**
+ * root 안의 <img> 가 전부 로드(또는 실패)될 때까지 대기 — 절대 멈추지 않는다.
+ *
+ * 표지처럼 cover prop 이 세팅되는 순간에야 <img> 가 DOM 에 처음 붙는 경우, 호출부의
+ * nextPaint()(두 프레임 양보)는 React 가 그 <img> 를 실제로 그렸다는 것만 보장할 뿐
+ * 이미지 바이트 다운로드가 끝났다는 보장은 아니다 — 세션 첫 인쇄/PDF/이미지 저장에서만
+ * 표지가 빈 채로 나오고, 그다음부터는 브라우저가 이미 캐시해 둬서 정상으로 보이던
+ * 문제의 원인이었다.
+ */
+async function waitForImages(root: ParentNode, timeoutMs = FONT_WAIT_TIMEOUT_MS) {
+  const pending = Array.from(root.querySelectorAll('img')).filter(
+    (img) => !(img.complete && img.naturalWidth > 0),
+  )
+  if (pending.length === 0) return
+  await Promise.race([
+    Promise.all(
+      pending.map(
+        (img) =>
+          new Promise<void>((resolve) => {
+            img.addEventListener('load', () => resolve(), { once: true })
+            img.addEventListener('error', () => resolve(), { once: true })
+          }),
+      ),
+    ),
+    new Promise((r) => setTimeout(r, timeoutMs)),
+  ])
+}
+
 /** rootId 안의 pageSelector 들을 순서대로 캡처해 캔버스 배열로 반환 (스티칭 없음) */
 export async function capturePageCanvases(
   onProgress?: CaptureProgress,
@@ -105,6 +133,7 @@ export async function capturePageCanvases(
   if (bodyClass) document.body.classList.add(bodyClass)
   try {
     await waitForFonts()
+    await waitForImages(root)
 
     const canvases: HTMLCanvasElement[] = []
     for (let i = 0; i < pages.length; i++) {
@@ -266,6 +295,10 @@ export async function printAll(fileStem: string, onReady?: () => void, bodyClass
   if (bodyClass) document.body.classList.add(bodyClass)
   // 인쇄용 스타일이 실제로 적용된 뒤에 인쇄를 시작한다
   await nextPaint()
+  // bodyClass 로 어느 쪽이 인쇄 대상인지 알 수 있다 — 그 안의 표지 등 <img> 가
+  // 실제로 로드될 때까지 기다린다(세션 첫 인쇄에서만 표지가 비어 보이던 문제).
+  const activeRoot = document.getElementById(bodyClass ? 'coach-print-root' : 'print-root')
+  if (activeRoot) await waitForImages(activeRoot)
   onReady?.()
 
   await printAndWait()
