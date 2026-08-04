@@ -29,13 +29,7 @@ import {
   shareOrDownloadMany,
 } from '../export/share'
 import type { FullAnalysis } from '../calc'
-import {
-  APP_VERSION,
-  CONTACT_LINE,
-  REPORT_TITLE,
-  REPORT_TITLE_SHORT,
-  TOTAL_PAGES,
-} from '../version'
+import { APP_VERSION, CONTACT_LINE, REPORT_TITLE, TOTAL_PAGES } from '../version'
 
 const TABS = [
   { id: 'report', label: '레포트', title: REPORT_TITLE, eyebrow: '' },
@@ -151,11 +145,7 @@ export function Report({
       })
       // 캔버스 픽셀 한도 때문에 여러 장으로 나뉠 수 있다 — 공유 시트는 한 번만 뜬다.
       const fileNames = outputImageFileNames(A.profile.name, A.profile.code, blobs.length)
-      const result = await shareOrDownloadMany(
-        blobs,
-        fileNames,
-        `${A.profile.name} 플래너 ${REPORT_TITLE_SHORT}`,
-      )
+      const result = await shareOrDownloadMany(blobs, fileNames)
       if (!isCurrent(id)) return
       setToast(
         result === 'shared'
@@ -196,11 +186,7 @@ export function Report({
         if (isCurrent(id)) setBusy(`${d} / ${t}`)
       })
       const fileName = outputFileName(A.profile.name, A.profile.code, 'pdf')
-      const result = await shareOrDownloadMany(
-        [blob],
-        [fileName],
-        `${A.profile.name} 플래너 ${REPORT_TITLE_SHORT}`,
-      )
+      const result = await shareOrDownloadMany([blob], [fileName])
       if (!isCurrent(id)) return
       setToast(
         result === 'shared'

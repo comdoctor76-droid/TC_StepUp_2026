@@ -61,7 +61,6 @@ export type ShareOutcome = 'shared' | 'downloaded' | 'cancelled'
 export async function shareOrDownloadMany(
   blobs: Blob[],
   fileNames: string[],
-  title: string,
 ): Promise<ShareOutcome> {
   const files = blobs.map((b, i) => new File([b], fileNames[i], { type: b.type || 'image/png' }))
 
@@ -72,7 +71,10 @@ export async function shareOrDownloadMany(
 
   if (nav.share && nav.canShare?.({ files })) {
     try {
-      await nav.share({ files, title, text: title })
+      // files 와 함께 text/title 을 넘기면 iOS Safari 가 파일의 blob: URL 을
+      // 별도 텍스트로 만들어 카카오톡 등에 링크 미리보기로 같이 전송한다.
+      // 파일만 보내려면 files 단독으로 호출해야 한다.
+      await nav.share({ files })
       return 'shared'
     } catch (err) {
       // 사용자가 공유 시트를 닫은 경우는 실패가 아니다
@@ -89,8 +91,8 @@ export async function shareOrDownloadMany(
 }
 
 /** 파일 하나 공유 → 실패/미지원 시 다운로드 폴백 (shareOrDownloadMany 의 1장짜리 버전) */
-export function shareOrDownload(blob: Blob, fileName: string, title: string): Promise<ShareOutcome> {
-  return shareOrDownloadMany([blob], [fileName], title)
+export function shareOrDownload(blob: Blob, fileName: string): Promise<ShareOutcome> {
+  return shareOrDownloadMany([blob], [fileName])
 }
 
 export function download(blob: Blob, fileName: string) {

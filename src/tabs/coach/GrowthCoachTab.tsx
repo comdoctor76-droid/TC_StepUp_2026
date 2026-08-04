@@ -144,7 +144,7 @@ export function GrowthCoachTab({ A, caption }: { A: FullAnalysis; caption: strin
         if (isCurrentOp(id)) setBusy(`${done} / ${total}`)
       }, COACH_CAPTURE_OPTS)
       const fileName = `${outputFileStem(A.profile.name, A.profile.code)}_성장코칭.pdf`
-      const result = await shareOrDownloadMany([blob], [fileName], `${A.profile.name} 플래너 성장코칭`)
+      const result = await shareOrDownloadMany([blob], [fileName])
       if (!isCurrentOp(id)) return
       setToast(
         result === 'shared'
